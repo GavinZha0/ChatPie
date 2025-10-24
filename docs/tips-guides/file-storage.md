@@ -168,7 +168,7 @@ To test Vercel Blob's `onUploadCompleted` webhook locally, use [ngrok](https://n
 pnpm dev
 
 # Terminal 2: Start ngrok
-ngrok http 3000
+ngrok http 8300
 
 # Add to .env.local
 VERCEL_BLOB_CALLBACK_URL=https://abc123.ngrok-free.app
@@ -206,7 +206,7 @@ The `FileStorage` interface provides:
 
 Local filesystem storage is **not supported** because:
 
-1. **AI APIs can't access localhost**: When AI APIs receive `http://localhost:3000/file.png`, they cannot fetch the file
+1. **AI APIs can't access localhost**: When AI APIs receive `http://localhost:8300/file.png`, they cannot fetch the file
 2. **Serverless incompatibility**: Platforms like Vercel don't support persistent filesystem
 3. **No CDN**: Files aren't globally distributed
 

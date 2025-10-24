@@ -1,6 +1,6 @@
 # 🧪 End-to-End Testing Guide
 
-Comprehensive guide for running and developing end-to-end tests for better-chatbot using Playwright.
+Comprehensive guide for running and developing end-to-end tests for ChatPie using Playwright.
 
 ## Quick Start
 

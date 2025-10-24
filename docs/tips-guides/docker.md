@@ -14,8 +14,8 @@ Docker provides a streamlined and efficient method for managing containerized ap
     Navigate to the desired directory in your terminal and clone the project repository. If you're not already in the project directory after cloning, change into it:
 
     ```sh
-    git clone https://github.com/cgoinglove/better-chatbot
-    cd better-chatbot
+    git clone https://github.com/GavinZha0/ChatPie.git
+    cd ChatPie
     ```
 
 2.  **Set up Environment Variables:**
@@ -37,7 +37,7 @@ Docker provides a streamlined and efficient method for managing containerized ap
     pnpm docker-compose:up
     ```
 
-    Your application should now be running. You can access it by visiting `http://<ipofserver>:3000/` in your web browser. Replace `<ipofserver>` with the IP address of the server where Docker is running (this will likely be `localhost` if you're running it on your local machine).
+    Your application should now be running. You can access it by visiting `http://<ipofserver>:8300/` in your web browser. Replace `<ipofserver>` with the IP address of the server where Docker is running (this will likely be `localhost` if you're running it on your local machine).
 
 ## Using your own database
 

@@ -8,7 +8,7 @@ To use Google as a social provider, you need to get your Google credentials. You
 - Click **Create Credentials** and select **OAuth client ID**.
 - Choose **Web application** as the application type.
 - In **Authorized redirect URIs**, set:
-  - For local development: `http://localhost:3000/api/auth/callback/google`
+  - For local development: `http://localhost:8300/api/auth/callback/google`
   - For production: your deployed application's URL, e.g. `https://example.com/api/auth/callback/google`
 - If you change the base path of your authentication routes, update the redirect URL accordingly.
 - After creation, copy your **Client ID** and **Client Secret** and add them to your `.env` file:
@@ -22,7 +22,7 @@ To use Google as a social provider, you need to get your Google credentials. You
 To use GitHub sign in, you need a client ID and client secret. You can get them from the [GitHub Developer Portal](https://github.com/settings/developers).
 
 - For local development, set the redirect URL to:
-  - `http://localhost:3000/api/auth/callback/github`
+  - `http://localhost:8300/api/auth/callback/github`
 - For production, set it to your deployed application's URL, e.g.:
   - `https://your-domain.com/api/auth/callback/github`
 - If you change the base path of your authentication routes, make sure to update the redirect URL accordingly.
@@ -41,7 +41,7 @@ To use Microsoft as a social provider, you need to get your Microsoft credential
 - Click **New registration**.
 - Choose **Web** as the application type.
 - In **Redirect URIs**, set:
-  - For local development: `http://localhost:3000/api/auth/callback/microsoft`
+  - For local development: `http://localhost:8300/api/auth/callback/microsoft`
   - For production: your deployed application's URL, e.g. `https://example.com/api/auth/callback/microsoft`
 - If you change the base path of your authentication routes, update the redirect URL accordingly.
 - Add your credentials to your `.env` file:
@@ -94,17 +94,17 @@ For OAuth to work correctly, you must set the `BETTER_AUTH_URL` environment vari
 
 ```text
 # For local development with HTTPS
-BETTER_AUTH_URL=https://localhost:3000
+BETTER_AUTH_URL=https://localhost:8300
 
 # For local development with HTTP (default)
-BETTER_AUTH_URL=http://localhost:3000
+BETTER_AUTH_URL=http://localhost:8300
 
 # For production
 BETTER_AUTH_URL=https://yourdomain.com
 ```
 
-**Important:** If you're using HTTPS locally (e.g., via a reverse proxy or custom SSL setup), make sure to set `BETTER_AUTH_URL=https://localhost:3000` to ensure OAuth callbacks work correctly.
+**Important:** If you're using HTTPS locally (e.g., via a reverse proxy or custom SSL setup), make sure to set `BETTER_AUTH_URL=https://localhost:8300` to ensure OAuth callbacks work correctly.
 
 ## Done
 
-You can now sign in to better-chatbot using your Google, GitHub or Microsoft account. Restart the application to apply the changes.
+You can now sign in to ChatPie using your Google, GitHub or Microsoft account. Restart the application to apply the changes.

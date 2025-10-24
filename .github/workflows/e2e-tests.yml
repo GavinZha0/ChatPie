@@ -17,10 +17,10 @@ jobs:
 
       # Authentication
       BETTER_AUTH_SECRET: test-secret-key-for-ci-only-not-for-production-use
-      BETTER_AUTH_URL: http://localhost:3000
+      BETTER_AUTH_URL: http://localhost:8300
 
       # Application
-      NEXT_PUBLIC_BASE_URL: http://localhost:3000
+      NEXT_PUBLIC_BASE_URL: http://localhost:8300
 
       # LLM Provider (OpenRouter with free models)
       OPENROUTER_API_KEY: ${{ secrets.E2E_OPENROUTER_API_KEY || 'test-key' }}

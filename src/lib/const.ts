@@ -28,7 +28,7 @@ export const BASE_URL = (() => {
     if (vercelDomain) return `https://${vercelDomain}`;
   }
 
-  return `http://localhost:${process.env.PORT || 3000}`;
+  return `http://localhost:${process.env.PORT || 8300}`;
 })().replace(/\/+$/, "");
 
 export const BASE_THEMES = [
