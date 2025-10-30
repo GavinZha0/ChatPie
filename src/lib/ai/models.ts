@@ -48,9 +48,9 @@ const staticModels = {
     "grok-3-mini": xai("grok-3-mini"),
   },
   ollama: {
-    "gemma3:1b": ollama("gemma3:1b"),
-    "gemma3:4b": ollama("gemma3:4b"),
-    "gemma3:12b": ollama("gemma3:12b"),
+    "mistral-small3.1:24b": ollama("mistral-small3.1:24b"),
+    "gemma3:27b": ollama("gemma3:27b"),
+    "qwen3:32b": ollama("gemma3:27b"),
   },
   groq: {
     "kimi-k2-instruct": groq("moonshotai/kimi-k2-instruct"),

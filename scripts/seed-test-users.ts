@@ -8,14 +8,24 @@
  */
 
 import { config } from "dotenv";
-
+import { pathToFileURL } from "url";
 import { TEST_USERS } from "../tests/constants/test-users";
 
 // Load environment variables FIRST
 if (process.env.CI) {
-  config({ path: ".env.test" });
+  const result = config({ path: ".env.test" });
+  if (result.error) {
+    console.error("❌ Failed to load .env.test:", result.error);
+  } else {
+    console.log("✅ .env.test loaded successfully");
+  }
 } else {
-  config();
+  const result = config();
+  if (result.error) {
+    console.error("❌ Failed to load .env:", result.error);
+  } else {
+    console.log("✅ .env loaded successfully");
+  }
 }
 
 import { auth } from "auth/auth-instance";
@@ -435,8 +445,10 @@ async function seedSampleUsageData(userIds: string[]) {
   }
 }
 
+const currentFileUrl = import.meta.url;
+const executedFileUrl = pathToFileURL(process.argv[1]).href;
 // Run the seeding if this script is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (currentFileUrl === executedFileUrl) {
   seedTestUsers()
     .then(async () => {
       console.log("🎉 Seeding completed!");

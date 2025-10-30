@@ -13,7 +13,7 @@ jobs:
 
     env:
       # Database
-      POSTGRES_URL: postgresql://testuser:testpass@localhost:5432/better_chatbot_test
+      POSTGRES_URL: postgresql://testuser:testpass@localhost:5432/chatpie
 
       # Authentication
       BETTER_AUTH_SECRET: test-secret-key-for-ci-only-not-for-production-use

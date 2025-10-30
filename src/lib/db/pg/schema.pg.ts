@@ -1,6 +1,7 @@
 import { Agent } from "app-types/agent";
 import { UserPreferences } from "app-types/user";
 import { MCPServerConfig } from "app-types/mcp";
+import { LLMConfig } from "app-types/provider";
 import { sql } from "drizzle-orm";
 import {
   pgTable,
@@ -12,6 +13,7 @@ import {
   unique,
   varchar,
   index,
+  serial,
 } from "drizzle-orm/pg-core";
 import { isNotNull } from "drizzle-orm";
 import { DBWorkflow, DBEdge, DBNode } from "app-types/workflow";
@@ -374,3 +376,15 @@ export const ChatExportCommentTable = pgTable("chat_export_comment", {
 export type ArchiveEntity = typeof ArchiveTable.$inferSelect;
 export type ArchiveItemEntity = typeof ArchiveItemTable.$inferSelect;
 export type BookmarkEntity = typeof BookmarkTable.$inferSelect;
+
+export const ProviderTable = pgTable("provider", {
+  id: serial("id").primaryKey(),
+  icon: varchar("icon", { length: 32 }).notNull(),
+  name: varchar("name", { length: 32 }).notNull(),
+  baseUrl: varchar("base_url", { length: 128 }).notNull(),
+  apiKey: text("api_key"),
+  llm: json("llm").$type<LLMConfig[]>(),
+  updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export type ProviderEntity = typeof ProviderTable.$inferSelect;
