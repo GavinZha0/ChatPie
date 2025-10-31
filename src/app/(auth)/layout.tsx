@@ -2,6 +2,7 @@ import { Think } from "ui/think";
 import { getTranslations } from "next-intl/server";
 import { FlipWords } from "ui/flip-words";
 import { BackgroundPaths } from "ui/background-paths";
+import { APP_NAME, APP_SLOGAN } from "lib/const";
 
 export default async function AuthLayout({
   children,
@@ -17,8 +18,17 @@ export default async function AuthLayout({
             </div>
             <h1 className="text-xl font-semibold flex items-center gap-3 animate-in fade-in duration-1000">
               <Think />
-
-              <span>ChatPie - Work together, talk smarter.</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo.png"
+                alt="Logo"
+                width={36}
+                height={36}
+                className="object-contain"
+              />
+              <span>
+                {APP_NAME} - {APP_SLOGAN}
+              </span>
             </h1>
             <div className="flex-1" />
             <FlipWords

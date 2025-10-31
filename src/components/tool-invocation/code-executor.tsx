@@ -2,6 +2,7 @@ import { useCopy } from "@/hooks/use-copy";
 import { ToolUIPart } from "ai";
 
 import { callCodeRunWorker } from "lib/code-runner/call-worker";
+import { APP_NAME } from "lib/const";
 
 import {
   CodeRunnerResult,
@@ -215,7 +216,7 @@ export const CodeExecutor = memo(function CodeExecutor({
           ) : (
             <div className="w-1 h-1 mr-1 ring ring-border rounded-full" />
           )}
-          ChatPie
+          {APP_NAME}
           <Percent className="size-2" />
         </div>
         {logs}

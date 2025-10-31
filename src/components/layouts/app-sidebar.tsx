@@ -11,6 +11,7 @@ import { SidebarHeaderShared } from "./sidebar-header";
 import { isShortcutEvent, Shortcuts } from "lib/keyboard-shortcuts";
 import { AppSidebarUser } from "./app-sidebar-user";
 import { BasicUser } from "app-types/user";
+import { APP_NAME } from "lib/const";
 
 export function AppSidebar({
   user,
@@ -39,7 +40,19 @@ export function AppSidebar({
       className="border-r border-sidebar-border/80"
     >
       <SidebarHeaderShared
-        title="ChatPie"
+        title={
+          <div className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.png"
+              alt="Logo"
+              width={32}
+              height={32}
+              className="object-contain"
+            />
+            <span>{APP_NAME}</span>
+          </div>
+        }
         href="/"
         enableShortcuts={true}
         onLinkClick={() => {

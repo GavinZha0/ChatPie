@@ -28,6 +28,7 @@ import {
   Settings,
 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { APP_GITHUB_REPO } from "lib/const";
 import { appStore } from "@/app/store";
 import { BASE_THEMES, COOKIE_KEY_LOCALE, SUPPORTED_LOCALES } from "lib/const";
 import { capitalizeFirstLetter, cn, fetcher } from "lib/utils";
@@ -139,10 +140,7 @@ export function AppSidebarUserInner(props: {
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
-                window.open(
-                  "https://github.com/GavinZha0/ChatPie/issues/new",
-                  "_blank",
-                );
+                window.open(`${APP_GITHUB_REPO}/issues/new`, "_blank");
               }}
             >
               <GithubIcon className="size-4 fill-foreground" />

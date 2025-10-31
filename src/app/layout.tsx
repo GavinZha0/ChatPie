@@ -8,6 +8,7 @@ import {
 import { Toaster } from "ui/sonner";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
+import { APP_NAME, APP_DESCRIPTION } from "lib/const";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -18,8 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ChatPie",
-  description: "ChatPie is a chatbot that uses the Tools to answer questions.",
+  title: APP_NAME,
+  description: APP_DESCRIPTION,
 };
 
 export default async function RootLayout({

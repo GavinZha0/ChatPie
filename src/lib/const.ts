@@ -1,6 +1,13 @@
 export const IS_DEV = process.env.NODE_ENV !== "production";
 export const IS_BROWSER = typeof window !== "undefined";
 
+// Application branding constants
+export const APP_NAME = "ChatPie";
+export const APP_SLOGAN = "Work together. Talk smarter.";
+export const APP_DESCRIPTION =
+  "ChatPie is a chatbot that uses the Tools to answer questions.";
+export const APP_GITHUB_REPO = "https://github.com/GavinZha0/ChatPie";
+
 declare const EdgeRuntime: any;
 export const IS_EDGE_RUNTIME = typeof EdgeRuntime !== "undefined";
 

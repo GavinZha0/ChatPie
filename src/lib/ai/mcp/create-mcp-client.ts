@@ -22,6 +22,7 @@ import {
   Locker,
   withTimeout,
 } from "lib/utils";
+import { APP_NAME } from "lib/const";
 
 import { safe } from "ts-safe";
 import { BASE_URL, IS_MCP_SERVER_REMOTE_ONLY, IS_VERCEL_ENV } from "lib/const";
@@ -138,13 +139,13 @@ export class MCPClient {
         serverUrl: this.serverConfig.url,
         state: oauthState,
         _clientMetadata: {
-          client_name: `ChatPie-${this.name}`,
+          client_name: `${APP_NAME}-${this.name}`,
           grant_types: ["authorization_code", "refresh_token"],
           response_types: ["code"],
           token_endpoint_auth_method: "none", // PKCE flow
           scope: "mcp:tools",
           redirect_uris: [`${BASE_URL}/api/mcp/oauth/callback`],
-          software_id: "ChatPie",
+          software_id: APP_NAME,
           software_version: "1.0.0",
         },
         onRedirectToAuthorization: async (authorizationUrl: URL) => {
@@ -194,7 +195,7 @@ export class MCPClient {
       this.client = undefined;
 
       const client = new Client({
-        name: `ChatPie-${this.name}`,
+        name: `${APP_NAME}-${this.name}`,
         version: "1.0.0",
       });
 

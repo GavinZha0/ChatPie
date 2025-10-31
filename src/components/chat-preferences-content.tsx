@@ -29,6 +29,7 @@ import { useMcpList } from "@/hooks/queries/use-mcp-list";
 import { ChatExportSummary } from "app-types/chat-export";
 import { formatDistanceToNow } from "date-fns";
 import { notify } from "lib/notify";
+import { APP_NAME } from "lib/const";
 
 export function UserInstructionsContent() {
   const t = useTranslations();
@@ -142,7 +143,7 @@ export function UserInstructionsContent() {
             <Skeleton className="h-9" />
           ) : (
             <Input
-              placeholder="ChatPie"
+              placeholder={APP_NAME}
               value={preferences.botName}
               onChange={(e) => {
                 setPreferences({

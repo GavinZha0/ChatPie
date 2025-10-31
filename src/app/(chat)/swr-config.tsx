@@ -3,6 +3,7 @@
 import { BasicUser } from "app-types/user";
 import { useEffect, useMemo } from "react";
 import { SWRConfig, SWRConfiguration } from "swr";
+import { APP_NAME, APP_SLOGAN, APP_GITHUB_REPO } from "lib/const";
 
 export function SWRConfigProvider({
   children,
@@ -24,7 +25,7 @@ export function SWRConfigProvider({
 
   useEffect(() => {
     console.log(
-      "%cWork smarter, chat together\n\n%c ChatPie\nhttps://github.com/GavinZha0/ChatPie",
+      `%c${APP_SLOGAN}\n\n%c ${APP_NAME}\n${APP_GITHUB_REPO}`,
       "color: #00d4ff; font-weight: bold; font-family: monospace; font-size: 16px; text-shadow: 0 0 10px #00d4ff;",
       "color: #888; font-size: 12px;",
     );
