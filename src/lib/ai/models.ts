@@ -1,18 +1,20 @@
 import "server-only";
 
-import { createOllama } from "ollama-ai-provider-v2";
-import { openai } from "@ai-sdk/openai";
-import { google } from "@ai-sdk/google";
-import { anthropic } from "@ai-sdk/anthropic";
-import { xai } from "@ai-sdk/xai";
-import { LanguageModelV2, openrouter } from "@openrouter/ai-sdk-provider";
-import { createGroq } from "@ai-sdk/groq";
 import { LanguageModel } from "ai";
-import {
-  createOpenAICompatibleModels,
-  openaiCompatibleModelsSafeParse,
-} from "./create-openai-compatiable";
 import { ChatModel } from "app-types/chat";
+import { Provider } from "app-types/provider";
+import { createOllama } from "ollama-ai-provider-v2";
+import { createOpenAI } from "@ai-sdk/openai";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createAnthropic } from "@ai-sdk/anthropic";
+import { createXai } from "@ai-sdk/xai";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { createGroq } from "@ai-sdk/groq";
+import { createDeepSeek } from "@ai-sdk/deepseek";
+import { createQwen } from "qwen-ai-provider";
+import { createDifyProvider } from "dify-ai-provider";
+import { providerRepository } from "lib/db/repository";
+import logger from "logger";
 import {
   DEFAULT_FILE_PART_MIME_TYPES,
   OPENAI_FILE_MIME_TYPES,
@@ -21,208 +23,349 @@ import {
   XAI_FILE_MIME_TYPES,
 } from "./file-support";
 
-const ollama = createOllama({
-  baseURL: process.env.OLLAMA_BASE_URL || "http://localhost:11434/api",
-});
-const groq = createGroq({
-  baseURL: process.env.GROQ_BASE_URL || "https://api.groq.com/openai/v1",
-  apiKey: process.env.GROQ_API_KEY,
-});
+// ============================================
+// Type Definitions
+// ============================================
 
-const staticModels = {
-  openai: {
-    "gpt-4.1": openai("gpt-4.1"),
-    "gpt-4.1-mini": openai("gpt-4.1-mini"),
-    "o4-mini": openai("o4-mini"),
-    o3: openai("o3"),
-    "gpt-5-chat": openai("gpt-5-chat-latest"),
-    "gpt-5": openai("gpt-5"),
-    "gpt-5-mini": openai("gpt-5-mini"),
-    "gpt-5-codex": openai("gpt-5-codex"),
-    "gpt-5-nano": openai("gpt-5-nano"),
-  },
-  google: {
-    "gemini-2.5-flash-lite": google("gemini-2.5-flash-lite"),
-    "gemini-2.5-flash": google("gemini-2.5-flash"),
-    "gemini-2.5-pro": google("gemini-2.5-pro"),
-  },
-  anthropic: {
-    "sonnet-4.5": anthropic("claude-sonnet-4-5"),
-    "haiku-4.5": anthropic("claude-haiku-4-5"),
-    "opus-4.1": anthropic("claude-opus-4-1"),
-  },
-  xai: {
-    "grok-4-fast": xai("grok-4-fast-non-reasoning"),
-    "grok-4": xai("grok-4"),
-    "grok-3": xai("grok-3"),
-    "grok-3-mini": xai("grok-3-mini"),
-  },
-  ollama: {
-    "mistral-small3.1:24b": ollama("mistral-small3.1:24b"),
-    "gemma3:27b": ollama("gemma3:27b"),
-    "qwen3:14b": ollama("qwen3:14b"),
-    "gpt-oss:20b": ollama("gpt-oss:20b"),
-  },
-  groq: {
-    "kimi-k2-instruct": groq("moonshotai/kimi-k2-instruct"),
-    "llama-4-scout-17b": groq("meta-llama/llama-4-scout-17b-16e-instruct"),
-    "gpt-oss-20b": groq("openai/gpt-oss-20b"),
-    "gpt-oss-120b": groq("openai/gpt-oss-120b"),
-    "qwen3-32b": groq("qwen/qwen3-32b"),
-  },
-  openRouter: {
-    "gpt-oss-20b:free": openrouter("openai/gpt-oss-20b:free"),
-    "qwen3-8b:free": openrouter("qwen/qwen3-8b:free"),
-    "qwen3-14b:free": openrouter("qwen/qwen3-14b:free"),
-    "qwen3-coder:free": openrouter("qwen/qwen3-coder:free"),
-    "deepseek-r1:free": openrouter("deepseek/deepseek-r1-0528:free"),
-    "deepseek-v3:free": openrouter("deepseek/deepseek-chat-v3-0324:free"),
-    "gemini-2.0-flash-exp:free": openrouter("google/gemini-2.0-flash-exp:free"),
-  },
+/**
+ * Provider SDK factory type - supports optional second parameter for providers like Dify
+ */
+type ProviderSDKFactory = (
+  modelId: string,
+  options?: { apiKey?: string },
+) => LanguageModel;
+
+// ============================================
+// Constants
+// ============================================
+
+/**
+ * File type support configuration (by provider)
+ */
+const providerFileSupportMap: Record<string, readonly string[]> = {
+  openai: OPENAI_FILE_MIME_TYPES,
+  google: GEMINI_FILE_MIME_TYPES,
+  anthropic: ANTHROPIC_FILE_MIME_TYPES,
+  xai: XAI_FILE_MIME_TYPES,
+  openRouter: DEFAULT_FILE_PART_MIME_TYPES,
 };
 
-const staticUnsupportedModels = new Set([
-  staticModels.openai["o4-mini"],
-  staticModels.ollama["gemma3:1b"],
-  staticModels.ollama["gemma3:4b"],
-  staticModels.ollama["gemma3:12b"],
-  staticModels.openRouter["gpt-oss-20b:free"],
-  staticModels.openRouter["qwen3-8b:free"],
-  staticModels.openRouter["qwen3-14b:free"],
-  staticModels.openRouter["deepseek-r1:free"],
-  staticModels.openRouter["gemini-2.0-flash-exp:free"],
+/**
+ * Models that don't support tool calls (matched by model ID patterns)
+ */
+const toolCallUnsupportedPatterns = [
+  /^o4-mini$/,
+  /^gemma3:(1b|4b|12b)$/,
+  /^gpt-oss-20b:free$/,
+  /^qwen3-(8b|14b):free$/,
+  /^deepseek-r1:free$/,
+  /^gemini-2\.0-flash-exp:free$/,
+];
+
+/**
+ * Providers that don't support image input
+ */
+const imageInputUnsupportedProviders = new Set([
+  "ollama",
+  "groq",
+  "openrouter",
 ]);
 
-const staticSupportImageInputModels = {
-  ...staticModels.google,
-  ...staticModels.xai,
-  ...staticModels.openai,
-  ...staticModels.anthropic,
-};
+// ============================================
+// Cache Management
+// ============================================
 
-const staticFilePartSupportByModel = new Map<
-  LanguageModel,
-  readonly string[]
->();
+/**
+ * Model cache type definition
+ */
+type ModelsCache = {
+  models: Record<string, Record<string, LanguageModel>>;
+  unsupportedModels: Set<LanguageModel>;
+  filePartSupportByModel: Map<LanguageModel, readonly string[]>;
+  providers: Provider[];
+  timestamp: number;
+} | null;
 
-const registerFileSupport = (
-  model: LanguageModel | undefined,
-  mimeTypes: readonly string[] = DEFAULT_FILE_PART_MIME_TYPES,
-) => {
-  if (!model) return;
-  staticFilePartSupportByModel.set(model, Array.from(mimeTypes));
-};
+/**
+ * Global model cache
+ */
+let modelsCache: ModelsCache = null;
 
-registerFileSupport(staticModels.openai["gpt-4.1"], OPENAI_FILE_MIME_TYPES);
-registerFileSupport(
-  staticModels.openai["gpt-4.1-mini"],
-  OPENAI_FILE_MIME_TYPES,
-);
-registerFileSupport(staticModels.openai["gpt-5"], OPENAI_FILE_MIME_TYPES);
-registerFileSupport(staticModels.openai["gpt-5-mini"], OPENAI_FILE_MIME_TYPES);
-registerFileSupport(staticModels.openai["gpt-5-nano"], OPENAI_FILE_MIME_TYPES);
+/**
+ * Cache TTL (5 minutes)
+ */
+const CACHE_TTL = 5 * 60 * 1000;
 
-registerFileSupport(
-  staticModels.google["gemini-2.5-flash-lite"],
-  GEMINI_FILE_MIME_TYPES,
-);
-registerFileSupport(
-  staticModels.google["gemini-2.5-flash"],
-  GEMINI_FILE_MIME_TYPES,
-);
-registerFileSupport(
-  staticModels.google["gemini-2.5-pro"],
-  GEMINI_FILE_MIME_TYPES,
-);
+// ============================================
+// Core Functionality
+// ============================================
 
-registerFileSupport(
-  staticModels.anthropic["sonnet-4.5"],
-  ANTHROPIC_FILE_MIME_TYPES,
-);
-registerFileSupport(
-  staticModels.anthropic["opus-4.1"],
-  ANTHROPIC_FILE_MIME_TYPES,
-);
+/**
+ * Create a provider SDK factory
+ * @param providerName Provider name
+ * @param config Provider configuration
+ * @returns A factory function that creates model instances
+ */
+function createProviderSDK(
+  providerName: string,
+  config: Provider,
+): ProviderSDKFactory | null {
+  const apiKey = config.apiKey || undefined;
+  const baseURL = config.baseUrl || undefined;
 
-registerFileSupport(staticModels.xai["grok-4-fast"], XAI_FILE_MIME_TYPES);
-registerFileSupport(staticModels.xai["grok-4"], XAI_FILE_MIME_TYPES);
-registerFileSupport(staticModels.xai["grok-3"], XAI_FILE_MIME_TYPES);
-registerFileSupport(staticModels.xai["grok-3-mini"], XAI_FILE_MIME_TYPES);
-registerFileSupport(
-  staticModels.openRouter["gemini-2.0-flash-exp:free"],
-  GEMINI_FILE_MIME_TYPES,
-);
-
-const openaiCompatibleProviders = openaiCompatibleModelsSafeParse(
-  process.env.OPENAI_COMPATIBLE_DATA,
-);
-
-const {
-  providers: openaiCompatibleModels,
-  unsupportedModels: openaiCompatibleUnsupportedModels,
-} = createOpenAICompatibleModels(openaiCompatibleProviders);
-
-const allModels = { ...openaiCompatibleModels, ...staticModels };
-
-const allUnsupportedModels = new Set([
-  ...openaiCompatibleUnsupportedModels,
-  ...staticUnsupportedModels,
-]);
-
-export const isToolCallUnsupportedModel = (model: LanguageModel) => {
-  return allUnsupportedModels.has(model);
-};
-
-const isImageInputUnsupportedModel = (model: LanguageModelV2) => {
-  return !Object.values(staticSupportImageInputModels).includes(model);
-};
-
-export const getFilePartSupportedMimeTypes = (model: LanguageModel) => {
-  return staticFilePartSupportByModel.get(model) ?? [];
-};
-
-const fallbackModel = staticModels.openai["gpt-4.1"];
-
-export const customModelProvider = {
-  modelsInfo: Object.entries(allModels).map(([provider, models]) => ({
-    provider,
-    models: Object.entries(models).map(([name, model]) => ({
-      name,
-      isToolCallUnsupported: isToolCallUnsupportedModel(model),
-      isImageInputUnsupported: isImageInputUnsupportedModel(model),
-      supportedFileMimeTypes: [...getFilePartSupportedMimeTypes(model)],
-    })),
-    hasAPIKey: checkProviderAPIKey(provider as keyof typeof staticModels),
-  })),
-  getModel: (model?: ChatModel): LanguageModel => {
-    if (!model) return fallbackModel;
-    return allModels[model.provider]?.[model.model] || fallbackModel;
-  },
-};
-
-function checkProviderAPIKey(provider: keyof typeof staticModels) {
-  let key: string | undefined;
-  switch (provider) {
-    case "openai":
-      key = process.env.OPENAI_API_KEY;
-      break;
-    case "google":
-      key = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-      break;
-    case "anthropic":
-      key = process.env.ANTHROPIC_API_KEY;
-      break;
-    case "xai":
-      key = process.env.XAI_API_KEY;
-      break;
-    case "groq":
-      key = process.env.GROQ_API_KEY;
-      break;
-    case "openRouter":
-      key = process.env.OPENROUTER_API_KEY;
-      break;
+  switch (providerName) {
+    case "openai": {
+      const provider = createOpenAI({ baseURL, apiKey });
+      return (modelId: string) => provider(modelId) as unknown as LanguageModel;
+    }
+    case "google": {
+      const provider = createGoogleGenerativeAI({ baseURL, apiKey });
+      return (modelId: string) => provider(modelId) as unknown as LanguageModel;
+    }
+    case "anthropic": {
+      const provider = createAnthropic({ baseURL, apiKey });
+      return (modelId: string) => provider(modelId) as unknown as LanguageModel;
+    }
+    case "xai": {
+      const provider = createXai({ baseURL, apiKey });
+      return (modelId: string) => provider(modelId) as unknown as LanguageModel;
+    }
+    case "ollama": {
+      if (!apiKey || apiKey === "empty") {
+        const provider = createOllama({ baseURL });
+        return (modelId: string) =>
+          provider(modelId) as unknown as LanguageModel;
+      } else {
+        const provider = createOllama({
+          baseURL,
+          headers: { Authorization: "Bearer " + apiKey },
+        });
+        return (modelId: string) =>
+          provider(modelId) as unknown as LanguageModel;
+      }
+    }
+    case "groq": {
+      const provider = createGroq({ baseURL, apiKey });
+      return (modelId: string) => provider(modelId) as unknown as LanguageModel;
+    }
+    case "openrouter": {
+      const provider = createOpenRouter({ baseURL, apiKey });
+      return (modelId: string) => provider(modelId) as unknown as LanguageModel;
+    }
+    case "deepseek": {
+      const provider = createDeepSeek({ baseURL, apiKey });
+      return (modelId: string) => provider(modelId) as unknown as LanguageModel;
+    }
+    case "qwen": {
+      const provider = createQwen({ baseURL, apiKey });
+      return (modelId: string) => provider(modelId) as unknown as LanguageModel;
+    }
+    case "dify": {
+      const provider = createDifyProvider({ baseURL });
+      return (modelId: string, options?: { apiKey?: string }) => {
+        return provider(modelId, options) as unknown as LanguageModel;
+      };
+    }
     default:
-      return true; // assume the provider has an API key
+      return null;
   }
-  return !!key && key != "****";
 }
+
+/**
+ * Load all models from database and create instances
+ * Results are cached for 5 minutes to reduce database queries
+ */
+export async function loadDynamicModels() {
+  // If cache is valid, return cached result directly
+  if (modelsCache && Date.now() - modelsCache.timestamp < CACHE_TTL) {
+    return modelsCache;
+  }
+
+  try {
+    const providers = await providerRepository.selectAll();
+
+    const models: Record<string, Record<string, LanguageModel>> = {};
+    const unsupportedModels = new Set<LanguageModel>();
+    const filePartSupportByModel = new Map<LanguageModel, readonly string[]>();
+
+    for (const provider of providers) {
+      // Skip providers without API key (except ollama)
+      if (
+        (!provider.baseUrl || !provider.apiKey) &&
+        provider.name !== "ollama"
+      ) {
+        continue;
+      }
+
+      // Get the provider's SDK factory
+      const createModel = createProviderSDK(provider.name, provider);
+      if (!createModel) {
+        logger.warn(`Create ${provider.name} SDK failed, skipping`);
+        continue;
+      }
+
+      // Build all models for this provider
+      const providerModels: Record<string, LanguageModel> = {};
+      const llmConfigs = provider.llm || [];
+
+      for (const llmConfig of llmConfigs) {
+        if (!llmConfig.enabled) {
+          continue;
+        }
+
+        try {
+          // Create model instance
+          // For Dify provider, pass apiKey in options; options will be ignored for other providers
+          const model = createModel(
+            llmConfig.id,
+            provider.name === "dify"
+              ? { apiKey: provider.apiKey || undefined }
+              : undefined,
+          );
+          providerModels[llmConfig.id] = model;
+
+          // Check if model doesn't support tool calls
+          const isToolCallUnsupported = toolCallUnsupportedPatterns.some(
+            (pattern) => pattern.test(llmConfig.id),
+          );
+          if (isToolCallUnsupported) {
+            unsupportedModels.add(model);
+          }
+
+          // Register file support
+          const fileMimeTypes =
+            providerFileSupportMap[provider.name] ||
+            DEFAULT_FILE_PART_MIME_TYPES;
+          filePartSupportByModel.set(model, fileMimeTypes);
+        } catch (error) {
+          logger.error(
+            `Failed to create model ${llmConfig.id} for provider ${provider.name}:`,
+            error,
+          );
+        }
+      }
+
+      if (Object.keys(providerModels).length > 0) {
+        models[provider.name] = providerModels;
+      }
+    }
+
+    // Cache result
+    modelsCache = {
+      models,
+      unsupportedModels,
+      filePartSupportByModel,
+      providers,
+      timestamp: Date.now(),
+    };
+
+    return modelsCache;
+  } catch (error) {
+    logger.error("Failed to load dynamic models:", error);
+    // Return empty result instead of throwing error, keep app availability
+    return {
+      models: {},
+      unsupportedModels: new Set<LanguageModel>(),
+      filePartSupportByModel: new Map<LanguageModel, readonly string[]>(),
+      providers: [],
+    };
+  }
+}
+
+/**
+ * Check if a provider supports image input
+ * @param providerName Provider name
+ * @returns Whether image input is supported
+ */
+export function isImageInputSupported(providerName: string): boolean {
+  return !imageInputUnsupportedProviders.has(providerName);
+}
+
+/**
+ * Invalidate the models cache
+ * Call this when provider configuration changes
+ */
+export function invalidateModelsCache() {
+  modelsCache = null;
+}
+
+// ============================================
+// Public API
+// ============================================
+
+/**
+ * Custom model provider with pure dynamic database-driven configuration
+ * All models are loaded from database, no static configuration
+ */
+export const customModelProvider = {
+  /**
+   * Get model information from database
+   */
+  async getModelsInfo() {
+    const dynamicData = await loadDynamicModels();
+
+    return dynamicData.providers.map((provider) => ({
+      provider: provider.name,
+      models: (provider.llm || [])
+        .filter((llm) => llm.enabled)
+        .map((llm) => {
+          const model = dynamicData.models[provider.name]?.[llm.id];
+          return {
+            name: llm.id,
+            isToolCallUnsupported: model
+              ? dynamicData.unsupportedModels.has(model)
+              : false,
+            isImageInputUnsupported: !isImageInputSupported(provider.name),
+            supportedFileMimeTypes: model
+              ? [...(dynamicData.filePartSupportByModel.get(model) || [])]
+              : [],
+          };
+        }),
+      hasAPIKey: !!provider.apiKey || provider.name === "ollama",
+    }));
+  },
+
+  /**
+   * Get a specific model instance from database
+   * @param model Model identifier
+   * @returns The model instance
+   */
+  async getModel(model?: ChatModel): Promise<LanguageModel> {
+    const dynamicData = await loadDynamicModels();
+
+    if (!model) {
+      // Get the first available model as fallback
+      const firstProvider = dynamicData.providers[0];
+      if (firstProvider) {
+        const firstEnabledModel = firstProvider.llm?.find((m) => m.enabled);
+        if (firstEnabledModel) {
+          const fallbackModel =
+            dynamicData.models[firstProvider.name]?.[firstEnabledModel.id];
+          if (fallbackModel) {
+            return fallbackModel;
+          }
+        }
+      }
+      throw new Error("No models available in database");
+    }
+
+    const dynamicModel = dynamicData.models[model.provider]?.[model.model];
+    if (!dynamicModel) {
+      throw new Error(
+        `Model ${model.provider}/${model.model} not found in database or not enabled`,
+      );
+    }
+
+    return dynamicModel;
+  },
+
+  /**
+   * Check if a model supports tool calls
+   * @param model Model instance
+   * @returns Whether tool calls are supported
+   */
+  async isToolCallSupported(model: LanguageModel): Promise<boolean> {
+    const dynamicData = await loadDynamicModels();
+    return !dynamicData.unsupportedModels.has(model);
+  },
+};

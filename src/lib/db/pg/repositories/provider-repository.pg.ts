@@ -10,8 +10,8 @@ export interface ProviderRepository {
   selectAll(): Promise<
     Array<{
       id: number;
-      icon: string;
       name: string;
+      alias: string;
       baseUrl: string;
       apiKey: string | null;
       llm: LLMConfig[] | null;
@@ -25,8 +25,8 @@ export interface ProviderRepository {
   selectById(id: number): Promise<
     | {
         id: number;
-        icon: string;
         name: string;
+        alias: string;
         baseUrl: string;
         apiKey: string | null;
         llm: LLMConfig[] | null;
@@ -41,8 +41,8 @@ export interface ProviderRepository {
   selectByName(name: string): Promise<
     | {
         id: number;
-        icon: string;
         name: string;
+        alias: string;
         baseUrl: string;
         apiKey: string | null;
         llm: LLMConfig[] | null;
@@ -56,15 +56,15 @@ export interface ProviderRepository {
    */
   save(provider: {
     id?: number;
-    icon: string;
     name: string;
+    alias: string;
     baseUrl: string;
     apiKey?: string | null;
     llm?: LLMConfig[] | null;
   }): Promise<{
     id: number;
-    icon: string;
     name: string;
+    alias: string;
     baseUrl: string;
     apiKey: string | null;
     llm: LLMConfig[] | null;
@@ -123,8 +123,8 @@ export const pgProviderRepository: ProviderRepository = {
       const [result] = await db
         .update(ProviderTable)
         .set({
-          icon: provider.icon,
           name: provider.name,
+          alias: provider.alias,
           baseUrl: provider.baseUrl,
           apiKey: provider.apiKey ?? null,
           llm: provider.llm ?? null,
@@ -138,8 +138,8 @@ export const pgProviderRepository: ProviderRepository = {
       const [result] = await db
         .insert(ProviderTable)
         .values({
-          icon: provider.icon,
           name: provider.name,
+          alias: provider.alias,
           baseUrl: provider.baseUrl,
           apiKey: provider.apiKey ?? null,
           llm: provider.llm ?? null,

@@ -14,8 +14,8 @@ export interface LLMConfig {
  */
 export interface Provider {
   id: number;
-  icon: string;
   name: string;
+  alias: string;
   baseUrl: string;
   apiKey: string | null;
   llm: LLMConfig[] | null;

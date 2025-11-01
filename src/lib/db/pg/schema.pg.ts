@@ -379,8 +379,8 @@ export type BookmarkEntity = typeof BookmarkTable.$inferSelect;
 
 export const ProviderTable = pgTable("provider", {
   id: serial("id").primaryKey(),
-  icon: varchar("icon", { length: 32 }).notNull(),
   name: varchar("name", { length: 32 }).notNull(),
+  alias: varchar("alias", { length: 32 }).notNull(),
   baseUrl: varchar("base_url", { length: 128 }).notNull(),
   apiKey: text("api_key"),
   llm: json("llm").$type<LLMConfig[]>(),

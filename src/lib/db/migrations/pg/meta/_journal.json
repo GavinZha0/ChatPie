@@ -113,6 +113,20 @@
       "when": 1761790552714,
       "tag": "0015_furry_lord_hawal",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1761954199899,
+      "tag": "0016_soft_anita_blake",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1761954223176,
+      "tag": "0017_colossal_genesis",
+      "breakpoints": true
     }
   ]
 }

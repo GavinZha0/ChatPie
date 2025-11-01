@@ -9,7 +9,7 @@ import {
   UIMessage,
 } from "ai";
 
-import { customModelProvider, isToolCallUnsupportedModel } from "lib/ai/models";
+import { customModelProvider } from "lib/ai/models";
 
 import { mcpClientsManager } from "lib/ai/mcp/mcp-manager";
 
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
       attachments = [],
     } = chatApiSchemaRequestBodySchema.parse(json);
 
-    const model = customModelProvider.getModel(chatModel);
+    const model = await customModelProvider.getModel(chatModel);
 
     let thread = await chatRepository.selectThreadDetails(id);
 
@@ -173,7 +173,8 @@ export async function POST(request: Request) {
 
     messages.push(message);
 
-    const supportToolCall = !isToolCallUnsupportedModel(model);
+    const supportToolCall =
+      await customModelProvider.isToolCallSupported(model);
 
     const agentId = (
       mentions.find((m) => m.type === "agent") as Extract<
