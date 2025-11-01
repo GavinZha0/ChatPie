@@ -2,6 +2,7 @@ import "server-only";
 
 import { LanguageModel } from "ai";
 import { ChatModel } from "app-types/chat";
+import type { LlmModel } from "app-types/llm";
 import { Provider } from "app-types/provider";
 import { createOllama } from "ollama-ai-provider-v2";
 import { createOpenAI } from "@ai-sdk/openai";
@@ -13,7 +14,7 @@ import { createGroq } from "@ai-sdk/groq";
 import { createDeepSeek } from "@ai-sdk/deepseek";
 import { createQwen } from "qwen-ai-provider";
 import { createDifyProvider } from "dify-ai-provider";
-import { providerRepository } from "lib/db/repository";
+import { providerRepository, llmRepository } from "lib/db/repository";
 import logger from "logger";
 import {
   DEFAULT_FILE_PART_MIME_TYPES,
@@ -50,26 +51,10 @@ const providerFileSupportMap: Record<string, readonly string[]> = {
   openRouter: DEFAULT_FILE_PART_MIME_TYPES,
 };
 
-/**
- * Models that don't support tool calls (matched by model ID patterns)
- */
-const toolCallUnsupportedPatterns = [
-  /^o4-mini$/,
-  /^gemma3:(1b|4b|12b)$/,
-  /^gpt-oss-20b:free$/,
-  /^qwen3-(8b|14b):free$/,
-  /^deepseek-r1:free$/,
-  /^gemini-2\.0-flash-exp:free$/,
-];
-
-/**
- * Providers that don't support image input
- */
-const imageInputUnsupportedProviders = new Set([
-  "ollama",
-  "groq",
-  "openrouter",
-]);
+type ModelCapability = {
+  supportsFunctionCall: boolean;
+  supportsImageInput: boolean;
+};
 
 // ============================================
 // Cache Management
@@ -83,6 +68,7 @@ type ModelsCache = {
   unsupportedModels: Set<LanguageModel>;
   filePartSupportByModel: Map<LanguageModel, readonly string[]>;
   providers: Provider[];
+  modelCapabilities: Map<LanguageModel, ModelCapability>;
   timestamp: number;
 } | null;
 
@@ -184,9 +170,19 @@ export async function loadDynamicModels() {
   try {
     const providers = await providerRepository.selectAll();
 
+    const llmRecords = await llmRepository.selectAll();
+    const llmByProvider = new Map<string, Map<string, LlmModel>>();
+    for (const llm of llmRecords) {
+      if (!llmByProvider.has(llm.provider)) {
+        llmByProvider.set(llm.provider, new Map());
+      }
+      llmByProvider.get(llm.provider)!.set(llm.id, llm);
+    }
+
     const models: Record<string, Record<string, LanguageModel>> = {};
     const unsupportedModels = new Set<LanguageModel>();
     const filePartSupportByModel = new Map<LanguageModel, readonly string[]>();
+    const modelCapabilities = new Map<LanguageModel, ModelCapability>();
 
     for (const provider of providers) {
       // Skip providers without API key (except ollama)
@@ -224,13 +220,20 @@ export async function loadDynamicModels() {
           );
           providerModels[llmConfig.id] = model;
 
-          // Check if model doesn't support tool calls
-          const isToolCallUnsupported = toolCallUnsupportedPatterns.some(
-            (pattern) => pattern.test(llmConfig.id),
-          );
-          if (isToolCallUnsupported) {
+          const llmInfo =
+            llmByProvider.get(provider.name)?.get(llmConfig.id) ?? null;
+
+          const supportsFunctionCall = llmInfo?.functionCall ?? true;
+          const supportsImageInput = llmInfo?.imageInput ?? true;
+
+          if (!supportsFunctionCall) {
             unsupportedModels.add(model);
           }
+
+          modelCapabilities.set(model, {
+            supportsFunctionCall,
+            supportsImageInput,
+          });
 
           // Register file support
           const fileMimeTypes =
@@ -256,6 +259,7 @@ export async function loadDynamicModels() {
       unsupportedModels,
       filePartSupportByModel,
       providers,
+      modelCapabilities,
       timestamp: Date.now(),
     };
 
@@ -268,17 +272,9 @@ export async function loadDynamicModels() {
       unsupportedModels: new Set<LanguageModel>(),
       filePartSupportByModel: new Map<LanguageModel, readonly string[]>(),
       providers: [],
+      modelCapabilities: new Map<LanguageModel, ModelCapability>(),
     };
   }
-}
-
-/**
- * Check if a provider supports image input
- * @param providerName Provider name
- * @returns Whether image input is supported
- */
-export function isImageInputSupported(providerName: string): boolean {
-  return !imageInputUnsupportedProviders.has(providerName);
 }
 
 /**
@@ -310,12 +306,16 @@ export const customModelProvider = {
         .filter((llm) => llm.enabled)
         .map((llm) => {
           const model = dynamicData.models[provider.name]?.[llm.id];
+          const capabilities = model
+            ? dynamicData.modelCapabilities.get(model)
+            : undefined;
+          const supportsFunctionCall =
+            capabilities?.supportsFunctionCall ?? true;
+          const supportsImageInput = capabilities?.supportsImageInput ?? true;
           return {
             name: llm.id,
-            isToolCallUnsupported: model
-              ? dynamicData.unsupportedModels.has(model)
-              : false,
-            isImageInputUnsupported: !isImageInputSupported(provider.name),
+            isToolCallUnsupported: !supportsFunctionCall,
+            isImageInputUnsupported: !supportsImageInput,
             supportedFileMimeTypes: model
               ? [...(dynamicData.filePartSupportByModel.get(model) || [])]
               : [],
@@ -366,6 +366,7 @@ export const customModelProvider = {
    */
   async isToolCallSupported(model: LanguageModel): Promise<boolean> {
     const dynamicData = await loadDynamicModels();
-    return !dynamicData.unsupportedModels.has(model);
+    const capabilities = dynamicData.modelCapabilities.get(model);
+    return capabilities?.supportsFunctionCall ?? true;
   },
 };
