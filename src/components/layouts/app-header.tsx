@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import {
   AudioWaveformIcon,
   ChevronDown,
+  ClockIcon,
   MessageCircleDashed,
   PanelLeft,
 } from "lucide-react";
@@ -128,6 +129,31 @@ export function AppHeader() {
                     </span>
                   ))}
                 </div>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size={"icon"}
+                variant={"secondary"}
+                className="bg-secondary/40"
+                onClick={() => {
+                  appStoreMutate((state) => ({
+                    chatHistory: {
+                      ...state.chatHistory,
+                      isOpen: !state.chatHistory.isOpen,
+                    },
+                  }));
+                }}
+              >
+                <ClockIcon className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent align="end" side="bottom">
+              <div className="text-xs flex items-center gap-2">
+                {t("Layout.recentChats")}
               </div>
             </TooltipContent>
           </Tooltip>

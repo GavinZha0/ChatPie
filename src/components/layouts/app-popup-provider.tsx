@@ -39,6 +39,14 @@ const ChatBotTemporary = dynamic(
   },
 );
 
+const ChatBotHistory = dynamic(
+  () =>
+    import("@/components/chat-bot-history").then((mod) => mod.ChatBotHistory),
+  {
+    ssr: false,
+  },
+);
+
 const McpCustomizationPopup = dynamic(
   () =>
     import("@/components/mcp-customization-popup").then(
@@ -71,6 +79,7 @@ export function AppPopupProvider({
       <UserSettingsPopup userSettingsComponent={userSettingsComponent} />
       <ChatBotVoice />
       <ChatBotTemporary />
+      <ChatBotHistory />
       <McpCustomizationPopup />
     </>
   );

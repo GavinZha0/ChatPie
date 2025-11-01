@@ -136,10 +136,6 @@ export function ThreadDropdown({
       <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent className="p-0 w-[220px]" side={side} align={align}>
         <Command>
-          <div className="flex items-center gap-2 px-2 py-1 text-xs pt-2 text-muted-foreground ml-1">
-            {t("Chat.Thread.chat")}
-          </div>
-
           <CommandList>
             <CommandGroup>
               <CommandItem className="cursor-pointer p-0">

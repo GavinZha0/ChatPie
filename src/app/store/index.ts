@@ -56,6 +56,9 @@ export interface AppState {
     instructions: string;
     chatModel?: ChatModel;
   };
+  chatHistory: {
+    isOpen: boolean;
+  };
   voiceChat: {
     isOpen: boolean;
     agentId?: string;
@@ -98,6 +101,9 @@ const initialState: AppState = {
     isOpen: false,
     instructions: "",
   },
+  chatHistory: {
+    isOpen: false,
+  },
   voiceChat: {
     isOpen: false,
     options: {
@@ -130,6 +136,11 @@ export const appStore = create<AppState & AppDispatch>()(
         temporaryChat: {
           ...initialState.temporaryChat,
           ...state.temporaryChat,
+          isOpen: false,
+        },
+        chatHistory: {
+          ...initialState.chatHistory,
+          ...state.chatHistory,
           isOpen: false,
         },
         toolPresets: state.toolPresets || initialState.toolPresets,
