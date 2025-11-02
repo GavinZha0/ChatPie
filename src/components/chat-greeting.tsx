@@ -7,6 +7,8 @@ import { useTranslations } from "next-intl";
 import useSWR from "swr";
 import { BasicUser } from "app-types/user";
 import { fetcher } from "lib/utils";
+import { cn } from "@/lib/utils";
+import type { ChatWidthMode } from "@/app/store";
 
 function getGreetingByTime() {
   const hour = new Date().getHours();
@@ -15,7 +17,11 @@ function getGreetingByTime() {
   return "goodEvening";
 }
 
-export const ChatGreeting = () => {
+type ChatGreetingProps = {
+  widthMode?: ChatWidthMode;
+};
+
+export const ChatGreeting = ({ widthMode = "centered" }: ChatGreetingProps) => {
   const { data: user } = useSWR<BasicUser>(`/api/user/details`, fetcher, {
     revalidateOnMount: false,
   });
@@ -38,7 +44,10 @@ export const ChatGreeting = () => {
   return (
     <motion.div
       key="welcome"
-      className="max-w-3xl mx-auto my-4 h-20"
+      className={cn(
+        "mx-auto my-4 h-20",
+        widthMode === "wide" ? "max-w-none px-6" : "max-w-3xl",
+      )}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}

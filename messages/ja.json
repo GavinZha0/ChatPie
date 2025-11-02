@@ -93,7 +93,7 @@
       "whatAreYouThinking": "何を考えていますか、{name}さん？"
     },
     "TemporaryChat": {
-      "toggleTemporaryChat": "一時チャットの切り替え",
+      "toggleTemporaryChat": "一時チャットを切り替え",
       "temporaryChat": "一時チャット",
       "resetChat": "チャットをリセット",
       "thisChatWontBeSaved": "このチャットは保存されません。",
@@ -102,7 +102,10 @@
       "temporaryChatInstructionsPlaceholder": "こちらに指示を入力してください",
       "temporaryChatInstructionsDescription": "一時チャットの指示を設定できます。これは一時チャットのシステムプロンプトとして使用されます。"
     },
-    "placeholder": "何でも聞くか @mention してください",
+    "placeholder": "何でも質問するか、@でメンション",
+    "toggleWidthMode": "幅モード",
+    "widthModeCentered": "中央配置",
+    "widthModeWide": "全幅レイアウト",
     "Tool": {
       "webSearching": "ウェブを検索中...",
       "searchedTheWeb": "ウェブを検索しました",

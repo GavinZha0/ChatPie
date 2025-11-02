@@ -223,6 +223,9 @@
       "temporaryChatInstructionsDescription": "You can set instructions for the temporary chat. This will be used as a system prompt for the temporary chat."
     },
     "placeholder": "Ask anything or @mention",
+    "toggleWidthMode": "Width mode",
+    "widthModeCentered": "Centered",
+    "widthModeWide": "Full width",
     "Tool": {
       "webSearching": "Searching the Web...",
       "searchedTheWeb": "Searched the Web",

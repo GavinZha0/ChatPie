@@ -94,8 +94,8 @@
       "whatAreYouThinking": "您在想什么，{name}？"
     },
     "TemporaryChat": {
-      "toggleTemporaryChat": "切换临时聊天",
-      "temporaryChat": "临时聊天",
+      "toggleTemporaryChat": "打开临时对话",
+      "temporaryChat": "临时对话",
       "resetChat": "重置聊天",
       "thisChatWontBeSaved": "此聊天不会被保存。",
       "feelFreeToAskAnythingTemporarily": "请随时临时询问任何问题",
@@ -103,7 +103,10 @@
       "temporaryChatInstructionsPlaceholder": "在此输入您的说明",
       "temporaryChatInstructionsDescription": "您可以为临时聊天设置说明。这将用作临时聊天的系统提示。"
     },
-    "placeholder": "询问任何问题或 @mention",
+    "placeholder": "问我任何事或使用 @ 提及",
+    "toggleWidthMode": "宽度模式",
+    "widthModeCentered": "居中布局",
+    "widthModeWide": "全宽布局",
     "Tool": {
       "webSearching": "正在搜索网络...",
       "searchedTheWeb": "搜索网络",

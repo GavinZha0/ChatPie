@@ -5,6 +5,7 @@ import { memo, useMemo, useState } from "react";
 import equal from "lib/equal";
 
 import { cn, truncateString } from "lib/utils";
+import type { ChatWidthMode } from "@/app/store";
 import type { UseChatHelpers } from "@ai-sdk/react";
 import {
   UserMessagePart,
@@ -32,6 +33,7 @@ interface Props {
   messageIndex?: number;
   status?: UseChatHelpers<UIMessage>["status"];
   readonly?: boolean;
+  widthMode?: ChatWidthMode;
 }
 
 const PurePreviewMessage = ({
@@ -47,6 +49,7 @@ const PurePreviewMessage = ({
   addToolResult,
   messageIndex,
   sendMessage,
+  widthMode = "centered",
 }: Props) => {
   const isUserMessage = useMemo(() => message.role === "user", [message.role]);
   const partsForDisplay = useMemo(
@@ -63,7 +66,12 @@ const PurePreviewMessage = ({
   if (!partsForDisplay.length) return null;
 
   return (
-    <div className="w-full mx-auto max-w-3xl px-6 group/message">
+    <div
+      className={cn(
+        "w-full mx-auto px-6 group/message",
+        widthMode === "wide" ? "max-w-none" : "max-w-3xl",
+      )}
+    >
       <div
         className={cn(
           "flex gap-4 w-full group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl",
@@ -184,6 +192,8 @@ export const PreviewMessage = memo(
     if (prevProps.isLastMessage !== nextProps.isLastMessage) return false;
 
     if (prevProps.className !== nextProps.className) return false;
+
+    if (prevProps.widthMode !== nextProps.widthMode) return false;
 
     if (nextProps.isLoading && nextProps.isLastMessage) return false;
 

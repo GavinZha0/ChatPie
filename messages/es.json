@@ -93,8 +93,8 @@
       "whatAreYouThinking": "¿Qué estás pensando, {name}?"
     },
     "TemporaryChat": {
-      "toggleTemporaryChat": "Alternar Chat Temporal",
-      "temporaryChat": "Chat Temporal",
+      "toggleTemporaryChat": "Alternar chat temporal",
+      "temporaryChat": "Chat temporal",
       "resetChat": "Reiniciar Chat",
       "thisChatWontBeSaved": "Este chat no se guardará.",
       "feelFreeToAskAnythingTemporarily": "Siéntete libre de preguntar cualquier cosa temporalmente",
@@ -102,7 +102,10 @@
       "temporaryChatInstructionsPlaceholder": "Ingresa tus instrucciones aquí",
       "temporaryChatInstructionsDescription": "Puedes establecer instrucciones para el chat temporal. Esto se usará como prompt del sistema para el chat temporal."
     },
-    "placeholder": "Pregunta cualquier cosa o @menciona",
+    "placeholder": "Pregunta lo que quieras o usa @ menciones",
+    "toggleWidthMode": "Modo de ancho",
+    "widthModeCentered": "Diseño centrado",
+    "widthModeWide": "Diseño de ancho completo",
     "Tool": {
       "webSearching": "Buscando en la web...",
       "searchedTheWeb": "Buscado en la web",

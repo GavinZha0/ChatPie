@@ -21,6 +21,8 @@ export interface UploadedFile {
   dataUrl?: string; // Full data URL format: "data:image/png;base64,..."
 }
 
+export type ChatWidthMode = "centered" | "wide";
+
 export interface AppState {
   threadList: ChatThread[];
   mcpList: (MCPServerInfo & { id: string })[];
@@ -68,6 +70,7 @@ export interface AppState {
     };
   };
   pendingThreadMention?: ChatMention;
+  chatWidthMode: ChatWidthMode;
 }
 
 export interface AppDispatch {
@@ -114,6 +117,7 @@ const initialState: AppState = {
     },
   },
   pendingThreadMention: undefined,
+  chatWidthMode: "centered",
 };
 
 export const appStore = create<AppState & AppDispatch>()(
@@ -149,6 +153,7 @@ export const appStore = create<AppState & AppDispatch>()(
           ...state.voiceChat,
           isOpen: false,
         },
+        chatWidthMode: state.chatWidthMode ?? initialState.chatWidthMode,
       }),
     },
   ),

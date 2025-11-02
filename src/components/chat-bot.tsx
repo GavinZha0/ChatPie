@@ -95,6 +95,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     threadMentions,
     pendingThreadMention,
     threadImageToolModel,
+    chatWidthMode,
   ] = appStore(
     useShallow((state) => [
       state.mutate,
@@ -106,6 +107,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
       state.threadMentions,
       state.pendingThreadMention,
       state.threadImageToolModel,
+      state.chatWidthMode,
     ]),
   );
 
@@ -425,7 +427,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           </div>
         )}
         {emptyMessage ? (
-          <ChatGreeting />
+          <ChatGreeting widthMode={chatWidthMode} />
         ) : (
           <>
             <div
@@ -448,6 +450,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
                     isLastMessage={isLastMessage}
                     setMessages={setMessages}
                     sendMessage={sendMessage}
+                    widthMode={chatWidthMode}
                     className={
                       isLastMessage &&
                       message.role != "user" &&
@@ -461,7 +464,12 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
               })}
               {space && (
                 <>
-                  <div className="w-full mx-auto max-w-3xl px-6 relative">
+                  <div
+                    className={cn(
+                      "w-full mx-auto px-6 relative",
+                      chatWidthMode === "wide" ? "max-w-none" : "max-w-3xl",
+                    )}
+                  >
                     <div className={space == "space" ? "opacity-0" : ""}>
                       <Think />
                     </div>
@@ -482,7 +490,12 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             "w-full z-10",
           )}
         >
-          <div className="max-w-3xl mx-auto relative flex justify-center items-center -top-2">
+          <div
+            className={cn(
+              "mx-auto relative flex justify-center items-center -top-2",
+              chatWidthMode === "wide" ? "max-w-none px-6" : "max-w-3xl",
+            )}
+          >
             <ScrollToBottomButton
               show={!isAtBottom && messages.length > 0}
               onClick={scrollToBottom}
@@ -497,6 +510,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             isLoading={isLoading || isPendingToolCall}
             onStop={stop}
             onFocus={isFirstTime ? undefined : handleFocus}
+            widthMode={chatWidthMode}
           />
         </div>
         <DeleteThreadPopup

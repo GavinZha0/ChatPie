@@ -17,7 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "ui/button";
 import { UIMessage, UseChatHelpers } from "@ai-sdk/react";
 import { SelectModel } from "./select-model";
-import { appStore, UploadedFile } from "@/app/store";
+import { appStore, UploadedFile, type ChatWidthMode } from "@/app/store";
 import { useShallow } from "zustand/shallow";
 import { ChatMention, ChatModel } from "app-types/chat";
 import dynamic from "next/dynamic";
@@ -49,8 +49,6 @@ import {
 } from "ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useThreadFileUploader } from "@/hooks/use-thread-file-uploader";
-
-import { EMOJI_DATA } from "lib/const";
 import { AgentSummary } from "app-types/agent";
 import { FileUIPart, TextUIPart } from "ai";
 import { toast } from "sonner";
@@ -71,6 +69,7 @@ interface PromptInputProps {
   threadId?: string;
   disabledMention?: boolean;
   onFocus?: () => void;
+  widthMode?: ChatWidthMode;
 }
 
 const ChatMentionInput = dynamic(() => import("./chat-mention-input"), {
@@ -94,6 +93,7 @@ export default function PromptInput({
   voiceDisabled,
   threadId,
   disabledMention,
+  widthMode = "centered",
 }: PromptInputProps) {
   const t = useTranslations("Chat");
   const [isUploadDropdownOpen, setIsUploadDropdownOpen] = useState(false);
@@ -411,8 +411,18 @@ export default function PromptInput({
   // Drag overlay handled globally in ChatBot
 
   return (
-    <div className="max-w-3xl mx-auto fade-in animate-in">
-      <div className="z-10 mx-auto w-full max-w-3xl relative">
+    <div
+      className={cn(
+        "fade-in animate-in w-full",
+        widthMode === "wide" ? "px-6" : "max-w-3xl mx-auto",
+      )}
+    >
+      <div
+        className={cn(
+          "z-10 mx-auto w-full relative",
+          widthMode === "wide" ? "max-w-none" : "max-w-3xl",
+        )}
+      >
         <fieldset className="flex w-full min-w-0 max-w-full flex-col px-4">
           <div className="shadow-lg overflow-hidden rounded-4xl backdrop-blur-sm transition-all duration-200 bg-muted/60 relative flex w-full flex-col cursor-text z-10 items-stretch focus-within:bg-muted hover:bg-muted focus-within:ring-muted hover:ring-muted">
             {mentions.length > 0 && (

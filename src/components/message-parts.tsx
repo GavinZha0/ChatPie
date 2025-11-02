@@ -523,10 +523,6 @@ export const AssistMessagePart = memo(function AssistMessagePart({
                             Steps
                           </span>
                         </h4>
-                        <p className="px-2 mb-2 text-xs text-muted-foreground">
-                          High input token usage may occur when many tools are
-                          available.
-                        </p>
                         <div className="space-y-2">
                           {metadata.usage.inputTokens !== undefined && (
                             <div className="flex items-center justify-between py-1 px-2 rounded-md bg-muted/30">
