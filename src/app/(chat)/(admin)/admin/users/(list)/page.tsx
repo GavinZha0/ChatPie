@@ -36,8 +36,8 @@ export default async function UserListPage({ searchParams }: PageProps) {
   }
 
   const params = await searchParams;
-  const page = parseInt(params.page ?? "1", 10);
-  const limit = parseInt(params.limit ?? ADMIN_USER_LIST_LIMIT.toString(), 10);
+  const page = parseInt(params.page ?? "1", 15);
+  const limit = parseInt(params.limit ?? ADMIN_USER_LIST_LIMIT.toString(), 15);
   const offset = (page - 1) * limit;
   const sortBy = params.sortBy ?? DEFAULT_SORT_BY;
   const sortDirection = params.sortDirection ?? DEFAULT_SORT_DIRECTION;

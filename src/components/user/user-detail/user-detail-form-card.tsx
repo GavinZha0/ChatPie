@@ -2,13 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { format } from "date-fns";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "ui/card";
 import { Label } from "ui/label";
 import { Input } from "ui/input";
 import { Badge } from "ui/badge";
@@ -87,7 +81,6 @@ export function UserDetailFormCard({
             </Badge>
           )}
         </CardTitle>
-        <CardDescription>{t("userDetailsCardDescription")}</CardDescription>
       </CardHeader>
 
       <CardContent className="h-full">
@@ -97,60 +90,69 @@ export function UserDetailFormCard({
         >
           <input type="hidden" name="userId" value={user.id} />
 
-          {/* Avatar Upload Section */}
-          <div className="flex items-center justify-center gap-4 my-4">
-            <UserAvatarUpload
-              currentImageUrl={getUserAvatar(currentUser)}
-              userName={currentUser.name}
-              onImageUpdate={handleImageUpdate}
-              disabled={isPending}
-            />
-          </div>
-
-          {/* Form Fields */}
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">{tCommon("name")}</Label>
-              <Input
-                id="name"
-                name="name"
-                defaultValue={currentUser.name}
-                required
+          {/* Avatar and Form Fields Section */}
+          <div className="flex items-start gap-10 my-4">
+            {/* Avatar Upload Section */}
+            <div className="flex-shrink-0">
+              <UserAvatarUpload
+                currentImageUrl={getUserAvatar(currentUser)}
+                userName={currentUser.name}
+                onImageUpdate={handleImageUpdate}
                 disabled={isPending}
-                data-testid="user-name-input"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">{tCommon("email")}</Label>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span
-                    className={
-                      !!userAccountInfo?.oauthProviders?.length
-                        ? "cursor-not-allowed"
-                        : ""
-                    }
-                  >
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      defaultValue={currentUser.email}
-                      disabled={
-                        !!userAccountInfo?.oauthProviders?.length || isPending
-                      }
-                      required
-                      data-testid="user-email-input"
-                    />
-                  </span>
-                </TooltipTrigger>
-                {!!userAccountInfo?.oauthProviders?.length && (
-                  <TooltipContent>
-                    {t("emailCannotBeModifiedSSO")}
-                  </TooltipContent>
-                )}
-              </Tooltip>
+            {/* Form Fields */}
+            <div className="flex-1 space-y-4 min-w-0">
+              <div className="flex items-center gap-3">
+                <Label htmlFor="name" className="w-12 flex-shrink-0">
+                  {tCommon("name")}
+                </Label>
+                <Input
+                  id="name"
+                  name="name"
+                  defaultValue={currentUser.name}
+                  required
+                  disabled={isPending}
+                  data-testid="user-name-input"
+                  className="flex-1"
+                />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Label htmlFor="email" className="w-12 flex-shrink-0">
+                  {tCommon("email")}
+                </Label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span
+                      className={`flex-1 ${
+                        !!userAccountInfo?.oauthProviders?.length
+                          ? "cursor-not-allowed"
+                          : ""
+                      }`}
+                    >
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        defaultValue={currentUser.email}
+                        disabled={
+                          !!userAccountInfo?.oauthProviders?.length || isPending
+                        }
+                        required
+                        data-testid="user-email-input"
+                        className="w-full"
+                      />
+                    </span>
+                  </TooltipTrigger>
+                  {!!userAccountInfo?.oauthProviders?.length && (
+                    <TooltipContent>
+                      {t("emailCannotBeModifiedSSO")}
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </div>
             </div>
           </div>
 

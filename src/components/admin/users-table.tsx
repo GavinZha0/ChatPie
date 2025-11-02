@@ -196,8 +196,11 @@ export function UsersTable({
                 onSort={handleSort}
                 data-testid="sort-header-name"
               >
-                <span className="px-2">{t("user")}</span>
+                {t("name")}
               </SortableHeader>
+              <TableHead className="font-semibold" data-testid="header-email">
+                {t("email")}
+              </TableHead>
               <SortableHeader
                 field="role"
                 currentSortBy={sortBy}
@@ -226,7 +229,7 @@ export function UsersTable({
             {users.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={5}
+                  colSpan={6}
                   className="text-center py-8 text-muted-foreground"
                 >
                   {t("noUsersFound")}
@@ -248,23 +251,23 @@ export function UsersTable({
                           {user.name.slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <div>
-                        <div className="font-medium flex items-center gap-2">
-                          {user.name}
-                          {user.id === currentUserId && (
-                            <Badge
-                              variant="outline"
-                              className="text-xs"
-                              data-testid="current-user-badge"
-                            >
-                              {t("youBadge")}
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {user.email}
-                        </div>
+                      <div className="font-medium flex items-center gap-2">
+                        {user.name}
+                        {user.id === currentUserId && (
+                          <Badge
+                            variant="outline"
+                            className="text-xs"
+                            data-testid="current-user-badge"
+                          >
+                            {t("youBadge")}
+                          </Badge>
+                        )}
                       </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm text-muted-foreground">
+                      {user.email}
                     </div>
                   </TableCell>
                   <TableCell>

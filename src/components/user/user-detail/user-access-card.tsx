@@ -48,75 +48,77 @@ export function UserAccessCard({
             <Shield className="h-5 w-5 text-primary" />
             {tCommon("accessAndAccount")}
           </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            {t("accessCardDescription")}
-          </p>
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* Roles Section */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
+          {/* Roles and Account Status Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Roles Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <UserCheck className="h-4 w-4" />
+                  {t("roles")}
+                </Label>
+                {user.id !== currentUserId && view === "admin" && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setShowRoleDialog(true)}
+                    disabled={disabled}
+                    className="h-8 text-xs"
+                    data-testid="edit-roles-button"
+                  >
+                    {tCommon("editRoles")}
+                  </Button>
+                )}
+              </div>
+
+              <div className="rounded-lg border bg-muted/30 p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <UserRoleBadges
+                    user={user}
+                    showBanned={false}
+                    view={view}
+                    onRoleClick={
+                      user.id !== currentUserId && view === "admin"
+                        ? () => setShowRoleDialog(true)
+                        : undefined
+                    }
+                    disabled={user.id === currentUserId || disabled}
+                    className="mt-0"
+                  />
+                  {user.id === currentUserId && (
+                    <p className="text-xs text-muted-foreground text-right whitespace-nowrap">
+                      {t("cannotModifyOwnRole")}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Account Status Section */}
+            <div className="space-y-3">
               <Label className="text-sm font-medium flex items-center gap-2">
-                <UserCheck className="h-4 w-4" />
-                {t("roles")}
+                <Shield className="h-4 w-4" />
+                {t("accountStatus")}
               </Label>
-              {user.id !== currentUserId && view === "admin" && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setShowRoleDialog(true)}
+
+              <div className="rounded-lg border bg-muted/30 p-3">
+                <UserStatusBadge
+                  user={user}
+                  onStatusChange={handleUserUpdate}
+                  currentUserId={currentUserId}
                   disabled={disabled}
-                  className="h-8 text-xs"
-                  data-testid="edit-roles-button"
-                >
-                  {tCommon("editRoles")}
-                </Button>
-              )}
-            </div>
-
-            <div className="rounded-lg border bg-muted/30 p-3">
-              <UserRoleBadges
-                user={user}
-                showBanned={false}
-                view={view}
-                onRoleClick={
-                  user.id !== currentUserId && view === "admin"
-                    ? () => setShowRoleDialog(true)
-                    : undefined
-                }
-                disabled={user.id === currentUserId || disabled}
-                className="mt-0"
-              />
-              {user.id === currentUserId && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  {t("cannotModifyOwnRole")}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Account Status Section */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              {t("accountStatus")}
-            </Label>
-
-            <div className="rounded-lg border bg-muted/30 p-3">
-              <UserStatusBadge
-                user={user}
-                onStatusChange={handleUserUpdate}
-                currentUserId={currentUserId}
-                disabled={disabled}
-                showClickable={view === "admin"}
-                view={view}
-              />
-              {user.banned && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  {t("userBannedDescription")}
-                </p>
-              )}
+                  showClickable={view === "admin"}
+                  view={view}
+                />
+                {user.banned && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {t("userBannedDescription")}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 

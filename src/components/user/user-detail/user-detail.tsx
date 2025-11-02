@@ -3,7 +3,6 @@
 import { BasicUserWithLastLogin } from "app-types/user";
 import { UserDetailFormCard } from "./user-detail-form-card";
 import { UserAccessCard } from "./user-access-card";
-import { useProfileTranslations } from "@/hooks/use-profile-translations";
 import { useSidebar } from "ui/sidebar";
 import useSWR, { mutate } from "swr";
 import { cn, fetcher } from "lib/utils";
@@ -49,7 +48,6 @@ export function UserDetail({
       });
     }
   };
-  const { t } = useProfileTranslations(view);
 
   return (
     <div
@@ -59,7 +57,6 @@ export function UserDetail({
       {/* Hero Section */}
       <div className="space-y-2">
         <h1 className="text-2xl font-bold tracking-tight">{user?.name}</h1>
-        <p className="text-muted-foreground">{t("userDetailDescription")}</p>
       </div>
 
       {/* Cards Layout */}

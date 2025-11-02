@@ -32,14 +32,15 @@ export function UserRoleBadges({
     >
       {user.role?.split(",").map((role) => {
         const isClickable = onRoleClick && !disabled;
+        const isAdmin = role.toLowerCase() === "admin";
         const badgeContent = (
           <Badge
             key={role}
-            variant="secondary"
+            variant={isAdmin ? "success" : "secondary"}
             className={cn(
               "text-xs",
-              isClickable &&
-                "cursor-pointer hover:bg-secondary/80 transition-colors",
+              isClickable && "cursor-pointer transition-colors",
+              isClickable && !isAdmin && "hover:bg-secondary/80",
               isClickable && "flex items-center gap-1",
             )}
             data-testid={`role-badge-${role.toLowerCase()}`}
