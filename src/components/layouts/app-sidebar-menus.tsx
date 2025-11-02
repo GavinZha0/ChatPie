@@ -5,7 +5,6 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  useSidebar,
 } from "ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { SidebarMenu, SidebarMenuItem } from "ui/sidebar";
@@ -13,11 +12,9 @@ import { SidebarGroupContent } from "ui/sidebar";
 
 import { SidebarGroup } from "ui/sidebar";
 import Link from "next/link";
-import { getShortcutKeyList, Shortcuts } from "lib/keyboard-shortcuts";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { MCPIcon } from "ui/mcp-icon";
-import { WriteIcon } from "ui/write-icon";
 import {
   FolderOpenIcon,
   FolderSearchIcon,
@@ -35,7 +32,6 @@ import { AppSidebarAdmin } from "./app-sidebar-menu-admin";
 export function AppSidebarMenus({ user }: { user?: BasicUser }) {
   const router = useRouter();
   const t = useTranslations("");
-  const { setOpenMobile } = useSidebar();
   const [expandedArchive, setExpandedArchive] = useState(false);
   const [addArchiveDialogOpen, setAddArchiveDialogOpen] = useState(false);
 
@@ -47,36 +43,6 @@ export function AppSidebarMenus({ user }: { user?: BasicUser }) {
   return (
     <SidebarGroup>
       <SidebarGroupContent>
-        <SidebarMenu>
-          <Tooltip>
-            <SidebarMenuItem className="mb-1">
-              <Link
-                href="/"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setOpenMobile(false);
-                  router.push(`/`);
-                  router.refresh();
-                }}
-              >
-                <SidebarMenuButton className="flex font-semibold group/new-chat bg-input/20 border border-border/40">
-                  <WriteIcon className="size-4" />
-                  {t("Layout.newChat")}
-                  <div className="flex items-center gap-1 text-xs font-medium ml-auto opacity-0 group-hover/new-chat:opacity-100 transition-opacity">
-                    {getShortcutKeyList(Shortcuts.openNewChat).map((key) => (
-                      <span
-                        key={key}
-                        className="border w-5 h-5 flex items-center justify-center bg-accent rounded"
-                      >
-                        {key}
-                      </span>
-                    ))}
-                  </div>
-                </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
-          </Tooltip>
-        </SidebarMenu>
         <SidebarMenu>
           <Tooltip>
             <SidebarMenuItem>

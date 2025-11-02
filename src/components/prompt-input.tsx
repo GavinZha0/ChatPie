@@ -54,6 +54,8 @@ import { FileUIPart, TextUIPart } from "ai";
 import { toast } from "sonner";
 import { isFilePartSupported, isIngestSupported } from "@/lib/ai/file-support";
 import { useChatModels } from "@/hooks/queries/use-chat-models";
+import { WriteIcon } from "ui/write-icon";
+import { EMOJI_DATA } from "lib/const";
 
 interface PromptInputProps {
   placeholder?: string;
@@ -70,6 +72,8 @@ interface PromptInputProps {
   disabledMention?: boolean;
   onFocus?: () => void;
   widthMode?: ChatWidthMode;
+  onNewChat?: () => void;
+  showNewChatButton?: boolean;
 }
 
 const ChatMentionInput = dynamic(() => import("./chat-mention-input"), {
@@ -94,8 +98,11 @@ export default function PromptInput({
   threadId,
   disabledMention,
   widthMode = "centered",
+  onNewChat,
+  showNewChatButton = true,
 }: PromptInputProps) {
   const t = useTranslations("Chat");
+  const layoutT = useTranslations("");
   const [isUploadDropdownOpen, setIsUploadDropdownOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadFiles } = useThreadFileUploader(threadId);
@@ -423,12 +430,35 @@ export default function PromptInput({
           widthMode === "wide" ? "max-w-none" : "max-w-3xl",
         )}
       >
-        <fieldset className="flex w-full min-w-0 max-w-full flex-col px-4">
-          <div className="shadow-lg overflow-hidden rounded-4xl backdrop-blur-sm transition-all duration-200 bg-muted/60 relative flex w-full flex-col cursor-text z-10 items-stretch focus-within:bg-muted hover:bg-muted focus-within:ring-muted hover:ring-muted">
-            {mentions.length > 0 && (
-              <div className="bg-input rounded-b-sm rounded-t-3xl p-3 flex flex-col gap-4 mx-2 my-2">
-                {mentions.map((mention, i) => {
-                  return (
+        <div className="flex w-full items-end gap-2">
+          {onNewChat && showNewChatButton ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="h-16 w-16 rounded-md border border-border/60 bg-input/40 hover:bg-input shrink-0 self-center"
+                  onClick={onNewChat}
+                  aria-label={layoutT("Layout.newChat")}
+                >
+                  <WriteIcon className="size-8" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" align="start">
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-semibold">
+                    {layoutT("Layout.newChat")}
+                  </span>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          ) : null}
+          <fieldset className="flex flex-1 min-w-0 max-w-full flex-col px-4">
+            <div className="shadow-lg overflow-hidden rounded-4xl backdrop-blur-sm transition-all duration-200 bg-muted/60 relative flex w-full flex-col cursor-text z-10 items-stretch focus-within:bg-muted hover:bg-muted focus-within:ring-muted hover:ring-muted">
+              {mentions.length > 0 ? (
+                <div className="bg-input rounded-b-sm rounded-t-3xl p-3 flex flex-col gap-4 mx-2 my-2">
+                  {mentions.map((mention, i) => (
                     <div key={i} className="flex items-center gap-2">
                       {mention.type === "workflow" ||
                       mention.type === "agent" ? (
@@ -458,7 +488,6 @@ export default function PromptInput({
                           )}
                         </Button>
                       )}
-
                       <div className="flex flex-col flex-1 min-w-0">
                         <span className="text-sm font-semibold truncate">
                           {mention.name}
@@ -481,337 +510,340 @@ export default function PromptInput({
                         <XIcon />
                       </Button>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-            <div className="flex flex-col gap-3.5 px-5 pt-2 pb-4">
-              <div className="relative min-h-[2rem]">
-                <ChatMentionInput
-                  input={input}
-                  onChange={setInput}
-                  onChangeMention={onChangeMention}
-                  onEnter={submit}
-                  placeholder={placeholder ?? t("placeholder")}
-                  ref={editorRef}
-                  disabledMention={disabledMention}
-                  onFocus={onFocus}
-                />
-              </div>
-              <div className="flex w-full items-center z-30">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,.pdf,.txt,.md,.csv,.json,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.tar,.gz,.mp3,.wav,.m4a,.ogg,.mp4,.webm,.mov"
-                  multiple
-                  className="hidden"
-                  onChange={handleFileSelect}
-                  disabled={!threadId}
-                />
-
-                <DropdownMenu
-                  open={isUploadDropdownOpen}
-                  onOpenChange={setIsUploadDropdownOpen}
-                >
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant={"ghost"}
-                      size={"sm"}
-                      className="rounded-full hover:bg-input! p-2! data-[state=open]:bg-input!"
-                      disabled={!threadId}
-                    >
-                      <PlusIcon />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" side="top">
-                    <DropdownMenuItem
-                      className="cursor-pointer"
-                      disabled={
-                        modelInfo?.isImageInputUnsupported || !canUploadImages
-                      }
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <PaperclipIcon className="mr-2 size-4" />
-                      {t("uploadImage")}
-                    </DropdownMenuItem>
-
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger className="cursor-pointer">
-                        <ImagesIcon className="mr-4 size-4 text-muted-foreground" />
-                        <span className="mr-4">{t("generateImage")}</span>
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuPortal>
-                        <DropdownMenuSubContent>
-                          <DropdownMenuItem
-                            disabled={modelInfo?.isToolCallUnsupported}
-                            onClick={() => handleGenerateImage("google")}
-                            className="cursor-pointer"
-                          >
-                            <GeminiIcon className="mr-2 size-4" />
-                            Gemini (Nano Banana)
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            disabled={modelInfo?.isToolCallUnsupported}
-                            onClick={() => handleGenerateImage("openai")}
-                            className="cursor-pointer"
-                          >
-                            <OpenAIIcon className="mr-2 size-4" />
-                            OpenAI
-                          </DropdownMenuItem>
-                        </DropdownMenuSubContent>
-                      </DropdownMenuPortal>
-                    </DropdownMenuSub>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                {!toolDisabled &&
-                  (imageToolModel ? (
-                    <Button
-                      variant={"ghost"}
-                      size={"sm"}
-                      className="rounded-full hover:bg-input! p-2! group/image-generator text-primary"
-                      onClick={() => handleGenerateImage()}
-                    >
-                      <ImagesIcon className="size-3.5" />
-                      {t("generateImage")}
-                      <XIcon className="size-3 group-hover/image-generator:opacity-100 opacity-0 transition-opacity duration-200" />
-                    </Button>
-                  ) : (
-                    <>
-                      <ToolModeDropdown />
-                      <ToolSelectDropdown
-                        className="mx-1"
-                        align="start"
-                        side="top"
-                        onSelectWorkflow={onSelectWorkflow}
-                        onSelectAgent={onSelectAgent}
-                        onGenerateImage={handleGenerateImage}
-                        mentions={mentions}
-                      />
-                    </>
                   ))}
+                </div>
+              ) : null}
+              <div className="flex flex-col gap-3.5 px-5 pt-2 pb-4">
+                <div className="relative min-h-[2rem]">
+                  <ChatMentionInput
+                    input={input}
+                    onChange={setInput}
+                    onChangeMention={onChangeMention}
+                    onEnter={submit}
+                    placeholder={placeholder ?? t("placeholder")}
+                    ref={editorRef}
+                    disabledMention={disabledMention}
+                    onFocus={onFocus}
+                  />
+                </div>
+                <div className="flex w-full items-center z-30">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,.pdf,.txt,.md,.csv,.json,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.tar,.gz,.mp3,.wav,.m4a,.ogg,.mp4,.webm,.mov"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileSelect}
+                    disabled={!threadId}
+                  />
 
-                <div className="flex-1" />
-
-                <SelectModel onSelect={setChatModel} currentModel={chatModel}>
-                  <Button
-                    variant={"ghost"}
-                    size={"sm"}
-                    className="rounded-full group data-[state=open]:bg-input! hover:bg-input! mr-1"
-                    data-testid="model-selector-button"
+                  <DropdownMenu
+                    open={isUploadDropdownOpen}
+                    onOpenChange={setIsUploadDropdownOpen}
                   >
-                    {chatModel?.model ? (
-                      <>
-                        {chatModel.provider === "openai" ? (
-                          <OpenAIIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
-                        ) : chatModel.provider === "xai" ? (
-                          <GrokIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
-                        ) : chatModel.provider === "anthropic" ? (
-                          <ClaudeIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
-                        ) : chatModel.provider === "google" ? (
-                          <GeminiIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
-                        ) : null}
-                        <span
-                          className="text-foreground group-data-[state=open]:text-foreground  "
-                          data-testid="selected-model-name"
-                        >
-                          {chatModel.model}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-muted-foreground">model</span>
-                    )}
-
-                    <ChevronDown className="size-3" />
-                  </Button>
-                </SelectModel>
-                {!isLoading && !input.length && !voiceDisabled ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
                       <Button
+                        variant={"ghost"}
                         size={"sm"}
-                        onClick={() => {
-                          appStoreMutate((state) => ({
-                            voiceChat: {
-                              ...state.voiceChat,
-                              isOpen: true,
-                              agentId: undefined,
-                            },
-                          }));
-                        }}
-                        className="rounded-full p-2!"
+                        className="rounded-full hover:bg-input! p-2! data-[state=open]:bg-input!"
+                        disabled={!threadId}
                       >
-                        <AudioWaveformIcon size={16} />
+                        <PlusIcon />
                       </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>{t("VoiceChat.title")}</TooltipContent>
-                  </Tooltip>
-                ) : (
-                  <div
-                    onClick={() => {
-                      if (isLoading) {
-                        onStop();
-                      } else {
-                        submit();
-                      }
-                    }}
-                    className="fade-in animate-in cursor-pointer text-muted-foreground rounded-full p-2 bg-secondary hover:bg-accent-foreground hover:text-accent transition-all duration-200"
-                  >
-                    {isLoading ? (
-                      <Square
-                        size={16}
-                        className="fill-muted-foreground text-muted-foreground"
-                      />
-                    ) : (
-                      <CornerRightUp size={16} />
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Uploaded Files Preview - Below Input */}
-              {uploadedFiles.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {uploadedFiles.map((file) => {
-                    const isImage = file.mimeType.startsWith("image/");
-                    const imageSrc =
-                      file.previewUrl || file.url || file.dataUrl || "";
-                    const displayName = file.name;
-                    const displayExt =
-                      file.name.split(".").pop()?.toUpperCase() || "FILE";
-                    const isSummarizable = isIngestSupported(file.mimeType);
-                    return (
-                      <div
-                        key={file.id}
-                        className="relative group rounded-lg overflow-hidden border-2 border-border hover:border-primary transition-all"
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" side="top">
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        disabled={
+                          modelInfo?.isImageInputUnsupported || !canUploadImages
+                        }
+                        onClick={() => fileInputRef.current?.click()}
                       >
-                        {isImage ? (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img
-                            src={imageSrc}
-                            alt={file.name}
-                            className="w-24 h-24 object-cover"
-                          />
-                        ) : (
-                          <div className="w-32 h-28 flex flex-col items-center justify-center bg-muted px-2 py-3 text-center">
-                            <FileIcon className="size-8 text-muted-foreground mb-1" />
-                            <span className="text-xs font-medium text-muted-foreground line-clamp-2 w-full">
-                              {displayName}
-                            </span>
-                            <span className="text-[11px] text-muted-foreground/80">
-                              {displayExt}
-                            </span>
-                          </div>
-                        )}
+                        <PaperclipIcon className="mr-2 size-4" />
+                        {t("uploadImage")}
+                      </DropdownMenuItem>
 
-                        {/* Upload Progress Overlay */}
-                        {file.isUploading && (
-                          <div className="absolute inset-0 bg-background/90 flex rounded-lg flex-col items-center justify-center backdrop-blur-sm">
-                            <Loader2 className="size-6 animate-spin text-foreground mb-2" />
-                            <div className="w-16 h-1 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-primary transition-all duration-300"
-                                style={{ width: `${file.progress || 0}%` }}
-                              />
-                            </div>
-                            <span className="text-foreground text-xs mt-1">
-                              {file.progress || 0}%
-                            </span>
-                          </div>
-                        )}
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger className="cursor-pointer">
+                          <ImagesIcon className="mr-4 size-4 text-muted-foreground" />
+                          <span className="mr-4">{t("generateImage")}</span>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuPortal>
+                          <DropdownMenuSubContent>
+                            <DropdownMenuItem
+                              disabled={modelInfo?.isToolCallUnsupported}
+                              onClick={() => handleGenerateImage("google")}
+                              className="cursor-pointer"
+                            >
+                              <GeminiIcon className="mr-2 size-4" />
+                              Gemini (Nano Banana)
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              disabled={modelInfo?.isToolCallUnsupported}
+                              onClick={() => handleGenerateImage("openai")}
+                              className="cursor-pointer"
+                            >
+                              <OpenAIIcon className="mr-2 size-4" />
+                              OpenAI
+                            </DropdownMenuItem>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuPortal>
+                      </DropdownMenuSub>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
-                        {/* Hover Actions */}
-                        <div
-                          className={cn(
-                            "absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity flex items-center justify-center rounded-lg",
-                            file.isUploading
-                              ? "opacity-0"
-                              : "opacity-0 group-hover:opacity-100",
-                          )}
+                  {!toolDisabled &&
+                    (imageToolModel ? (
+                      <Button
+                        variant={"ghost"}
+                        size={"sm"}
+                        className="rounded-full hover:bg-input! p-2! group/image-generator text-primary"
+                        onClick={() => handleGenerateImage()}
+                      >
+                        <ImagesIcon className="size-3.5" />
+                        {t("generateImage")}
+                        <XIcon className="size-3 group-hover/image-generator:opacity-100 opacity-0 transition-opacity duration-200" />
+                      </Button>
+                    ) : (
+                      <>
+                        <ToolModeDropdown />
+                        <ToolSelectDropdown
+                          className="mx-1"
+                          align="start"
+                          side="top"
+                          onSelectWorkflow={onSelectWorkflow}
+                          onSelectAgent={onSelectAgent}
+                          onGenerateImage={handleGenerateImage}
+                          mentions={mentions}
+                        />
+                      </>
+                    ))}
+
+                  <div className="flex-1" />
+
+                  <SelectModel onSelect={setChatModel} currentModel={chatModel}>
+                    <Button
+                      variant={"ghost"}
+                      size={"sm"}
+                      className="rounded-full group data-[state=open]:bg-input! hover:bg-input! mr-1"
+                      data-testid="model-selector-button"
+                    >
+                      {chatModel?.model ? (
+                        <>
+                          {chatModel.provider === "openai" ? (
+                            <OpenAIIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
+                          ) : chatModel.provider === "xai" ? (
+                            <GrokIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
+                          ) : chatModel.provider === "anthropic" ? (
+                            <ClaudeIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
+                          ) : chatModel.provider === "google" ? (
+                            <GeminiIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
+                          ) : null}
+                          <span
+                            className="text-foreground group-data-[state=open]:text-foreground"
+                            data-testid="selected-model-name"
+                          >
+                            {chatModel.model}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground">model</span>
+                      )}
+
+                      <ChevronDown className="size-3" />
+                    </Button>
+                  </SelectModel>
+                  {!isLoading && !input.length && !voiceDisabled ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size={"sm"}
+                          onClick={() => {
+                            appStoreMutate((state) => ({
+                              voiceChat: {
+                                ...state.voiceChat,
+                                isOpen: true,
+                                agentId: undefined,
+                              },
+                            }));
+                          }}
+                          className="rounded-full p-2!"
                         >
-                          <div className="flex gap-2 items-center">
-                            {isSummarizable && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="secondary"
-                                    size="icon"
-                                    className="rounded-full"
-                                    onClick={async () => {
-                                      try {
-                                        const url = file.url || file.dataUrl;
-                                        if (!url) {
-                                          toast.error("No file URL available");
-                                          return;
-                                        }
-                                        const res = await fetch(
-                                          "/api/storage/ingest",
-                                          {
-                                            method: "POST",
-                                            headers: {
-                                              "Content-Type":
-                                                "application/json",
-                                            },
-                                            body: JSON.stringify({ url }),
-                                          },
-                                        );
-                                        if (!res.ok) {
-                                          const e = await res
-                                            .json()
-                                            .catch(() => ({}));
-                                          toast.error(
-                                            e.error || "Failed to ingest file",
-                                          );
-                                          return;
-                                        }
-                                        const data = await res.json();
-                                        // Append preview text to input for the user to send
-                                        setInput(
-                                          `${input ? input + "\n\n" : ""}${data.text}`,
-                                        );
-                                      } catch (_err) {
-                                        toast.error("Failed to ingest file");
-                                      }
-                                    }}
-                                  >
-                                    <FileTextIcon className="size-4" />
-                                    <span className="sr-only">Summarize</span>
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Summarize</TooltipContent>
-                              </Tooltip>
+                          <AudioWaveformIcon size={16} />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>{t("VoiceChat.title")}</TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <div
+                      onClick={() => {
+                        if (isLoading) {
+                          onStop();
+                        } else {
+                          submit();
+                        }
+                      }}
+                      className="fade-in animate-in cursor-pointer text-muted-foreground rounded-full p-2 bg-secondary hover:bg-accent-foreground hover:text-accent transition-all duration-200"
+                    >
+                      {isLoading ? (
+                        <Square
+                          size={16}
+                          className="fill-muted-foreground text-muted-foreground"
+                        />
+                      ) : (
+                        <CornerRightUp size={16} />
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Uploaded Files Preview - Below Input */}
+                {uploadedFiles.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {uploadedFiles.map((file) => {
+                      const isImage = file.mimeType.startsWith("image/");
+                      const imageSrc =
+                        file.previewUrl || file.url || file.dataUrl || "";
+                      const displayName = file.name;
+                      const displayExt =
+                        file.name.split(".").pop()?.toUpperCase() || "FILE";
+                      const isSummarizable = isIngestSupported(file.mimeType);
+                      return (
+                        <div
+                          key={file.id}
+                          className="relative group rounded-lg overflow-hidden border-2 border-border hover:border-primary transition-all"
+                        >
+                          {isImage ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img
+                              src={imageSrc}
+                              alt={file.name}
+                              className="w-24 h-24 object-cover"
+                            />
+                          ) : (
+                            <div className="w-32 h-28 flex flex-col items-center justify-center bg-muted px-2 py-3 text-center">
+                              <FileIcon className="size-8 text-muted-foreground mb-1" />
+                              <span className="text-xs font-medium text-muted-foreground line-clamp-2 w-full">
+                                {displayName}
+                              </span>
+                              <span className="text-[11px] text-muted-foreground/80">
+                                {displayExt}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Upload Progress Overlay */}
+                          {file.isUploading && (
+                            <div className="absolute inset-0 bg-background/90 flex rounded-lg flex-col items-center justify-center backdrop-blur-sm">
+                              <Loader2 className="size-6 animate-spin text-foreground mb-2" />
+                              <div className="w-16 h-1 bg-muted rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-primary transition-all duration-300"
+                                  style={{ width: `${file.progress || 0}%` }}
+                                />
+                              </div>
+                              <span className="text-foreground text-xs mt-1">
+                                {file.progress || 0}%
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Hover Actions */}
+                          <div
+                            className={cn(
+                              "absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity flex items-center justify-center rounded-lg",
+                              file.isUploading
+                                ? "opacity-0"
+                                : "opacity-0 group-hover:opacity-100",
                             )}
+                          >
+                            <div className="flex gap-2 items-center">
+                              {isSummarizable && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="secondary"
+                                      size="icon"
+                                      className="rounded-full"
+                                      onClick={async () => {
+                                        try {
+                                          const url = file.url || file.dataUrl;
+                                          if (!url) {
+                                            toast.error(
+                                              "No file URL available",
+                                            );
+                                            return;
+                                          }
+                                          const res = await fetch(
+                                            "/api/storage/ingest",
+                                            {
+                                              method: "POST",
+                                              headers: {
+                                                "Content-Type":
+                                                  "application/json",
+                                              },
+                                              body: JSON.stringify({ url }),
+                                            },
+                                          );
+                                          if (!res.ok) {
+                                            const e = await res
+                                              .json()
+                                              .catch(() => ({}));
+                                            toast.error(
+                                              e.error ||
+                                                "Failed to ingest file",
+                                            );
+                                            return;
+                                          }
+                                          const data = await res.json();
+                                          // Append preview text to input for the user to send
+                                          setInput(
+                                            `${input ? input + "\n\n" : ""}${data.text}`,
+                                          );
+                                        } catch (_err) {
+                                          toast.error("Failed to ingest file");
+                                        }
+                                      }}
+                                    >
+                                      <FileTextIcon className="size-4" />
+                                      <span className="sr-only">Summarize</span>
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Summarize</TooltipContent>
+                                </Tooltip>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="rounded-full bg-background/80 hover:bg-background"
+                                onClick={() => deleteFile(file.id)}
+                                disabled={file.isUploading}
+                              >
+                                <XIcon className="size-4" />
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Cancel Upload Button (Top Right) */}
+                          {file.isUploading && (
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="rounded-full bg-background/80 hover:bg-background"
+                              className="absolute top-1 right-1 size-6 rounded-full bg-background/60 hover:bg-background/80 backdrop-blur-sm"
                               onClick={() => deleteFile(file.id)}
-                              disabled={file.isUploading}
                             >
-                              <XIcon className="size-4" />
+                              <XIcon className="size-3" />
                             </Button>
-                          </div>
+                          )}
                         </div>
-
-                        {/* Cancel Upload Button (Top Right) */}
-                        {file.isUploading && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-1 right-1 size-6 rounded-full bg-background/60 hover:bg-background/80 backdrop-blur-sm"
-                            onClick={() => deleteFile(file.id)}
-                          >
-                            <XIcon className="size-3" />
-                          </Button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </fieldset>
+          </fieldset>
+        </div>
       </div>
     </div>
   );

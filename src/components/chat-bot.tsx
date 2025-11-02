@@ -74,6 +74,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const { uploadFiles } = useThreadFileUploader(threadId);
+  const router = useRouter();
   const handleFileDrop = useCallback(
     async (files: File[]) => {
       if (!files.length) return;
@@ -375,6 +376,13 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isShortcutEvent(e, Shortcuts.openNewChat)) {
+        e.preventDefault();
+        router.push("/");
+        router.refresh();
+        return;
+      }
+
       const messages = latestRef.current.messages;
       if (messages.length === 0) return;
       const isLastMessageCopy = isShortcutEvent(e, Shortcuts.lastMessageCopy);
@@ -397,7 +405,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (mounted) {
@@ -511,6 +519,11 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             onStop={stop}
             onFocus={isFirstTime ? undefined : handleFocus}
             widthMode={chatWidthMode}
+            showNewChatButton={!emptyMessage}
+            onNewChat={() => {
+              router.push("/");
+              router.refresh();
+            }}
           />
         </div>
         <DeleteThreadPopup
