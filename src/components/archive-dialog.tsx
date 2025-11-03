@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { Archive } from "app-types/archive";
 import { fetcher } from "lib/utils";
+import { updateArchiveAction } from "@/app/api/archive/actions";
 
 const zodSchema = z.object({
   name: z.string().min(1).max(100),
@@ -62,16 +63,16 @@ export function ArchiveDialog({
       await safe(() => zodSchema.parse(config))
         .map(async (body) => {
           if (isEdit) {
-            return await fetcher(`/api/archive/${archive.id}`, {
-              method: "PUT",
-              body: JSON.stringify(body),
-            });
-          } else {
-            return await fetcher("/api/archive", {
-              method: "POST",
-              body: JSON.stringify(body),
-            });
+            if (!archive) {
+              throw new Error("Archive not found");
+            }
+            return await updateArchiveAction(archive.id, body);
           }
+
+          return await fetcher("/api/archive", {
+            method: "POST",
+            body: JSON.stringify(body),
+          });
         })
         .ifOk(() => {
           toast.success(

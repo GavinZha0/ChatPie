@@ -251,6 +251,7 @@
     "archiveDescriptionPlaceholder": "Les archives sont des espaces pour stocker l'historique des chats.",
     "noArchives": "Aucune archive",
     "createFirstArchive": "Créez votre première archive",
+    "noArchivesAvailable": "Aucune archive disponible",
     "archiveCreated": "Archive créée",
     "archiveUpdated": "Archive mise à jour",
     "archiveDeleted": "Archive supprimée",

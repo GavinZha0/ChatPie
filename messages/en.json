@@ -390,8 +390,11 @@
     "archiveName": "Archive Name",
     "archiveDescription": "Archive Description",
     "archiveDescriptionPlaceholder": "Archives are spaces to store chat history.",
+    "archives": "Archives",
+    "archivesDescription": "Browse your saved spaces and manage archived conversations.",
     "noArchives": "No archives",
     "createFirstArchive": "Create your first archive",
+    "noArchivesAvailable": "No archives available",
     "archiveCreated": "Archive created",
     "archiveUpdated": "Archive updated",
     "archiveDeleted": "Archive deleted",
@@ -406,7 +409,15 @@
     "addToArchive": "Add to Archive",
     "removeFromArchive": "Remove from Archive",
     "itemAddedToArchive": "Item added to archive",
-    "itemRemovedFromArchive": "Item removed from archive"
+    "itemRemovedFromArchive": "Item removed from archive",
+    "lastUpdated": "Last updated {time}",
+    "noArchiveSelected": "No archive selected",
+    "selectArchivePrompt": "Choose an archive from the list to view saved conversations.",
+    "untitledThread": "Untitled chat",
+    "createdAt": "Created at {time}",
+    "noRecentMessages": "No recent activity",
+    "noThreadsInArchive": "This archive has no conversations yet.",
+    "selectArchiveToViewThreads": "Select an archive to see its conversations."
   },
   "Agent": {
     "title": "Agent",

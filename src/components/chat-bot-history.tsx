@@ -1,6 +1,7 @@
 "use client";
 
 import { appStore } from "@/app/store";
+import { useArchives } from "@/hooks/queries/use-archives";
 import { useMounted } from "@/hooks/use-mounted";
 import { ThreadDropdown } from "@/components/thread-dropdown";
 import {
@@ -61,7 +62,6 @@ export function ChatBotHistory() {
   const mounted = useMounted();
   const router = useRouter();
   const t = useTranslations("Layout");
-
   const chatHistory = appStore((state) => state.chatHistory);
   const storeMutate = appStore((state) => state.mutate);
   const currentThreadId = appStore((state) => state.currentThreadId);
@@ -78,6 +78,8 @@ export function ChatBotHistory() {
   };
 
   const [isExpanded, setIsExpanded] = useState(false);
+
+  useArchives();
 
   const { data: threadList, isLoading } = useSWR<EnhancedChatThread[]>(
     "/api/thread",
