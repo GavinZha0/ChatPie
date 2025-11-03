@@ -366,6 +366,78 @@
     "mcpAddingDisabled": "L'ajout de serveurs MCP a été désactivé par l'administrateur.",
     "vercelSyncDelay": "Fonctionnement sur Vercel\n\nLes modifications MCP peuvent prendre 10-15 secondes à se synchroniser. Veuillez patienter un moment si les changements n'apparaissent pas immédiatement après avoir ajouté, modifié ou supprimé des serveurs."
   },
+  "Admin": {
+    "Providers": {
+      "title": "Fournisseurs",
+      "allProviders": "Tous les fournisseurs",
+      "viewAndManageProviders": "Afficher et gérer les comptes fournisseurs",
+      "searchPlaceholder": "Rechercher par nom ou e-mail...",
+      "clear": "Effacer",
+      "noProvidersFound": "Aucun fournisseur trouvé",
+      "youBadge": "Vous",
+      "totalCount": "{count} fournisseur{count, plural, =1 {} other {s}} au total",
+      "provider": "Fournisseur",
+      "name": "Nom",
+      "alias": "Alias",
+      "baseUrl": "URL de base",
+      "apiKey": "Clé API",
+      "backToProviders": "Retour aux fournisseurs",
+      "listCardTitle": "Fournisseurs",
+      "availableProvidersTitle": "Fournisseurs disponibles",
+      "tableHeaders": {
+        "provider": "Fournisseur",
+        "alias": "Alias",
+        "baseUrl": "URL de base",
+        "apiKey": "Clé API",
+        "updatedAt": "Dernière mise à jour",
+        "actions": "Actions"
+      },
+      "noApiProviders": "Aucun fournisseur avec clé API configurée",
+      "toast": {
+        "deleted": "Fournisseur supprimé avec succès",
+        "deleteFailed": "Échec de suppression du fournisseur",
+        "addModelComingSoon": "La fonctionnalité d'ajout de modèle arrive bientôt",
+        "updateSuccess": "Fournisseur mis à jour avec succès",
+        "updateFailed": "Échec de mise à jour du fournisseur"
+      },
+      "modelSectionTitle": "Modèles de {alias}",
+      "modelSectionPlaceholder": "Sélectionnez un fournisseur",
+      "selectProviderPrompt": "Veuillez sélectionner un fournisseur pour voir les modèles",
+      "noModels": "Aucun modèle configuré pour ce fournisseur",
+      "tooltips": {
+        "edit": "Modifier le fournisseur",
+        "addModel": "Ajouter un modèle",
+        "delete": "Supprimer le fournisseur"
+      },
+      "modelCard": {
+        "contextLimit": "Contexte {limit}",
+        "functionCall": "Appel de fonction :",
+        "imageInput": "Entrée d'image :",
+        "yes": "Oui",
+        "no": "Non",
+        "notAvailable": "Non disponible",
+        "toggleAria": "Basculer l'état activé du modèle {modelId}"
+      },
+      "dialog": {
+        "deleteTitle": "⚠️ Supprimer le fournisseur",
+        "deleteDescription": "Êtes-vous sûr de vouloir supprimer {alias} ? Cette action est irréversible et supprimera tous les modèles et configurations associés."
+      },
+      "form": {
+        "description": "Configurer la clé API et l'URL de base pour ce fournisseur",
+        "fields": {
+          "alias": "Alias",
+          "baseUrl": "URL de base",
+          "apiKey": "Clé API"
+        },
+        "placeholders": {
+          "alias": "openai",
+          "baseUrl": "https://api.exemple.com/v1",
+          "apiKey": "Saisir la clé API"
+        }
+      },
+      "apiKeyNotSet": "Non définie"
+    }
+  },
   "Workflow": {
     "title": "Flux de Travail",
     "createWorkflow": "Créer Flux de Travail",

@@ -365,6 +365,78 @@
     "mcpAddingDisabled": "管理者によりMCPサーバーの追加が無効化されています。",
     "vercelSyncDelay": "Vercel上で動作中\n\nMCP変更の同期には10-15秒かかる場合があります。サーバーの追加、編集、または削除後に変更が即座に表示されない場合は、しばらくお待ちください。"
   },
+  "Admin": {
+    "Providers": {
+      "title": "プロバイダー",
+      "allProviders": "すべてのプロバイダー",
+      "viewAndManageProviders": "プロバイダーアカウントを表示・管理",
+      "searchPlaceholder": "名前またはメールで検索...",
+      "clear": "クリア",
+      "noProvidersFound": "プロバイダーが見つかりません",
+      "youBadge": "あなた",
+      "totalCount": "合計 {count} 件のプロバイダー",
+      "provider": "プロバイダー",
+      "name": "名前",
+      "alias": "エイリアス",
+      "baseUrl": "ベースURL",
+      "apiKey": "APIキー",
+      "backToProviders": "プロバイダー一覧に戻る",
+      "listCardTitle": "プロバイダー",
+      "availableProvidersTitle": "利用可能なプロバイダー",
+      "tableHeaders": {
+        "provider": "プロバイダー",
+        "alias": "エイリアス",
+        "baseUrl": "ベースURL",
+        "apiKey": "APIキー",
+        "updatedAt": "最終更新",
+        "actions": "操作"
+      },
+      "noApiProviders": "APIキーが設定されたプロバイダーはありません",
+      "toast": {
+        "deleted": "プロバイダーを削除しました",
+        "deleteFailed": "プロバイダーの削除に失敗しました",
+        "addModelComingSoon": "モデル追加機能は近日提供予定です",
+        "updateSuccess": "プロバイダーを更新しました",
+        "updateFailed": "プロバイダーの更新に失敗しました"
+      },
+      "modelSectionTitle": "{alias} のモデル",
+      "modelSectionPlaceholder": "プロバイダーを選択",
+      "selectProviderPrompt": "モデルを表示するプロバイダーを選択してください",
+      "noModels": "このプロバイダーにはモデルが設定されていません",
+      "tooltips": {
+        "edit": "プロバイダーを編集",
+        "addModel": "モデルを追加",
+        "delete": "プロバイダーを削除"
+      },
+      "modelCard": {
+        "contextLimit": "コンテキスト {limit}",
+        "functionCall": "関数呼び出し:",
+        "imageInput": "画像入力:",
+        "yes": "はい",
+        "no": "いいえ",
+        "notAvailable": "未設定",
+        "toggleAria": "モデル {modelId} の有効状態を切り替え"
+      },
+      "dialog": {
+        "deleteTitle": "⚠️ プロバイダーを削除",
+        "deleteDescription": "{alias} を削除してもよろしいですか？この操作は取り消せず、関連するモデルと設定がすべて削除されます。"
+      },
+      "form": {
+        "description": "このプロバイダーのAPIキーとベースURLを設定します",
+        "fields": {
+          "alias": "エイリアス",
+          "baseUrl": "ベースURL",
+          "apiKey": "APIキー"
+        },
+        "placeholders": {
+          "alias": "openai",
+          "baseUrl": "https://api.example.com/v1",
+          "apiKey": "APIキーを入力"
+        }
+      },
+      "apiKeyNotSet": "未設定"
+    }
+  },
   "Workflow": {
     "title": "ワークフロー",
     "createWorkflow": "ワークフローを作成",

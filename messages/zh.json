@@ -367,6 +367,78 @@
     "mcpAddingDisabled": "管理员已禁用MCP服务器添加功能。",
     "vercelSyncDelay": "在Vercel上运行\n\nMCP更改同步可能需要10-15秒。如果添加、编辑或删除服务器后更改未立即显示，请稍等片刻。"
   },
+  "Admin": {
+    "Providers": {
+      "title": "提供商",
+      "allProviders": "全部提供商",
+      "viewAndManageProviders": "查看并管理提供商账户",
+      "searchPlaceholder": "按名称或邮箱搜索...",
+      "clear": "清除",
+      "noProvidersFound": "未找到提供商",
+      "youBadge": "你",
+      "totalCount": "共 {count} 个提供商",
+      "provider": "提供商",
+      "name": "名称",
+      "alias": "别名",
+      "baseUrl": "基础 URL",
+      "apiKey": "API 密钥",
+      "backToProviders": "返回提供商列表",
+      "listCardTitle": "提供商",
+      "availableProvidersTitle": "可用提供商",
+      "tableHeaders": {
+        "provider": "提供商",
+        "alias": "别名",
+        "baseUrl": "基础 URL",
+        "apiKey": "API 密钥",
+        "updatedAt": "最后更新",
+        "actions": "操作"
+      },
+      "noApiProviders": "尚无配置 API 密钥的提供商",
+      "toast": {
+        "deleted": "提供商删除成功",
+        "deleteFailed": "删除提供商失败",
+        "addModelComingSoon": "模型添加功能即将上线",
+        "updateSuccess": "提供商更新成功",
+        "updateFailed": "更新提供商失败"
+      },
+      "modelSectionTitle": "{alias} 模型",
+      "modelSectionPlaceholder": "请选择提供商",
+      "selectProviderPrompt": "请选择一个提供商以查看模型",
+      "noModels": "该提供商尚未配置模型",
+      "tooltips": {
+        "edit": "编辑提供商",
+        "addModel": "添加模型",
+        "delete": "删除提供商"
+      },
+      "modelCard": {
+        "contextLimit": "上下文 {limit}",
+        "functionCall": "函数调用:",
+        "imageInput": "图像输入:",
+        "yes": "是",
+        "no": "否",
+        "notAvailable": "未设置",
+        "toggleAria": "切换模型 {modelId} 的启用状态"
+      },
+      "dialog": {
+        "deleteTitle": "⚠️ 删除提供商",
+        "deleteDescription": "确定要删除 {alias} 吗？此操作无法撤销，并会移除所有关联的模型和配置。"
+      },
+      "form": {
+        "description": "为该提供商配置 API 密钥和基础 URL",
+        "fields": {
+          "alias": "别名",
+          "baseUrl": "基础 URL",
+          "apiKey": "API 密钥"
+        },
+        "placeholders": {
+          "alias": "openai",
+          "baseUrl": "https://api.example.com/v1",
+          "apiKey": "请输入 API 密钥"
+        }
+      },
+      "apiKeyNotSet": "未设置"
+    }
+  },
   "Workflow": {
     "title": "工作流",
     "createWorkflow": "创建工作流",

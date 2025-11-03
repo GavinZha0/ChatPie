@@ -726,6 +726,104 @@
       "joined": "Joined",
       "backToUsers": "Back to Users"
     },
+    "Providers": {
+      "title": "Providers",
+      "allProviders": "All Providers",
+      "viewAndManageProviders": "View and manage provider accounts",
+      "searchPlaceholder": "Search by name or email...",
+      "clear": "Clear",
+      "noProvidersFound": "No providers found",
+      "youBadge": "You",
+      "totalCount": "{count} provider{count, plural, =1 {} other {s}} total",
+      "provider": "Provider",
+      "name": "Name",
+      "alias": "Alias",
+      "baseUrl": "Base URL",
+      "apiKey": "API Key",
+      "backToProviders": "Back to Providers",
+      "listCardTitle": "Providers",
+      "availableProvidersTitle": "Available Providers",
+      "tableHeaders": {
+        "provider": "Provider",
+        "alias": "Alias",
+        "baseUrl": "Base URL",
+        "apiKey": "API Key",
+        "updatedAt": "Last Updated",
+        "actions": "Actions"
+      },
+      "noApiProviders": "No providers with API keys configured",
+      "toast": {
+        "deleted": "Provider deleted successfully",
+        "deleteFailed": "Failed to delete provider",
+        "addModelComingSoon": "Add model feature coming soon",
+        "addModelSuccess": "Model added successfully",
+        "addModelFailed": "Failed to add model",
+        "updateSuccess": "Provider updated successfully",
+        "updateFailed": "Failed to update provider"
+      },
+      "modelSectionTitle": "{alias} Models",
+      "modelSectionPlaceholder": "Select a Provider",
+      "selectProviderPrompt": "Please select a provider to view models",
+      "noModels": "No models configured for this provider",
+      "tooltips": {
+        "edit": "Edit Provider",
+        "addModel": "Add Model",
+        "delete": "Delete Provider"
+      },
+      "modelCard": {
+        "contextLimit": "{limit} context",
+        "functionCall": "Function Call:",
+        "imageInput": "Image Input:",
+        "yes": "Yes",
+        "no": "No",
+        "notAvailable": "N/A",
+        "toggleAria": "Toggle {modelId} enabled state"
+      },
+      "modelTypes": {
+        "chat": "Chat",
+        "vision": "Vision",
+        "embedding": "Embedding",
+        "audio": "Audio",
+        "transcription": "Transcription",
+        "rerank": "Rerank"
+      },
+      "addModelDialog": {
+        "description": "Add an existing or new model to this provider",
+        "selectModelLabel": "Model",
+        "selectModelPlaceholder": "Select or create a model",
+        "createNewOption": "Create new model",
+        "newModelIdLabel": "Model ID",
+        "newModelIdPlaceholder": "e.g. gpt-4.1-mini",
+        "modelTypeLabel": "Model Type",
+        "functionCallLabel": "Function calling",
+        "functionCallHelper": "Enable if the model supports tool/function calls",
+        "imageInputLabel": "Image input",
+        "imageInputHelper": "Enable if the model accepts images as input",
+        "contextLimitLabel": "Context window",
+        "contextLimitPlaceholder": "Enter tokens (optional)",
+        "modelIdRequired": "Please select or enter a model ID",
+        "modelAlreadyExists": "This model is already attached",
+        "contextLimitInvalid": "Context window must be a non-negative number"
+      },
+      "dialog": {
+        "deleteTitle": "⚠️ Delete Provider",
+        "deleteDescription": "Are you sure you want to delete {alias}? This action cannot be undone and will remove all associated models and configurations."
+      },
+      "form": {
+        "description": "Configure API key and base URL for this provider",
+        "fields": {
+          "alias": "Alias",
+          "baseUrl": "Base URL",
+          "apiKey": "API Key"
+        },
+        "placeholders": {
+          "alias": "openai",
+          "baseUrl": "https://api.example.com/v1",
+          "apiKey": "Enter API key"
+        }
+      },
+      "apiKeyNotSet": "Not Set"
+    },
     "UserDelete": {
       "title": "Delete User Account",
       "description": "You are about to permanently delete {name}'s account. This action cannot be undone.",

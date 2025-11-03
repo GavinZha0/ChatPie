@@ -1,28 +1,39 @@
-import { BlendIcon } from "lucide-react";
-import { ClaudeIcon } from "./claude-icon";
-import { GeminiIcon } from "./gemini-icon";
-import { GrokIcon } from "./grok-icon";
-import { OpenAIIcon } from "./openai-icon";
-import { OllamaIcon } from "./ollama-icon";
-import { OpenRouterIcon } from "./open-router-icon";
+import { ProviderIcon, Dify } from "@lobehub/icons";
 
-export function ModelProviderIcon({
-  provider,
-  className,
-}: { provider: string; className?: string }) {
-  return provider === "openai" ? (
-    <OpenAIIcon className={className} />
-  ) : provider === "xai" ? (
-    <GrokIcon className={className} />
-  ) : provider === "anthropic" ? (
-    <ClaudeIcon className={className} />
-  ) : provider === "google" ? (
-    <GeminiIcon className={className} />
-  ) : provider === "ollama" ? (
-    <OllamaIcon className={className} />
-  ) : provider === "openRouter" ? (
-    <OpenRouterIcon className={className} />
-  ) : (
-    <BlendIcon className={className} />
-  );
+export const PROVIDER_ICONS = {
+  dify: Dify,
+} as const;
+
+interface ModelProviderIconProps {
+  provider: string | undefined;
+  colorful?: boolean;
+  size?: number;
+  className?: string;
 }
+
+export const ModelProviderIcon = ({
+  provider,
+  colorful = false,
+  size = 24,
+  className,
+}: ModelProviderIconProps) => {
+  const IconComponent = PROVIDER_ICONS[provider as keyof typeof PROVIDER_ICONS];
+  if (IconComponent) {
+    return colorful ? (
+      <IconComponent.Color size={size} className={className} />
+    ) : (
+      <IconComponent size={size} className={className} />
+    );
+  }
+
+  return colorful ? (
+    <ProviderIcon
+      provider={provider}
+      size={size}
+      type="color"
+      className={className}
+    />
+  ) : (
+    <ProviderIcon provider={provider} size={size} className={className} />
+  );
+};
