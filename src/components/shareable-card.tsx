@@ -118,7 +118,6 @@ export function ShareableCard({
                 visibility={item.visibility}
                 isOwner={isOwner}
                 isBookmarked={isBookmarked}
-                editHref={href}
                 onVisibilityChange={
                   onVisibilityChange
                     ? (visibility) => onVisibilityChange(item.id, visibility)

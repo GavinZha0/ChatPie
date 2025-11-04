@@ -5,14 +5,14 @@ import {
   ShieldAlertIcon,
   Loader,
   RotateCw,
-  Settings,
   Settings2,
   Wrench,
+  Globe,
+  SquareTerminal,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "ui/alert";
 import { Button } from "ui/button";
 import { Card, CardContent, CardHeader } from "ui/card";
-import JsonView from "ui/json-view";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { memo, useCallback, useMemo, useState } from "react";
 import Link from "next/link";
@@ -53,7 +53,8 @@ export const MCPCard = memo(function MCPCard({
   user,
   userName,
   userAvatar,
-}: MCPServerInfo & { user: BasicUser }) {
+  onEdit,
+}: MCPServerInfo & { user: BasicUser; onEdit: () => void }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [visibilityChangeLoading, setVisibilityChangeLoading] = useState(false);
   const t = useTranslations("MCP");
@@ -139,6 +140,11 @@ export const MCPCard = memo(function MCPCard({
         {isLoading && <Loader className="size-4 z-20 animate-spin mr-1" />}
 
         <h4 className="font-bold text-xs sm:text-lg flex items-center gap-1">
+          {"command" in config ? (
+            <SquareTerminal className="size-3.5 text-muted-foreground" />
+          ) : "url" in config ? (
+            <Globe className="size-3.5 text-muted-foreground" />
+          ) : null}
           {name}
         </h4>
 
@@ -243,9 +249,7 @@ export const MCPCard = memo(function MCPCard({
           visibility={visibility === "public" ? "public" : "private"}
           isOwner={isOwner}
           canChangeVisibility={canChangeVisibility}
-          editHref={
-            isOwner ? `/mcp/modify/${encodeURIComponent(id)}` : undefined
-          }
+          onEdit={isOwner ? onEdit : undefined}
           onVisibilityChange={
             canChangeVisibility ? handleVisibilityChange : undefined
           }
@@ -303,23 +307,11 @@ export const MCPCard = memo(function MCPCard({
 
       <div className="relative hidden sm:flex w-full">
         <CardContent className="flex min-w-0 w-full flex-row text-sm max-h-[320px] overflow-hidden border-r-0">
-          <div className="w-1/2 min-w-0 flex flex-col pr-2 border-r border-border">
-            <div className="flex items-center gap-2 mb-2 pt-2 pb-1 z-10">
-              <Settings size={14} className="text-muted-foreground" />
-              <h5 className="text-muted-foreground text-sm font-medium">
-                {t("configuration")}
-              </h5>
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              <JsonView data={config} />
-            </div>
-          </div>
-
-          <div className="w-1/2 min-w-0 flex flex-col pl-4">
+          <div className="w-full min-w-0 flex flex-col pl-4">
             <div className="flex items-center gap-2 mb-4 pt-2 pb-1 z-10">
               <Wrench size={14} className="text-muted-foreground" />
               <h5 className="text-muted-foreground text-sm font-medium">
-                {t("availableTools")}
+                {t("availableTools")} ({toolInfo.length})
               </h5>
             </div>
 

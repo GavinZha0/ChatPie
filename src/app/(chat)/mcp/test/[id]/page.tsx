@@ -132,6 +132,7 @@ const SchemaProperty = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(level < 1);
   const isObject = schema.type === "object" && schema.properties;
+  const t = useTranslations();
 
   return (
     <div
@@ -157,7 +158,7 @@ const SchemaProperty = ({
         <span className="text-sm font-medium">{name}</span>
         {schema.required && (
           <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
-            required
+            {t("Common.required")}
           </Badge>
         )}
       </div>
@@ -166,7 +167,7 @@ const SchemaProperty = ({
         <span>type: {schema.type}</span>
         {schema.enum && (
           <div className="mt-1">
-            <span>enum: </span>
+            <span>{t("MCP.enum")}: </span>
             <div className="flex flex-wrap gap-1 mt-1">
               {schema.enum.map((item) => (
                 <Badge key={item} variant="secondary" className="text-[10px]">
@@ -315,7 +316,7 @@ const GenerateExampleInputJsonDialog = ({
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-2 py-4 text-foreground">
-          <Label>Model</Label>
+          <Label>{t("MCP.model")}</Label>
           <Select
             value={JSON.stringify(option.model ?? "{}")}
             onValueChange={(value) => {
@@ -324,7 +325,7 @@ const GenerateExampleInputJsonDialog = ({
             }}
           >
             <SelectTrigger className="min-w-48">
-              <SelectValue placeholder="Select a model" />
+              <SelectValue placeholder={t("MCP.selectModel")} />
             </SelectTrigger>
             <SelectContent>
               {providers?.map((provider) => (
@@ -347,9 +348,11 @@ const GenerateExampleInputJsonDialog = ({
           </Select>
           <div className="my-2" />
           <Label>
-            Prompt{" "}
+            {t("MCP.prompt")}{" "}
             <span className="text-muted-foreground text-xs">
-              {"("}optional{")"}
+              {"("}
+              {t("Common.optional")}
+              {")"}
             </span>
           </Label>
 
@@ -481,7 +484,9 @@ export default function Page() {
   // Empty state message
   const renderEmptyState = () => (
     <p className="text-sm text-muted-foreground text-center py-4">
-      {client?.toolInfo?.length ? "No search results" : "No tools available"}
+      {client?.toolInfo?.length
+        ? t("Common.noResults")
+        : t("MCP.noToolsAvailable")}
     </p>
   );
 
@@ -499,7 +504,7 @@ export default function Page() {
   }, [searchQuery]);
 
   return (
-    <div className="relative flex flex-col max-w-5xl px-4 mx-4 md:mx-auto w-full h-full py-4">
+    <div className="relative flex flex-col px-4 w-full h-full py-4">
       <div className="absolute bottom-0 left-0 w-full h-[10%] z-10 bg-gradient-to-b from-transparent to-background pointer-events-none" />
 
       <div className="bg-background pb-2">
@@ -517,7 +522,10 @@ export default function Page() {
         </header>
       </div>
 
-      <ResizablePanelGroup direction="horizontal" className="mt-4">
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="mt-4 flex-1 min-h-0"
+      >
         {/* Tool List Panel */}
         <ResizablePanel defaultSize={30}>
           <div className="w-full flex flex-col h-full relative pr-8">
@@ -555,9 +563,9 @@ export default function Page() {
 
         {/* Tool Detail Panel */}
         <ResizablePanel defaultSize={70}>
-          <div className="w-full h-full">
+          <div className="w-full h-full flex flex-col min-h-0">
             {selectedTool ? (
-              <div className="h-full overflow-y-auto pl-6 pr-12">
+              <div className="flex-1 overflow-y-auto pl-6 pr-12 min-h-0">
                 <div className="sticky top-0 bg-background">
                   <h3 className="text-xl font-medium mb-4 flex items-center gap-2">
                     {selectedTool.name}
@@ -574,7 +582,7 @@ export default function Page() {
                   <Separator className="my-4" />
                 </div>
 
-                <div className="space-y-4 h-full ">
+                <div className="space-y-4">
                   {selectedTool.inputSchema ? (
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
@@ -582,7 +590,7 @@ export default function Page() {
                         <div>
                           <div className="flex justify-between items-center mb-2">
                             <h5 className="text-xs font-medium">
-                              Input Schema
+                              {t("MCP.inputSchema")}
                             </h5>
                             <Dialog>
                               <DialogTrigger asChild>
@@ -599,7 +607,8 @@ export default function Page() {
                                 <DialogContent className="sm:max-w-[800px] fixed p-10 overflow-hidden">
                                   <DialogHeader>
                                     <DialogTitle>
-                                      Input Schema: {selectedTool.name}
+                                      {t("MCP.inputSchema")}:{" "}
+                                      {selectedTool.name}
                                     </DialogTitle>
                                   </DialogHeader>
                                   <div className="overflow-y-auto max-h-[70vh]">
@@ -643,7 +652,7 @@ export default function Page() {
                         <div className="space-y-2">
                           <div className="flex justify-between items-center mb-2">
                             <h5 className="text-xs font-medium flex items-center">
-                              Input JSON
+                              {t("MCP.inputJSON")}
                             </h5>
                             <GenerateExampleInputJsonDialog
                               toolInfo={selectedTool}
@@ -669,7 +678,7 @@ export default function Page() {
                           {jsonError && jsonInput && (
                             <Alert variant="destructive" className="mt-2">
                               <AlertTitle className="text-xs font-semibold">
-                                JSON Error
+                                {t("MCP.jsonError")}
                               </AlertTitle>
                               <AlertDescription className="text-xs">
                                 {jsonError}
@@ -694,40 +703,42 @@ export default function Page() {
                       </div>
 
                       {/* Results Display */}
-                      {!isNull(callResult) && (
-                        <div className="space-y-2">
-                          <h5 className="text-xs font-medium">Result</h5>
-                          {callResult.success ? (
-                            <div className="border border-input rounded-md p-4 max-h-[300px] overflow-auto">
-                              <JsonView
-                                data={callResult.data}
-                                initialExpandDepth={2}
-                              />
-                            </div>
-                          ) : (
-                            <Alert
-                              variant="destructive"
-                              className="mt-2 border-destructive"
-                            >
-                              <AlertTitle className="text-xs font-semibold">
-                                Error
-                              </AlertTitle>
-                              <AlertDescription className="text-xs mt-2 text-destructive">
-                                <pre className="whitespace-pre-wrap">
-                                  {isString(callResult.error)
-                                    ? callResult.error
-                                    : JSON.stringify(callResult.error, null, 2)}
-                                </pre>
-                              </AlertDescription>
-                            </Alert>
-                          )}
-                        </div>
-                      )}
+                      <div className="space-y-2">
+                        <h5 className="text-xs font-medium">
+                          {t("Common.result")}
+                        </h5>
+                        {isNull(callResult) ? (
+                          <div className="border border-input rounded-md p-4 max-h-[500px] overflow-auto" />
+                        ) : callResult.success ? (
+                          <div className="border border-input rounded-md p-4 max-h-[500px] overflow-auto">
+                            <JsonView
+                              data={callResult.data}
+                              initialExpandDepth={2}
+                            />
+                          </div>
+                        ) : (
+                          <Alert
+                            variant="destructive"
+                            className="mt-2 border-destructive"
+                          >
+                            <AlertTitle className="text-xs font-semibold">
+                              {t("Common.error")}
+                            </AlertTitle>
+                            <AlertDescription className="text-xs mt-2 text-destructive">
+                              <pre className="whitespace-pre-wrap">
+                                {isString(callResult.error)
+                                  ? callResult.error
+                                  : JSON.stringify(callResult.error, null, 2)}
+                              </pre>
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <div className="bg-secondary/30 p-4 rounded-md">
                       <p className="text-sm text-center text-muted-foreground">
-                        This tool doesn{"'"}t have an input schema defined
+                        {t("MCP.noInputSchemaDefined")}
                       </p>
                     </div>
                   )}
@@ -736,7 +747,7 @@ export default function Page() {
             ) : (
               <div className="flex items-center justify-center h-[300px]">
                 <p className="text-muted-foreground">
-                  Select a tool from the left to test
+                  {t("MCP.selectToolToTest")}
                 </p>
               </div>
             )}

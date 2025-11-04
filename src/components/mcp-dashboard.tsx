@@ -3,8 +3,11 @@ import { MCPCard } from "@/components/mcp-card";
 import { canCreateMCP } from "lib/auth/client-permissions";
 
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { MCPOverview, RECOMMENDED_MCPS } from "@/components/mcp-overview";
+import {
+  MCPOverview,
+  RECOMMENDED_MCPS,
+  RECOMMENDED_MARKETS,
+} from "@/components/mcp-overview";
 
 import { Skeleton } from "ui/skeleton";
 
@@ -23,8 +26,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "ui/dropdown-menu";
-import { useRouter } from "next/navigation";
+
 import { BasicUser } from "app-types/user";
+import { MCPEditorDialog } from "./mcp-editor-dialog";
+import { MCPServerConfig } from "app-types/mcp";
 
 const LightRays = dynamic(() => import("@/components/ui/light-rays"), {
   ssr: false,
@@ -37,7 +42,12 @@ interface MCPDashboardProps {
 
 export default function MCPDashboard({ message, user }: MCPDashboardProps) {
   const t = useTranslations("MCP");
-  const router = useRouter();
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [editingMcp, setEditingMcp] = useState<{
+    id?: string;
+    name?: string;
+    config?: MCPServerConfig;
+  } | null>(null);
 
   // Check if user can create MCP connections using Better Auth permissions
   const canCreate = canCreateMCP(user?.role);
@@ -77,10 +87,8 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
   const [showValidating, setShowValidating] = useState(false);
 
   const handleRecommendedSelect = (mcp: (typeof RECOMMENDED_MCPS)[number]) => {
-    const params = new URLSearchParams();
-    params.set("name", mcp.name);
-    params.set("config", JSON.stringify(mcp.config));
-    router.push(`/mcp/create?${params.toString()}`);
+    setEditingMcp(mcp);
+    setIsEditorOpen(true);
   };
 
   const particle = useMemo(() => {
@@ -99,6 +107,13 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
         <div className="absolute pointer-events-none top-0 left-0 w-full h-full z-10 fade-in animate-in duration-5000">
           <div className="w-full h-full bg-gradient-to-r from-background to-20% to-transparent z-20" />
         </div>
+        <MCPEditorDialog
+          open={isEditorOpen}
+          onOpenChange={setIsEditorOpen}
+          id={editingMcp?.id}
+          name={editingMcp?.name}
+          initialConfig={editingMcp?.config}
+        />
       </>
     );
   }, [isLoading, mcpList?.length]);
@@ -124,7 +139,7 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
     <>
       {particle}
       <ScrollArea className="h-full w-full z-40 ">
-        <div className="pt-8 flex-1 relative flex flex-col gap-4 px-8 max-w-3xl h-full mx-auto pb-8">
+        <div className="pt-8 flex-1 relative flex flex-col gap-4 px-8 h-full pb-8">
           <div className={cn("flex items-center  pb-8")}>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               {canCreate ? t("mcpServers") : t("availableMcpServers")}
@@ -179,27 +194,40 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
               ) : null}
 
               {canCreate && (
-                <Link
-                  href="https://smithery.ai/"
-                  target="_blank"
-                  className="hidden sm:block"
-                >
-                  <Button className="font-semibold" variant={"ghost"}>
-                    {t("marketplace")}
-                  </Button>
-                </Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button className="font-semibold" variant={"ghost"}>
+                      {t("marketplace")}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    {RECOMMENDED_MARKETS.map((market) => (
+                      <DropdownMenuItem
+                        key={market.name}
+                        className="cursor-pointer"
+                        onClick={() => {
+                          window.open(market.url, "_blank");
+                        }}
+                      >
+                        <span>{market.label}</span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
               {canCreate && (
-                <Link href="/mcp/create">
-                  <Button
-                    className="font-semibold bg-input/20"
-                    variant="outline"
-                    data-testid="add-mcp-server-button"
-                  >
-                    <MCPIcon className="fill-foreground size-3.5" />
-                    {t("addMcpServer")}
-                  </Button>
-                </Link>
+                <Button
+                  className="font-semibold bg-input/20"
+                  variant="outline"
+                  data-testid="add-mcp-server-button"
+                  onClick={() => {
+                    setEditingMcp(null);
+                    setIsEditorOpen(true);
+                  }}
+                >
+                  <MCPIcon className="fill-foreground size-3.5" />
+                  {t("addMcpServer")}
+                </Button>
               )}
             </div>
           </div>
@@ -220,11 +248,19 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
                     {t("myMcpServers")}
                   </h2>
                   <div
-                    className="flex flex-col gap-6"
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
                     data-testid="my-mcp-servers-section"
                   >
                     {myServers.map((mcp) => (
-                      <MCPCard key={mcp.id} {...mcp} user={user} />
+                      <MCPCard
+                        key={mcp.id}
+                        {...mcp}
+                        user={user}
+                        onEdit={() => {
+                          setEditingMcp(mcp);
+                          setIsEditorOpen(true);
+                        }}
+                      />
                     ))}
                   </div>
                 </div>
@@ -235,11 +271,19 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
                     {t("featuredMcpServers")}
                   </h2>
                   <div
-                    className="flex flex-col gap-6"
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
                     data-testid="featured-mcp-servers-section"
                   >
                     {featuredServers.map((mcp) => (
-                      <MCPCard key={mcp.id} {...mcp} user={user} />
+                      <MCPCard
+                        key={mcp.id}
+                        {...mcp}
+                        user={user}
+                        onEdit={() => {
+                          setEditingMcp(mcp);
+                          setIsEditorOpen(true);
+                        }}
+                      />
                     ))}
                   </div>
                 </div>
@@ -247,7 +291,12 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
             </div>
           ) : // When MCP list is empty
           canCreate ? (
-            <MCPOverview />
+            <MCPOverview
+              onMcpSelect={(mcp) => {
+                setEditingMcp(mcp);
+                setIsEditorOpen(true);
+              }}
+            />
           ) : (
             <div className="flex flex-col items-center justify-center space-y-4 my-20 text-center">
               <h3 className="text-2xl md:text-4xl font-semibold">
@@ -260,6 +309,13 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
           )}
         </div>
       </ScrollArea>
+      <MCPEditorDialog
+        open={isEditorOpen}
+        onOpenChange={setIsEditorOpen}
+        id={editingMcp?.id}
+        name={editingMcp?.name}
+        initialConfig={editingMcp?.config}
+      />
     </>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 import { ArrowUpRight } from "lucide-react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { MCPIcon } from "ui/mcp-icon";
 
@@ -104,7 +103,15 @@ export const RECOMMENDED_MCPS = [
   },
 ];
 
-export function MCPOverview() {
+export const RECOMMENDED_MARKETS = [
+  { name: "mcpservers", label: "MCP Servers", url: "https://mcpservers.org/" },
+  { name: "smithery", label: "Smithery", url: "https://smithery.ai/" },
+  { name: "mcpmarket", label: "MCP Market", url: "https://mcpmarket.com/" },
+];
+
+export function MCPOverview({
+  onMcpSelect,
+}: { onMcpSelect: (mcp: any) => void }) {
   const t = useTranslations("MCP");
 
   const handleMcpClick = (
@@ -113,18 +120,13 @@ export function MCPOverview() {
   ) => {
     e.preventDefault();
     e.stopPropagation();
-
-    const params = new URLSearchParams();
-    params.set("name", mcp.name);
-    params.set("config", JSON.stringify(mcp.config));
-
-    window.location.href = `/mcp/create?${params.toString()}`;
+    onMcpSelect(mcp);
   };
 
   return (
     <div className="flex flex-col gap-4">
-      <Link
-        href="/mcp/create"
+      <div
+        onClick={() => onMcpSelect(null)}
         className="rounded-lg overflow-hidden cursor-pointer p-12 text-center relative group transition-all duration-300 "
       >
         <div className="flex flex-col items-center justify-center space-y-4 my-20">
@@ -142,7 +144,7 @@ export function MCPOverview() {
             <ArrowUpRight className="size-6" />
           </div>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap justify-center">
           {RECOMMENDED_MCPS.map((mcp) => (
             <Button
               key={mcp.name}
@@ -155,7 +157,7 @@ export function MCPOverview() {
             </Button>
           ))}
         </div>
-      </Link>
+      </div>
     </div>
   );
 }

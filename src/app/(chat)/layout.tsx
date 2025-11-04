@@ -36,7 +36,6 @@ export default async function ChatLayout({
           }
         />
         {/* Fixed left toolbar */}
-        {/* @ts-expect-error Server Component to Client boundary for toolbar props */}
         <AppToolbar user={session.user} />
         <AppSidebar user={session.user} />
         <main className="relative bg-background w-full flex flex-col h-screen pl-16">

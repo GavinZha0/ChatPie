@@ -10,7 +10,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+
 import { Button } from "ui/button";
 import {
   DropdownMenu,
@@ -74,7 +74,7 @@ interface ShareableActionsProps {
   isOwner: boolean;
   canChangeVisibility?: boolean;
   isBookmarked?: boolean;
-  editHref?: string;
+  onEdit?: () => void;
   onVisibilityChange?: (visibility: Visibility) => void;
   isVisibilityChangeLoading?: boolean;
   onBookmarkToggle?: (isBookmarked: boolean) => void;
@@ -91,7 +91,7 @@ export function ShareableActions({
   isOwner,
   canChangeVisibility = true,
   isBookmarked = false,
-  editHref,
+  onEdit,
   onVisibilityChange,
   onBookmarkToggle,
   onDelete,
@@ -102,7 +102,6 @@ export function ShareableActions({
   disabled = false,
 }: ShareableActionsProps) {
   const t = useTranslations();
-  const router = useRouter();
 
   const isAnyLoading = useMemo(
     () =>
@@ -227,7 +226,7 @@ export function ShareableActions({
       )}
 
       {/* Edit Action */}
-      {isOwner && editHref && (
+      {isOwner && onEdit && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -238,7 +237,7 @@ export function ShareableActions({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                router.push(editHref);
+                onEdit();
               }}
             >
               <WriteIcon className="size-4" />
