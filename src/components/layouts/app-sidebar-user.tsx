@@ -28,7 +28,6 @@ import {
   Settings,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { APP_GITHUB_REPO } from "lib/const";
 import { appStore } from "@/app/store";
 import { BASE_THEMES, COOKIE_KEY_LOCALE, SUPPORTED_LOCALES } from "lib/const";
 import { capitalizeFirstLetter, cn, fetcher } from "lib/utils";
@@ -37,8 +36,6 @@ import { useTranslations } from "next-intl";
 import useSWR from "swr";
 import { getLocaleAction } from "@/i18n/get-locale";
 import { Suspense, useCallback } from "react";
-import { GithubIcon } from "ui/github-icon";
-import { DiscordIcon } from "ui/discord-icon";
 import { useThemeStyle } from "@/hooks/use-theme-style";
 import { BasicUser } from "app-types/user";
 import { getUserAvatar } from "lib/user/utils";
@@ -55,14 +52,6 @@ export function AppSidebarUserInner(props: {
     shouldRetryOnError: false,
     refreshInterval: 1000 * 60 * 10,
   });
-  const appStoreMutate = appStore((state) => state.mutate);
-  const t = useTranslations("Layout");
-
-  const logout = () => {
-    authClient.signOut().finally(() => {
-      window.location.href = "/sign-in";
-    });
-  };
 
   if (!user) return null;
 
@@ -95,80 +84,7 @@ export function AppSidebarUserInner(props: {
             className="bg-background w-[--radix-dropdown-menu-trigger-width] min-w-60 rounded-lg"
             align="center"
           >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-full">
-                  <AvatarImage
-                    src={getUserAvatar(user)}
-                    alt={user?.name || "User"}
-                  />
-                  <AvatarFallback className="rounded-lg">
-                    {user?.name?.slice(0, 1) || ""}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span
-                    className="truncate font-medium"
-                    data-testid="sidebar-user-name"
-                  >
-                    {user?.name}
-                  </span>
-                  <span className="truncate text-xs text-muted-foreground">
-                    {user?.email}
-                  </span>
-                </div>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={() => appStoreMutate({ openChatPreferences: true })}
-            >
-              <Settings2 className="size-4 text-foreground" />
-              <span>{t("chatPreferences")}</span>
-            </DropdownMenuItem>
-            <SelectTheme />
-            <SelectLanguage />
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={() => appStoreMutate({ openShortcutsPopup: true })}
-            >
-              <Command className="size-4 text-foreground" />
-              <span>{t("keyboardShortcuts")}</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                window.open(`${APP_GITHUB_REPO}/issues/new`, "_blank");
-              }}
-            >
-              <GithubIcon className="size-4 fill-foreground" />
-              <span>{t("reportAnIssue")}</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                window.open("https://discord.gg/gCRu69Upnp", "_blank");
-              }}
-            >
-              <DiscordIcon className="size-4 fill-foreground" />
-              <span>{t("joinCommunity")}</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-
-            <DropdownMenuItem
-              onClick={() => appStoreMutate({ openUserSettings: true })}
-              className="cursor-pointer"
-              data-testid="user-settings-menu-item"
-            >
-              <Settings className="size-4 text-foreground" />
-              <span>User Settings</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={logout} className="cursor-pointer">
-              <LogOutIcon className="size-4 text-foreground" />
-              <span>{t("signOut")}</span>
-            </DropdownMenuItem>
+            <UserMenuList user={user} />
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
@@ -319,5 +235,73 @@ export function AppSidebarUser({
     <Suspense fallback={<AppSidebarUserSkeleton />}>
       <AppSidebarUserInner user={user} />
     </Suspense>
+  );
+}
+
+export function UserMenuList({ user }: { user: BasicUser }) {
+  const appStoreMutate = appStore((state) => state.mutate);
+  const t = useTranslations("Layout");
+
+  const logout = () => {
+    authClient.signOut().finally(() => {
+      window.location.href = "/sign-in";
+    });
+  };
+
+  return (
+    <div className="bg-background min-w-60 rounded-lg">
+      <DropdownMenuLabel className="p-0 font-normal">
+        <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+          <Avatar className="h-8 w-8 rounded-full">
+            <AvatarImage src={getUserAvatar(user)} alt={user?.name || "User"} />
+            <AvatarFallback className="rounded-lg">
+              {user?.name?.slice(0, 1) || ""}
+            </AvatarFallback>
+          </Avatar>
+          <div className="grid flex-1 text-left text-sm leading-tight">
+            <span
+              className="truncate font-medium"
+              data-testid="sidebar-user-name"
+            >
+              {user?.name}
+            </span>
+            <span className="truncate text-xs text-muted-foreground">
+              {user?.email}
+            </span>
+          </div>
+        </div>
+      </DropdownMenuLabel>
+      <DropdownMenuSeparator />
+
+      <DropdownMenuItem
+        className="cursor-pointer"
+        onClick={() => appStoreMutate({ openChatPreferences: true })}
+      >
+        <Settings2 className="size-4 text-foreground" />
+        <span>{t("chatPreferences")}</span>
+      </DropdownMenuItem>
+      <SelectTheme />
+      <SelectLanguage />
+      <DropdownMenuItem
+        className="cursor-pointer"
+        onClick={() => appStoreMutate({ openShortcutsPopup: true })}
+      >
+        <Command className="size-4 text-foreground" />
+        <span>{t("keyboardShortcuts")}</span>
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        onClick={() => appStoreMutate({ openUserSettings: true })}
+        className="cursor-pointer"
+        data-testid="user-settings-menu-item"
+      >
+        <Settings className="size-4 text-foreground" />
+        <span>User Settings</span>
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem onClick={logout} className="cursor-pointer">
+        <LogOutIcon className="size-4 text-foreground" />
+        <span>{t("signOut")}</span>
+      </DropdownMenuItem>
+    </div>
   );
 }

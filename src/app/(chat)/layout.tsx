@@ -1,5 +1,6 @@
 import { SidebarProvider } from "ui/sidebar";
 import { AppSidebar } from "@/components/layouts/app-sidebar";
+import { AppToolbar } from "@/components/layouts/app-toolbar";
 import { AppHeader } from "@/components/layouts/app-header";
 import { cookies } from "next/headers";
 
@@ -34,8 +35,11 @@ export default async function ChatLayout({
             </Suspense>
           }
         />
+        {/* Fixed left toolbar */}
+        {/* @ts-expect-error Server Component to Client boundary for toolbar props */}
+        <AppToolbar user={session.user} />
         <AppSidebar user={session.user} />
-        <main className="relative bg-background  w-full flex flex-col h-screen">
+        <main className="relative bg-background w-full flex flex-col h-screen pl-16">
           <AppHeader />
           <div className="flex-1 overflow-y-auto">{children}</div>
         </main>

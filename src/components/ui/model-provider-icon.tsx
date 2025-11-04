@@ -26,14 +26,13 @@ export const ModelProviderIcon = ({
     );
   }
 
-  return colorful ? (
-    <ProviderIcon
-      provider={provider}
-      size={size}
-      type="color"
-      className={className}
-    />
-  ) : (
-    <ProviderIcon provider={provider} size={size} className={className} />
+  return (
+    <div className={className}>
+      {colorful ? (
+        <ProviderIcon provider={provider} size={size} type="color" />
+      ) : (
+        <ProviderIcon provider={provider} size={size} />
+      )}
+    </div>
   );
 };

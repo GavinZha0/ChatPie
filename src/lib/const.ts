@@ -3,7 +3,7 @@ export const IS_BROWSER = typeof window !== "undefined";
 
 // Application branding constants
 export const APP_NAME = "ChatPie";
-export const APP_SLOGAN = "Work together. Talk smarter.";
+export const APP_SLOGAN = "Work together. Talk smarter!";
 export const APP_DESCRIPTION =
   "ChatPie is a chatbot that uses the Tools to answer questions.";
 export const APP_GITHUB_REPO = "https://github.com/GavinZha0/ChatPie";
