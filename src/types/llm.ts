@@ -4,7 +4,8 @@ export type LlmModelType =
   | "embedding"
   | "audio"
   | "transcription"
-  | "rerank";
+  | "rerank"
+  | "agent";
 
 export interface LlmModel {
   id: string;

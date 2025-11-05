@@ -107,16 +107,9 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
         <div className="absolute pointer-events-none top-0 left-0 w-full h-full z-10 fade-in animate-in duration-5000">
           <div className="w-full h-full bg-gradient-to-r from-background to-20% to-transparent z-20" />
         </div>
-        <MCPEditorDialog
-          open={isEditorOpen}
-          onOpenChange={setIsEditorOpen}
-          id={editingMcp?.id}
-          name={editingMcp?.name}
-          initialConfig={editingMcp?.config}
-        />
       </>
     );
-  }, [isLoading, mcpList?.length]);
+  }, []);
 
   useEffect(() => {
     if (isValidating) {
@@ -136,7 +129,7 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
   }, []);
 
   return (
-    <>
+    <div className="relative h-full w-full overflow-hidden">
       {particle}
       <ScrollArea className="h-full w-full z-40 ">
         <div className="pt-8 flex-1 relative flex flex-col gap-4 px-8 h-full pb-8">
@@ -316,6 +309,6 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
         name={editingMcp?.name}
         initialConfig={editingMcp?.config}
       />
-    </>
+    </div>
   );
 }

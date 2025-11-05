@@ -638,6 +638,8 @@
         "models": "Models",
         "messages": "Messages",
         "topModelsByTokenUsage": "Top Models by Token Usage",
+        "pieChartTop3ModelsTitle": "Top 3 Models Usage",
+        "pieChartTop3ModelsDescription": "Token usage by top 3 models",
         "conversations": "Conversations",
         "avgTokensPerMessage": "Avg Tokens/Message",
         "topModel": "Top Model",
@@ -797,7 +799,8 @@
         "embedding": "Embedding",
         "audio": "Audio",
         "transcription": "Transcription",
-        "rerank": "Rerank"
+        "rerank": "Rerank",
+        "agent": "Agent"
       },
       "addModelDialog": {
         "description": "Add an existing or new model to this provider",
@@ -819,7 +822,7 @@
       },
       "dialog": {
         "deleteTitle": "⚠️ Delete Provider",
-        "deleteDescription": "Are you sure you want to delete {alias}? This action cannot be undone and will remove all associated models and configurations."
+        "deleteDescription": "This action will remove apiKey and cannot be undone."
       },
       "form": {
         "description": "Configure API key and base URL for this provider",

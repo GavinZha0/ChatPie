@@ -41,23 +41,11 @@ export const BASE_URL = (() => {
 export const BASE_THEMES = [
   "default",
   "zinc",
-  "slate",
-  "stone",
-  "gray",
   "blue",
-  "orange",
-  "pink",
-  "bubblegum-pop",
-  "cyberpunk-neon",
-  "retro-arcade",
   "tropical-paradise",
   "steampunk-cogs",
-  "neon-synthwave",
   "pastel-kawaii",
-  "space-odyssey",
-  "vintage-vinyl",
   "misty-harbor",
-  "zen-garden",
 ];
 
 export const OAUTH_REQUIRED_CODE = "OAUTH_REQUIRED";

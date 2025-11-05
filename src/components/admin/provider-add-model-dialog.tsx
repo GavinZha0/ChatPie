@@ -54,6 +54,7 @@ const MODEL_TYPE_OPTIONS: Array<{ value: LlmModelType; labelKey: string }> = [
   { value: "audio", labelKey: "modelTypes.audio" },
   { value: "transcription", labelKey: "modelTypes.transcription" },
   { value: "rerank", labelKey: "modelTypes.rerank" },
+  { value: "agent", labelKey: "modelTypes.agent" },
 ];
 
 const NEW_MODEL_VALUE = "__create_new_model__";

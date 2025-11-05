@@ -26,7 +26,9 @@ export function UserStatisticsCard({ stats, view }: UserStatisticsCardProps) {
   const hasActivity = stats.totalTokens > 0;
 
   // Prepare pie chart data for model usage (TOP 3 only)
-  const top3Models = stats.modelStats.slice(0, 3);
+  const top3Models = [...stats.modelStats]
+    .sort((a, b) => b.totalTokens - a.totalTokens)
+    .slice(0, 3);
   const modelPieData = top3Models.map((model) => ({
     label: model.model,
     value: model.totalTokens,
@@ -49,7 +51,7 @@ export function UserStatisticsCard({ stats, view }: UserStatisticsCardProps) {
         ) : (
           <p className="text-sm text-primary/80">
             {tCommon("tokensAcross", {
-              tokens: stats.totalTokens.toLocaleString(),
+              tokens: `${(stats.totalTokens / 1024).toFixed(1)}k`,
               count: stats.modelStats.length,
               period: stats.period.toLowerCase(),
             })}
@@ -58,7 +60,7 @@ export function UserStatisticsCard({ stats, view }: UserStatisticsCardProps) {
                 {" "}
                 {tCommon("mostActive", {
                   model: stats.modelStats[0].model,
-                  tokens: stats.modelStats[0].totalTokens.toLocaleString(),
+                  tokens: `${(stats.modelStats[0].totalTokens / 1024).toFixed(1)}k`,
                 })}
               </>
             )}
@@ -100,12 +102,12 @@ export function UserStatisticsCard({ stats, view }: UserStatisticsCardProps) {
                   {/* Pie Chart - TOP 3 Models */}
                   <div className="min-h-[300px]">
                     <PieChart
-                      title="Top 3 Models Usage"
+                      title={tCommon("pieChartTop3ModelsTitle")}
                       data={modelPieData}
                       unit="tokens"
                       prefix=""
                       jsonView={false}
-                      description="Token usage by top 3 models"
+                      description={tCommon("pieChartTop3ModelsDescription")}
                     />
                   </div>
 
@@ -125,7 +127,6 @@ export function UserStatisticsCard({ stats, view }: UserStatisticsCardProps) {
                             <div className="flex items-center gap-2">
                               <ModelProviderIcon
                                 provider={modelStat.provider}
-                                className="h-4 w-4 shrink-0"
                               />
                             </div>
                             <div className="min-w-0 flex-1">
@@ -138,7 +139,7 @@ export function UserStatisticsCard({ stats, view }: UserStatisticsCardProps) {
                             </div>
                           </div>
                           <div className="text-sm font-semibold text-right shrink-0 ml-3">
-                            {modelStat.totalTokens.toLocaleString()}
+                            {`${(modelStat.totalTokens / 1024).toFixed(1)}k`}
                           </div>
                         </div>
                       ))}
@@ -166,7 +167,7 @@ export function UserStatisticsCard({ stats, view }: UserStatisticsCardProps) {
                     className="text-lg font-semibold"
                     data-testid="stat-total-tokens"
                   >
-                    {stats.totalTokens.toLocaleString()}
+                    {`${(stats.totalTokens / 1024).toFixed(1)}k`}
                   </p>
                 </div>
               </div>
@@ -235,17 +236,16 @@ export function UserStatisticsCard({ stats, view }: UserStatisticsCardProps) {
                 <p className="text-xs font-medium text-muted-foreground mb-1">
                   {tCommon("topModel")}
                 </p>
-                <p className="text-lg font-semibold flex items-center justify-center gap-1">
+                <div className="text-lg font-semibold flex items-center justify-center gap-1">
                   {stats.modelStats[0] && (
                     <ModelProviderIcon
                       provider={stats.modelStats[0].provider}
-                      className="h-3 w-3"
                     />
                   )}
                   <span className="truncate">
                     {stats.modelStats[0]?.model || tCommon("notAvailable")}
                   </span>
-                </p>
+                </div>
               </div>
             </div>
           </>

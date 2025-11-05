@@ -35,7 +35,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ProviderEditDialog } from "./provider-edit-dialog";
 import {
-  deleteProviderAction,
+  updateProviderApiKeyAction,
   updateProviderLLMModelsAction,
 } from "@/app/api/provider/actions";
 import { ProviderAddModelDialog } from "./provider-add-model-dialog";
@@ -193,7 +193,8 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
     setIsDeleting(true);
 
     try {
-      await deleteProviderAction(deleteProvider.id);
+      // 'Delete' provider - set API key to null
+      await updateProviderApiKeyAction(deleteProvider.id, null);
       toast.success(t("toast.deleted"));
       setDeleteDialogOpen(false);
       setDeleteProvider(null);
@@ -278,7 +279,7 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
   };
 
   return (
-    <div className="flex gap-6 h-[calc(100vh-8rem)]">
+    <div className="flex gap-6 h-[calc(100vh-8rem)] p-6">
       {/* Left Sidebar - Provider List */}
       <div className="w-64 shrink-0">
         <Card className="h-full flex flex-col">
@@ -660,7 +661,10 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>
+            <AlertDialogCancel
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={isDeleting}
+            >
               {tCommon("cancel")}
             </AlertDialogCancel>
             <AlertDialogAction

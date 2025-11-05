@@ -147,7 +147,7 @@ export function ChatPreferencesPopup() {
                 </div>
 
                 {/* Content */}
-                <AutoHeight className="flex-1 rounded-lg border max-h-[80vh] overflow-y-auto">
+                <AutoHeight className="flex-1 rounded-lg border">
                   <div className="p-4 md:p-8">
                     {openChatPreferences && (
                       <>

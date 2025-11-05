@@ -3,7 +3,6 @@
 import { appStore } from "@/app/store";
 import { useChatModels } from "@/hooks/queries/use-chat-models";
 import { ChatModel } from "app-types/chat";
-import { cn } from "lib/utils";
 import { CheckIcon, ChevronDown } from "lucide-react";
 import { Fragment, memo, PropsWithChildren, useEffect, useState } from "react";
 import { Button } from "ui/button";
@@ -79,64 +78,57 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
           />
           <CommandList className="p-2">
             <CommandEmpty>No results found.</CommandEmpty>
-            {providers?.map((provider, i) => (
-              <Fragment key={provider.provider}>
-                <CommandGroup
-                  heading={
-                    <ProviderHeader
-                      provider={provider.provider}
-                      hasAPIKey={provider.hasAPIKey}
-                    />
-                  }
-                  className={cn(
-                    "pb-4 group",
-                    !provider.hasAPIKey && "opacity-50",
-                  )}
-                  onWheel={(e) => {
-                    e.stopPropagation();
-                  }}
-                  data-testid={`model-provider-${provider.provider}`}
-                >
-                  {provider.models.map((item) => (
-                    <CommandItem
-                      key={item.name}
-                      disabled={!provider.hasAPIKey}
-                      className="cursor-pointer"
-                      onSelect={() => {
-                        setModel({
-                          provider: provider.provider,
-                          model: item.name,
-                        });
-                        props.onSelect({
-                          provider: provider.provider,
-                          model: item.name,
-                        });
-                        setOpen(false);
-                      }}
-                      value={item.name}
-                      data-testid={`model-option-${provider.provider}-${item.name}`}
-                    >
-                      {model?.provider === provider.provider &&
-                      model?.model === item.name ? (
-                        <CheckIcon
-                          className="size-3"
-                          data-testid="selected-model-check"
-                        />
-                      ) : (
-                        <div className="ml-3" />
-                      )}
-                      <span className="pr-2">{item.name}</span>
-                      {item.isToolCallUnsupported && (
-                        <div className="ml-auto flex items-center gap-1 text-xs text-muted-foreground">
-                          No tools
-                        </div>
-                      )}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-                {i < providers?.length - 1 && <CommandSeparator />}
-              </Fragment>
-            ))}
+            {providers
+              ?.filter((p) => p.hasAPIKey)
+              .map((provider, i, arr) => (
+                <Fragment key={provider.provider}>
+                  <CommandGroup
+                    heading={<ProviderHeader provider={provider.provider} />}
+                    className="pb-4 group"
+                    onWheel={(e) => {
+                      e.stopPropagation();
+                    }}
+                    data-testid={`model-provider-${provider.provider}`}
+                  >
+                    {provider.models.map((item) => (
+                      <CommandItem
+                        key={item.name}
+                        className="cursor-pointer"
+                        onSelect={() => {
+                          setModel({
+                            provider: provider.provider,
+                            model: item.name,
+                          });
+                          props.onSelect({
+                            provider: provider.provider,
+                            model: item.name,
+                          });
+                          setOpen(false);
+                        }}
+                        value={item.name}
+                        data-testid={`model-option-${provider.provider}-${item.name}`}
+                      >
+                        {model?.provider === provider.provider &&
+                        model?.model === item.name ? (
+                          <CheckIcon
+                            className="size-3"
+                            data-testid="selected-model-check"
+                          />
+                        ) : (
+                          <div className="ml-3" />
+                        )}
+                        <span className="pr-2">{item.name}</span>
+                        {item.isToolCallUnsupported && (
+                          <div className="ml-auto flex items-center gap-1 text-xs text-muted-foreground">
+                            No tools
+                          </div>
+                        )}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                  {i < arr.length - 1 && <CommandSeparator />}
+                </Fragment>
+              ))}
           </CommandList>
         </Command>
       </PopoverContent>
@@ -146,26 +138,11 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
 
 const ProviderHeader = memo(function ProviderHeader({
   provider,
-  hasAPIKey,
-}: { provider: string; hasAPIKey: boolean }) {
+}: { provider: string }) {
   return (
     <div className="text-sm text-muted-foreground flex items-center gap-1.5 group-hover:text-foreground transition-colors duration-300">
-      {provider === "openai" ? (
-        <ModelProviderIcon
-          provider="openai"
-          className="size-3 text-foreground"
-        />
-      ) : (
-        <ModelProviderIcon provider={provider} className="size-3" />
-      )}
+      <ModelProviderIcon provider={provider} />
       {provider}
-      {!hasAPIKey && (
-        <>
-          <span className="text-xs ml-auto text-muted-foreground">
-            No API Key
-          </span>
-        </>
-      )}
     </div>
   );
 });
