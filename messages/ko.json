@@ -285,7 +285,6 @@
     "agentNameAndIconLabel": "에이전트에게 이름과 아이콘을 붙여주세요.",
     "agentDescriptionLabel": "이 에이전트의 용도에 대한 짧은 설명을 추가해주세요.",
     "agentDescriptionPlaceholder": "이 내용은 에이전트에 대한 설명일 뿐, 중요하지 않아요.",
-    "agentSettingsDescription": "여기부터는 에이전트에게 영향을 줄 수 있는 설정입니다.",
     "thisAgentIs": "이 에이전트는",
     "expertIn": "에 대한 전문가 입니다.",
     "agentRolePlaceholder": "주식 분석",

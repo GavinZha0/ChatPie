@@ -22,6 +22,7 @@ export function AgentDropdown({ agent, children, side, align }: Props) {
   const [open, setOpen] = useState(false);
   const { data: session } = authClient.useSession();
   const isOwner = session?.user?.id === agent.userId;
+  const canEdit = isOwner || agent.visibility === "public";
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -48,7 +49,7 @@ export function AgentDropdown({ agent, children, side, align }: Props) {
                   <span>{t("Chat.VoiceChat.title")}</span>
                 </div>
               </CommandItem>
-              {isOwner && (
+              {canEdit && (
                 <CommandItem className="cursor-pointer p-0">
                   <Link
                     href={`/agent/${agent.id}`}

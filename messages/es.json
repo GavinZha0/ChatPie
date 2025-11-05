@@ -275,7 +275,6 @@
     "agentNameAndIconLabel": "Dale a tu agente un nombre y un icono.",
     "agentDescriptionLabel": "Añade una breve descripción de lo que hace este agente.",
     "agentDescriptionPlaceholder": "Esto es solo una descripción del agente, no es crítico.",
-    "agentSettingsDescription": "A partir de aquí, estas son configuraciones que pueden afectar al agente.",
     "thisAgentIs": "Este agente es un experto en",
     "expertIn": "",
     "agentRolePlaceholder": "análisis de acciones",

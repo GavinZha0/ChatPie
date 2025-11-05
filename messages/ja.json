@@ -273,7 +273,6 @@
     "agentNameAndIconLabel": "エージェントに名前とアイコンを付けてください。",
     "agentDescriptionLabel": "このエージェントの用途についての簡単な説明を追加してください。",
     "agentDescriptionPlaceholder": "これはエージェントに関する説明であり、重要ではありません。",
-    "agentSettingsDescription": "ここからは、エージェントに影響を与える可能性のある設定です。",
     "thisAgentIs": "このエージェントは",
     "expertIn": "の専門家です。",
     "agentRolePlaceholder": "株式分析",

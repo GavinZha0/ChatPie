@@ -37,13 +37,33 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
   const t = useTranslations();
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
-  const { bookmarkedAgents, myAgents, isLoading, sharedAgents } = useAgents({
+  const {
+    bookmarkedAgents,
+    myAgents,
+    publicAgents,
+    readonlyAgents,
+    isLoading,
+    sharedAgents,
+  } = useAgents({
     limit: 50,
   }); // Increase limit since we're not artificially limiting display
 
   const agents = useMemo(() => {
-    return [...myAgents, ...bookmarkedAgents];
-  }, [bookmarkedAgents, myAgents]);
+    // Combine my agents, bookmarked agents, and public agents (others')
+    const combined = [
+      ...myAgents,
+      ...bookmarkedAgents,
+      ...publicAgents,
+      ...readonlyAgents,
+    ];
+    // Deduplicate by id while preserving order (first occurrence wins)
+    const seen = new Set<string>();
+    return combined.filter((a) => {
+      if (seen.has(a.id)) return false;
+      seen.add(a.id);
+      return true;
+    });
+  }, [bookmarkedAgents, myAgents, publicAgents]);
 
   const handleAgentClick = useCallback(
     (id: string) => {
@@ -99,14 +119,17 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
       <SidebarGroupContent className="group-data-[collapsible=icon]:hidden group/agents">
         <SidebarMenu className="group/agents" data-testid="agents-sidebar-menu">
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="font-semibold">
+            <SidebarMenuButton
+              asChild
+              className="font-semibold border border-border rounded-md px-2 py-1"
+            >
               <Link href="/agents" data-testid="agents-link">
                 {t("Layout.agents")}
               </Link>
             </SidebarMenuButton>
             {canCreateAgent(userRole) && (
               <SidebarMenuAction
-                className="group-hover/agents:opacity-100 opacity-0 transition-opacity"
+                className="opacity-100"
                 onClick={() => router.push("/agent/new")}
                 data-testid="sidebar-create-agent-button"
               >

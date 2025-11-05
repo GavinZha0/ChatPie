@@ -137,7 +137,7 @@ export function AgentsList({
             <div className="flex-1 h-px bg-border" />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {canCreate && (
               <Link href="/agent/new">
                 <Card
@@ -192,7 +192,7 @@ export function AgentsList({
           <div className="flex-1 h-px bg-border" />
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {sharedAgents.map((agent) => (
             <ShareableCard
               key={agent.id}

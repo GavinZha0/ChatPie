@@ -444,12 +444,6 @@ export default function EditAgent({
           )}
         </div>
 
-        <div className="mt-10 flex items-center gap-2">
-          <p className="text-sm text-muted-foreground">
-            {t("Agent.agentSettingsDescription")}
-          </p>
-        </div>
-
         <div className="flex flex-col gap-6">
           <div className="flex gap-2 items-center">
             <span>{t("Agent.thisAgentIs")}</span>

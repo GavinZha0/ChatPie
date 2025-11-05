@@ -274,7 +274,6 @@
     "agentNameAndIconLabel": "Donnez un nom et une icône à votre agent.",
     "agentDescriptionLabel": "Ajoutez une brève description de ce que fait cet agent.",
     "agentDescriptionPlaceholder": "Ceci n'est qu'une description de l'agent, ce n'est pas critique.",
-    "agentSettingsDescription": "À partir d'ici, ce sont des paramètres qui peuvent affecter l'agent.",
     "thisAgentIs": "Cet agent est un expert en",
     "expertIn": "",
     "agentRolePlaceholder": "analyse boursière",
