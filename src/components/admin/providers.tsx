@@ -62,7 +62,7 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
   );
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editProvider, setEditProvider] = useState<
-    ProvidersProps["providers"][0] | null
+    (Omit<ProvidersProps["providers"][0], "id"> & { id?: number }) | null
   >(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteProvider, setDeleteProvider] = useState<
@@ -91,9 +91,14 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
 
   const sortedProviders = useMemo(
     () =>
-      [...providers].sort((a, b) =>
-        a.alias.localeCompare(b.alias, undefined, { sensitivity: "base" }),
-      ),
+      providers
+        .filter(
+          (provider, index, self) =>
+            self.findIndex((p) => p.name === provider.name) === index,
+        )
+        .sort((a, b) =>
+          a.alias.localeCompare(b.alias, undefined, { sensitivity: "base" }),
+        ),
     [providers],
   );
 
@@ -105,8 +110,13 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
 
   // Get providers with API keys configured (available providers)
   const availableProviders = useMemo(
-    () => sortedProviders.filter((p) => p.apiKey !== null && p.apiKey !== ""),
-    [sortedProviders],
+    () =>
+      providers
+        .filter((p) => p.apiKey !== null && p.apiKey !== "")
+        .sort((a, b) =>
+          a.alias.localeCompare(b.alias, undefined, { sensitivity: "base" }),
+        ),
+    [providers],
   );
 
   // Get models for selected provider with full information
@@ -165,6 +175,20 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
   ) => {
     e?.stopPropagation();
     setEditProvider(provider);
+    setEditDialogOpen(true);
+  };
+
+  const handleAdd = (
+    provider: ProvidersProps["providers"][0],
+    e?: React.MouseEvent,
+  ) => {
+    e?.stopPropagation();
+    // Use the selected provider as a template for the new one
+    const { id: _omitId, ...rest } = provider;
+    setEditProvider({
+      ...rest,
+      apiKey: "",
+    });
     setEditDialogOpen(true);
   };
 
@@ -324,13 +348,13 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
                           className="h-6 w-6"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleEdit(provider, e);
+                            handleAdd(provider, e);
                           }}
                         >
                           <Plus className="h-4 w-4" />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent>{t("tooltips.edit")}</TooltipContent>
+                      <TooltipContent>{t("tooltips.add")}</TooltipContent>
                     </Tooltip>
                   </div>
                 </div>

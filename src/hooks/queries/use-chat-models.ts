@@ -5,7 +5,9 @@ import useSWR, { SWRConfiguration } from "swr";
 export const useChatModels = (options?: SWRConfiguration) => {
   return useSWR<
     {
-      provider: string;
+      id: number;
+      provider: string; // type key & icon key
+      alias: string; // display name and grouping key
       hasAPIKey: boolean;
       models: {
         name: string;

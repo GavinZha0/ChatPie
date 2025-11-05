@@ -757,6 +757,8 @@
       "backToProviders": "Back to Providers",
       "listCardTitle": "Providers",
       "availableProvidersTitle": "Available Providers",
+      "add": "Add",
+      "edit": "Edit",
       "tableHeaders": {
         "provider": "Provider",
         "alias": "Alias",
@@ -780,6 +782,7 @@
       "selectProviderPrompt": "Please select a provider to view models",
       "noModels": "No models configured for this provider",
       "tooltips": {
+        "add": "Add Provider",
         "edit": "Edit Provider",
         "addModel": "Add Model",
         "delete": "Delete Provider"

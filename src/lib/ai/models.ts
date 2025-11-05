@@ -301,7 +301,9 @@ export const customModelProvider = {
     const dynamicData = await loadDynamicModels();
 
     return dynamicData.providers.map((provider) => ({
+      id: provider.id,
       provider: provider.name,
+      alias: provider.alias,
       models: (provider.llm || [])
         .filter((llm) => llm.enabled)
         .map((llm) => {

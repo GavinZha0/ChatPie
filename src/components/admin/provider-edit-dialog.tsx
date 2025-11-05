@@ -26,7 +26,7 @@ interface ProviderEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   provider: {
-    id: number;
+    id?: number;
     name: string;
     alias: string;
     baseUrl: string;
@@ -62,12 +62,15 @@ export function ProviderEditDialog({
 
     setLoading(true);
     try {
-      if (baseUrl !== provider.baseUrl) {
-        // Update baseUrl and apiKey together using saveProviderAction
+      const aliasChanged = alias.trim() !== provider.alias;
+      const baseUrlChanged = baseUrl.trim() !== provider.baseUrl;
+
+      if (provider.id === undefined || aliasChanged || baseUrlChanged) {
+        // Create or update full provider details
         await saveProviderAction({
           id: provider.id,
           name: provider.name,
-          alias: provider.alias,
+          alias: alias.trim(),
           baseUrl: baseUrl.trim(),
           apiKey: apiKey.trim() || null,
         });
@@ -92,6 +95,7 @@ export function ProviderEditDialog({
     if (!newOpen && !loading) {
       // Reset form when closing
       if (provider) {
+        setAlias(provider.alias);
         setBaseUrl(provider.baseUrl);
         setApiKey(provider.apiKey || "");
       }
@@ -105,7 +109,11 @@ export function ProviderEditDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{provider.name}</DialogTitle>
+          <DialogTitle>
+            {provider.id !== undefined
+              ? `${t("edit")} ${provider.name}`
+              : `${t("add")} ${provider.name}`}
+          </DialogTitle>
           <DialogDescription>{t("form.description")}</DialogDescription>
         </DialogHeader>
 
