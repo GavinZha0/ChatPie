@@ -140,9 +140,9 @@ export const MCPCard = memo(function MCPCard({
         {isLoading && <Loader className="size-4 z-20 animate-spin mr-1" />}
 
         <h4 className="font-bold text-xs sm:text-lg flex items-center gap-1">
-          {"command" in config ? (
+          {config && "command" in config ? (
             <SquareTerminal className="size-3.5 text-muted-foreground" />
-          ) : "url" in config ? (
+          ) : config && "url" in config ? (
             <Globe className="size-3.5 text-muted-foreground" />
           ) : null}
           {name}

@@ -273,6 +273,26 @@ const GenerateExampleInputJsonDialog = ({
 
   const { data: providers } = useChatModels();
 
+  const aliasGroups = useMemo(() => {
+    const grouped = new Map<
+      string,
+      { alias: string; items: { provider: string; model: string }[] }
+    >();
+    (providers ?? [])
+      .filter((p) => p.hasAPIKey)
+      .forEach((p) => {
+        const key = p.alias || p.provider;
+        if (!grouped.has(key)) {
+          grouped.set(key, { alias: key, items: [] });
+        }
+        const group = grouped.get(key)!;
+        p.models.forEach((m) => {
+          group.items.push({ provider: p.provider, model: m.name });
+        });
+      });
+    return Array.from(grouped.values());
+  }, [providers]);
+
   const [option, setOption] = useObjectState({
     open: false,
     model: currentModelName,
@@ -324,22 +344,22 @@ const GenerateExampleInputJsonDialog = ({
               setOption({ model });
             }}
           >
-            <SelectTrigger className="min-w-48">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder={t("MCP.selectModel")} />
             </SelectTrigger>
             <SelectContent>
-              {providers?.map((provider) => (
-                <SelectGroup key={provider.provider}>
-                  <SelectLabel>{provider.provider}</SelectLabel>
-                  {provider.models.map((model) => (
+              {aliasGroups.map((group) => (
+                <SelectGroup key={group.alias}>
+                  <SelectLabel>{group.alias}</SelectLabel>
+                  {group.items.map((item) => (
                     <SelectItem
-                      key={model.name}
+                      key={`${item.provider}:${item.model}`}
                       value={JSON.stringify({
-                        provider: provider.provider,
-                        model: model.name,
+                        provider: item.provider,
+                        model: item.model,
                       })}
                     >
-                      {model.name}
+                      {item.model}
                     </SelectItem>
                   ))}
                 </SelectGroup>
