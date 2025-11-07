@@ -365,6 +365,8 @@
     "serverCustomInstructionsPlaceholder": "当该服务器的任何工具可用时，这些内容将被添加到系统提示中。",
     "nameAlreadyExists": "名称已存在",
     "additionalInstructions": "工具自定义指令",
+    "inputDefinition": "输入定义",
+    "jsonSchema": "JSON 模式",
     "inputSchema": "输入架构",
     "inputJSON": "输入 JSON",
     "jsonError": "JSON 错误",

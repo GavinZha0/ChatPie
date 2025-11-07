@@ -514,13 +514,13 @@ export default function PromptInput({
                 </div>
               ) : null}
               <div className="flex flex-col gap-3.5 px-5 pt-2 pb-4">
-                <div className="relative min-h-[2rem]">
+                <div className="relative min-h-[3.5rem]">
                   <ChatMentionInput
                     input={input}
                     onChange={setInput}
                     onChangeMention={onChangeMention}
                     onEnter={submit}
-                    placeholder={placeholder ?? t("placeholder")}
+                    placeholder={placeholder ?? t("chatPlaceholder")}
                     ref={editorRef}
                     disabledMention={disabledMention}
                     onFocus={onFocus}

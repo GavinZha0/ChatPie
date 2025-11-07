@@ -34,6 +34,7 @@ import { Skeleton } from "ui/skeleton";
 import { Button } from "ui/button";
 import { Textarea } from "ui/textarea";
 import JsonView from "@/components/ui/json-view";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "ui/alert";
 import { safeJSONParse, isNull, isString } from "lib/utils";
 import {
@@ -416,6 +417,7 @@ export default function Page() {
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [callResult, setCallResult] = useState<CallResult | null>(null);
   const [isCallLoading, setIsCallLoading] = useState(false);
+  // Deprecated by Tabs: kept for reset on tool change if needed
   const [showInputSchema, setShowInputSchema] = useState(false);
 
   const { data: client, isLoading } = useSWR(`/mcp/${id}`, () =>
@@ -443,7 +445,7 @@ export default function Page() {
   }, [selectedTool]);
 
   const toggleDescription = () => setShowFullDescription(!showFullDescription);
-  const toggleInputSchema = () => setShowInputSchema(!showInputSchema);
+  const _toggleInputSchema = () => setShowInputSchema(!showInputSchema);
 
   const handleInputChange = (data: string) => {
     setJsonInput(data);
@@ -525,8 +527,6 @@ export default function Page() {
 
   return (
     <div className="relative flex flex-col px-4 w-full h-full py-4">
-      <div className="absolute bottom-0 left-0 w-full h-[10%] z-10 bg-gradient-to-b from-transparent to-background pointer-events-none" />
-
       <div className="bg-background pb-2">
         <Link
           href="/mcp"
@@ -547,7 +547,7 @@ export default function Page() {
         className="mt-4 flex-1 min-h-0"
       >
         {/* Tool List Panel */}
-        <ResizablePanel defaultSize={30}>
+        <ResizablePanel defaultSize={25}>
           <div className="w-full flex flex-col h-full relative pr-8">
             <div className="top-0 pb-2 z-1">
               <div className="w-full relative">
@@ -582,10 +582,10 @@ export default function Page() {
         <ResizableHandle withHandle />
 
         {/* Tool Detail Panel */}
-        <ResizablePanel defaultSize={70}>
+        <ResizablePanel defaultSize={75}>
           <div className="w-full h-full flex flex-col min-h-0">
             {selectedTool ? (
-              <div className="flex-1 overflow-y-auto pl-6 pr-12 min-h-0">
+              <div className="flex-1 flex flex-col pl-6 pr-12 min-h-0 overflow-hidden">
                 <div className="sticky top-0 bg-background">
                   <h3 className="text-xl font-medium mb-4 flex items-center gap-2">
                     {selectedTool.name}
@@ -602,74 +602,13 @@ export default function Page() {
                   <Separator className="my-4" />
                 </div>
 
-                <div className="space-y-4">
+                <div className="flex-1 min-h-0 grid grid-cols-2 gap-4">
                   {selectedTool.inputSchema ? (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        {/* Schema View */}
-                        <div>
-                          <div className="flex justify-between items-center mb-2">
-                            <h5 className="text-xs font-medium">
-                              {t("MCP.inputSchema")}
-                            </h5>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 px-2 text-xs"
-                                >
-                                  {t("MCP.detail")}
-                                  <ChevronDown className="ml-1 size-3" />
-                                </Button>
-                              </DialogTrigger>
-                              <DialogPortal>
-                                <DialogContent className="sm:max-w-[800px] fixed p-10 overflow-hidden">
-                                  <DialogHeader>
-                                    <DialogTitle>
-                                      {t("MCP.inputSchema")}:{" "}
-                                      {selectedTool.name}
-                                    </DialogTitle>
-                                  </DialogHeader>
-                                  <div className="overflow-y-auto max-h-[70vh]">
-                                    <JsonView
-                                      data={selectedTool.inputSchema}
-                                      initialExpandDepth={3}
-                                    />
-                                  </div>
-                                  <div className="absolute left-0 right-0 bottom-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none z-10" />
-                                </DialogContent>
-                              </DialogPortal>
-                            </Dialog>
-                          </div>
-
-                          <div
-                            className="border border-input rounded-md p-4 h-[200px] overflow-y-auto"
-                            onClick={toggleInputSchema}
-                          >
-                            {simplifiedSchema &&
-                            Object.keys(simplifiedSchema).length > 0 ? (
-                              <div className="space-y-2">
-                                {Object.entries(simplifiedSchema).map(
-                                  ([key, value]) => (
-                                    <SchemaProperty
-                                      key={key}
-                                      name={key}
-                                      schema={value}
-                                    />
-                                  ),
-                                )}
-                              </div>
-                            ) : (
-                              <p className="text-xs text-muted-foreground italic">
-                                {t("MCP.noSchemaPropertiesAvailable")}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* JSON Input */}
-                        <div className="space-y-2">
+                    <>
+                      {/* Left column: JSON on top, Schema below (equal height) */}
+                      <div className="flex flex-col min-h-0">
+                        {/* JSON Input (top) */}
+                        <div className="flex-1 min-h-0 flex flex-col">
                           <div className="flex justify-between items-center mb-2">
                             <h5 className="text-xs font-medium flex items-center">
                               {t("MCP.inputJSON")}
@@ -688,73 +627,139 @@ export default function Page() {
                               </Button>
                             </GenerateExampleInputJsonDialog>
                           </div>
-                          <Textarea
-                            autoFocus
-                            value={jsonInput}
-                            onChange={(e) => handleInputChange(e.target.value)}
-                            className="font-mono h-[200px] resize-none overflow-y-auto"
-                            placeholder="{}"
-                          />
-                          {jsonError && jsonInput && (
-                            <Alert variant="destructive" className="mt-2">
+                          <div className="flex-1 min-h-0 flex flex-col">
+                            <Textarea
+                              autoFocus
+                              value={jsonInput}
+                              onChange={(e) =>
+                                handleInputChange(e.target.value)
+                              }
+                              className="font-mono resize-none overflow-y-auto h-full"
+                              placeholder="{}"
+                            />
+                            {jsonError && jsonInput && (
+                              <Alert variant="destructive" className="mt-2">
+                                <AlertTitle className="text-xs font-semibold">
+                                  {t("MCP.jsonError")}
+                                </AlertTitle>
+                                <AlertDescription className="text-xs">
+                                  {jsonError}
+                                </AlertDescription>
+                              </Alert>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Definition / Schema (bottom) */}
+                        <div className="flex-1 min-h-0 flex flex-col mt-4">
+                          <Tabs
+                            defaultValue="definition"
+                            className="flex-1 min-h-0"
+                          >
+                            <div className="flex-1 min-h-0 border border-input rounded-md overflow-hidden flex flex-col">
+                              <div className="bg-muted/60 border-b border-input px-1.5 py-1">
+                                <TabsList className="bg-transparent p-0">
+                                  <TabsTrigger
+                                    value="definition"
+                                    className="px-2 py-1"
+                                  >
+                                    {t("MCP.inputDefinition")}
+                                  </TabsTrigger>
+                                  <TabsTrigger
+                                    value="json"
+                                    className="px-2 py-1"
+                                  >
+                                    {t("MCP.jsonSchema")}
+                                  </TabsTrigger>
+                                </TabsList>
+                              </div>
+
+                              <div className="flex-1 min-h-0 p-4 overflow-y-auto">
+                                <TabsContent
+                                  value="definition"
+                                  className="h-full"
+                                >
+                                  {simplifiedSchema &&
+                                  Object.keys(simplifiedSchema).length > 0 ? (
+                                    <div className="space-y-2">
+                                      {Object.entries(simplifiedSchema).map(
+                                        ([key, value]) => (
+                                          <SchemaProperty
+                                            key={key}
+                                            name={key}
+                                            schema={value}
+                                          />
+                                        ),
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <p className="text-xs text-muted-foreground italic">
+                                      {t("MCP.noSchemaPropertiesAvailable")}
+                                    </p>
+                                  )}
+                                </TabsContent>
+
+                                <TabsContent value="json" className="h-full">
+                                  <JsonView
+                                    data={selectedTool.inputSchema}
+                                    initialExpandDepth={3}
+                                  />
+                                </TabsContent>
+                              </div>
+                            </div>
+                          </Tabs>
+                        </div>
+                      </div>
+
+                      {/* Right column: Call button (top-right of JSON), Results below */}
+                      <div className="flex flex-col min-h-0">
+                        <div className="mb-3 flex justify-center px-4">
+                          <Button
+                            onClick={handleToolCall}
+                            disabled={!!jsonError || isCallLoading}
+                            className="w-full"
+                          >
+                            {isCallLoading && (
+                              <Loader className="size-4 animate-spin mr-2" />
+                            )}
+                            {t("MCP.callTool")}
+                          </Button>
+                        </div>
+
+                        <div className="flex-1 min-h-0 flex flex-col">
+                          {isNull(callResult) ? (
+                            <div className="border border-input rounded-md p-4 flex-1 min-h-0 overflow-auto relative">
+                              <p className="pointer-events-none select-none text-xs text-muted-foreground/60">
+                                {t("Common.result")}
+                              </p>
+                            </div>
+                          ) : callResult.success ? (
+                            <div className="border border-input rounded-md p-4 flex-1 min-h-0 overflow-auto">
+                              <JsonView
+                                data={callResult.data}
+                                initialExpandDepth={2}
+                              />
+                            </div>
+                          ) : (
+                            <Alert
+                              variant="destructive"
+                              className="mt-2 border-destructive"
+                            >
                               <AlertTitle className="text-xs font-semibold">
-                                {t("MCP.jsonError")}
+                                {t("Common.error")}
                               </AlertTitle>
-                              <AlertDescription className="text-xs">
-                                {jsonError}
+                              <AlertDescription className="text-xs mt-2 text-destructive">
+                                <pre className="whitespace-pre-wrap">
+                                  {isString(callResult.error)
+                                    ? callResult.error
+                                    : JSON.stringify(callResult.error, null, 2)}
+                                </pre>
                               </AlertDescription>
                             </Alert>
                           )}
                         </div>
                       </div>
-
-                      {/* Call Button */}
-                      <div>
-                        <Button
-                          onClick={handleToolCall}
-                          disabled={!!jsonError || isCallLoading}
-                          className="w-full"
-                        >
-                          {isCallLoading && (
-                            <Loader className="size-4 animate-spin mr-2" />
-                          )}
-                          {t("MCP.callTool")}
-                        </Button>
-                      </div>
-
-                      {/* Results Display */}
-                      <div className="space-y-2">
-                        <h5 className="text-xs font-medium">
-                          {t("Common.result")}
-                        </h5>
-                        {isNull(callResult) ? (
-                          <div className="border border-input rounded-md p-4 max-h-[500px] overflow-auto" />
-                        ) : callResult.success ? (
-                          <div className="border border-input rounded-md p-4 max-h-[500px] overflow-auto">
-                            <JsonView
-                              data={callResult.data}
-                              initialExpandDepth={2}
-                            />
-                          </div>
-                        ) : (
-                          <Alert
-                            variant="destructive"
-                            className="mt-2 border-destructive"
-                          >
-                            <AlertTitle className="text-xs font-semibold">
-                              {t("Common.error")}
-                            </AlertTitle>
-                            <AlertDescription className="text-xs mt-2 text-destructive">
-                              <pre className="whitespace-pre-wrap">
-                                {isString(callResult.error)
-                                  ? callResult.error
-                                  : JSON.stringify(callResult.error, null, 2)}
-                              </pre>
-                            </AlertDescription>
-                          </Alert>
-                        )}
-                      </div>
-                    </div>
+                    </>
                   ) : (
                     <div className="bg-secondary/30 p-4 rounded-md">
                       <p className="text-sm text-center text-muted-foreground">
