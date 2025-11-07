@@ -168,9 +168,11 @@ export async function loadDynamicModels() {
   }
 
   try {
+    // Load all providers
     const providers = await providerRepository.selectAll();
-
+    // Load all LLM models
     const llmRecords = await llmRepository.selectAll();
+
     const llmByProvider = new Map<string, Map<string, LlmModel>>();
     for (const llm of llmRecords) {
       if (!llmByProvider.has(llm.provider)) {
@@ -249,7 +251,11 @@ export async function loadDynamicModels() {
       }
 
       if (Object.keys(providerModels).length > 0) {
-        models[provider.name] = providerModels;
+        if (models[provider.name]) {
+          Object.assign(models[provider.name], providerModels);
+        } else {
+          models[provider.name] = providerModels;
+        }
       }
     }
 
@@ -301,9 +307,9 @@ export const customModelProvider = {
     const dynamicData = await loadDynamicModels();
 
     return dynamicData.providers.map((provider) => ({
-      id: provider.id,
-      provider: provider.name,
-      alias: provider.alias,
+      id: provider.id, // unique id
+      provider: provider.name, // it indecates the model provider's interface type and icon
+      alias: provider.alias, // service provider's real name
       models: (provider.llm || [])
         .filter((llm) => llm.enabled)
         .map((llm) => {
@@ -315,7 +321,7 @@ export const customModelProvider = {
             capabilities?.supportsFunctionCall ?? true;
           const supportsImageInput = capabilities?.supportsImageInput ?? true;
           return {
-            name: llm.id,
+            name: llm.id, // model name
             isToolCallUnsupported: !supportsFunctionCall,
             isImageInputUnsupported: !supportsImageInput,
             supportedFileMimeTypes: model
