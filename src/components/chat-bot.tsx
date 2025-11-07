@@ -118,6 +118,20 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
 
   const [showParticles, setShowParticles] = useState(isFirstTime);
 
+  // Set newChatHandler in store for mobile header button
+  useEffect(() => {
+    const handleNewChat = () => {
+      router.push("/");
+      router.refresh();
+    };
+    appStoreMutate({ newChatHandler: handleNewChat });
+
+    // Cleanup on unmount
+    return () => {
+      appStoreMutate({ newChatHandler: undefined });
+    };
+  }, [router, appStoreMutate]);
+
   const onFinish = useCallback(() => {
     const messages = latestRef.current.messages;
     const prevThread = latestRef.current.threadList.find(

@@ -21,7 +21,6 @@ import {
   ShieldAlertIcon,
   Waypoints,
   Wrench,
-  WrenchIcon,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -232,16 +231,6 @@ export function ToolSelectDropdown({
         <div>
           <Tooltip>
             <TooltipTrigger asChild>{triggerButton}</TooltipTrigger>
-            <TooltipContent align={align} side={side} className="p-4 text-xs  ">
-              <div className="flex items-center gap-2">
-                <WrenchIcon className="size-3.5" />
-                <span className="text-sm">{t("toolsSetup")}</span>
-              </div>
-
-              <p className="text-muted-foreground mt-4 whitespace-pre-wrap">
-                {t("toolsSetupDescription")}
-              </p>
-            </TooltipContent>
           </Tooltip>
         </div>
       </DropdownMenuTrigger>

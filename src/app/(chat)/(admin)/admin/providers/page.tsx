@@ -1,9 +1,10 @@
-import { redirect, unauthorized } from "next/navigation";
+import { redirect } from "next/navigation";
 import { requireAdminPermission } from "auth/permissions";
 import { getSession } from "lib/auth/server";
 import { Providers } from "@/components/admin/providers";
 import { getAllProvidersAction } from "@/app/api/provider/actions";
 import { llmRepository } from "lib/db/repository";
+import AdminUnauthorized from "../../unauthorized";
 
 // Force dynamic rendering to avoid static generation issues with session
 export const dynamic = "force-dynamic";
@@ -12,7 +13,7 @@ export default async function ProvidersPage() {
   try {
     await requireAdminPermission();
   } catch (_error) {
-    unauthorized();
+    return <AdminUnauthorized />;
   }
 
   const session = await getSession();

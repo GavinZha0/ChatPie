@@ -1,11 +1,5 @@
 "use client";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "ui/dialog";
 import {
   MCPServerConfig,
   MCPRemoteConfigZodSchema,
@@ -203,7 +197,7 @@ function MCPEditor({
           <Input
             id="name"
             value={name}
-            disabled={!shouldInsert}
+            disabled={isLoading}
             onChange={(e) => {
               setName(e.target.value);
               if (e.target.value) validateName(e.target.value);
@@ -267,11 +261,6 @@ export function MCPEditorDialog({
           <DialogTitle>
             {isCreating ? t("addMcpServer") : t("editMcpServer")}
           </DialogTitle>
-          <DialogDescription>
-            {isCreating
-              ? t("addMcpServerDescription")
-              : t("editMcpServerDescription")}
-          </DialogDescription>
         </DialogHeader>
         <MCPEditor
           initialConfig={initialConfig}

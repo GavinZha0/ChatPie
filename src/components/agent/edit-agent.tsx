@@ -10,15 +10,11 @@ import { useWorkflowToolList } from "@/hooks/queries/use-workflow-tool-list";
 import { useObjectState } from "@/hooks/use-object-state";
 import { useBookmark } from "@/hooks/queries/use-bookmark";
 import { Agent, AgentCreateSchema, AgentUpdateSchema } from "app-types/agent";
-import { ChatMention } from "app-types/chat";
-import { MCPServerInfo } from "app-types/mcp";
-import { WorkflowSummary } from "app-types/workflow";
-import { DefaultToolName } from "lib/ai/tools";
 import { BACKGROUND_COLORS } from "lib/const";
-import { cn, fetcher, objectFlow } from "lib/utils";
+import { cn, fetcher } from "lib/utils";
 import { safe } from "ts-safe";
 import { handleErrorWithToast } from "ui/shared-toast";
-import { ChevronDownIcon, Loader, WandSparklesIcon } from "lucide-react";
+import { ChevronDownIcon, Loader } from "lucide-react";
 import { Button } from "ui/button";
 import {
   DropdownMenu,
@@ -31,9 +27,8 @@ import { Label } from "ui/label";
 import { Textarea } from "ui/textarea";
 import { ScrollArea } from "ui/scroll-area";
 import { Skeleton } from "ui/skeleton";
-import { TextShimmer } from "ui/text-shimmer";
 import { ShareableActions, Visibility } from "@/components/shareable-actions";
-import { GenerateAgentDialog } from "./generate-agent-dialog";
+import { SelectModel } from "@/components/select-model";
 import { AgentIconPicker } from "./agent-icon-picker";
 import { AgentToolSelector } from "./agent-tool-selector";
 import {
@@ -84,7 +79,6 @@ export default function EditAgent({
   const mutateAgents = useMutateAgents();
   const router = useRouter();
 
-  const [openGenerateAgentDialog, setOpenGenerateAgentDialog] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isVisibilityChangeLoading, setIsVisibilityChangeLoading] =
     useState(false);
@@ -104,58 +98,8 @@ export default function EditAgent({
     [initialAgent?.id, isBookmarkToggleLoadingFn],
   );
 
-  const { data: mcpList, isLoading: isMcpLoading } = useMcpList();
-  const { data: workflowToolList, isLoading: isWorkflowLoading } =
-    useWorkflowToolList();
-
-  const assignToolsByNames = useCallback(
-    (toolNames: string[]) => {
-      const allMentions: ChatMention[] = [];
-
-      objectFlow(DefaultToolName).forEach((toolName) => {
-        if (toolNames.includes(toolName)) {
-          allMentions.push({
-            type: "defaultTool",
-            name: toolName,
-            label: toolName,
-          });
-        }
-      });
-
-      (mcpList as (MCPServerInfo & { id: string })[])?.forEach((mcp) => {
-        mcp.toolInfo.forEach((tool) => {
-          if (toolNames.includes(tool.name)) {
-            allMentions.push({
-              type: "mcpTool",
-              serverName: mcp.name,
-              name: tool.name,
-              serverId: mcp.id,
-            });
-          }
-        });
-      });
-
-      (workflowToolList as WorkflowSummary[])?.forEach((workflow) => {
-        if (toolNames.includes(workflow.name)) {
-          allMentions.push({
-            type: "workflow",
-            name: workflow.name,
-            workflowId: workflow.id,
-          });
-        }
-      });
-
-      if (allMentions.length > 0) {
-        setAgent((prev) => ({
-          instructions: {
-            ...prev.instructions,
-            mentions: allMentions,
-          },
-        }));
-      }
-    },
-    [mcpList, workflowToolList, setAgent],
-  );
+  const { isLoading: isMcpLoading } = useMcpList();
+  const { isLoading: isWorkflowLoading } = useWorkflowToolList();
 
   const saveAgent = useCallback(() => {
     if (initialAgent) {
@@ -261,38 +205,6 @@ export default function EditAgent({
     isBookmarkToggleLoading,
   ]);
 
-  const handleAgentChange = useCallback((generatedData: any) => {
-    if (textareaRef.current) {
-      textareaRef.current.scrollTo({
-        top: textareaRef.current.scrollHeight,
-      });
-    }
-    setAgent((prev) => {
-      const update: Partial<Agent> = {};
-      objectFlow(generatedData).forEach((data, key) => {
-        if (key === "name") {
-          update.name = data as string;
-        }
-        if (key === "description") {
-          update.description = data as string;
-        }
-        if (key === "instructions") {
-          update.instructions = {
-            ...prev.instructions,
-            systemPrompt: data as string,
-          };
-        }
-        if (key === "role") {
-          update.instructions = {
-            ...prev.instructions,
-            role: data as string,
-          };
-        }
-      });
-      return { ...prev, ...update };
-    });
-  }, []);
-
   const isLoadingTool = useMemo(() => {
     return isMcpLoading || isWorkflowLoading;
   }, [isMcpLoading, isWorkflowLoading]);
@@ -311,34 +223,16 @@ export default function EditAgent({
     isBookmarkToggleLoading,
   ]);
 
-  const isGenerating = openGenerateAgentDialog;
-
   return (
     <ScrollArea className="h-full w-full relative">
       <div className="w-full h-8 absolute bottom-0 left-0 bg-gradient-to-t from-background to-transparent z-20 pointer-events-none" />
       <div className="z-10 relative flex flex-col gap-4 px-8 pt-8 pb-14 max-w-3xl h-full mx-auto">
         <div className="sticky top-0 bg-background z-10 flex items-center justify-between pb-4 gap-2">
           <div className="w-full h-8 absolute top-[100%] left-0 bg-gradient-to-b from-background to-transparent z-20 pointer-events-none" />
-          {isGenerating ? (
-            <TextShimmer className="w-full text-2xl font-bold">
-              {t("Agent.generatingAgent")}
-            </TextShimmer>
-          ) : (
-            <p className="w-full text-2xl font-bold">{t("Agent.title")}</p>
-          )}
-
+          <p className="w-full text-2xl font-bold">{t("Agent.title")}</p>
           <div className="flex items-center gap-2">
             {hasEditAccess && !initialAgent && (
               <>
-                <Button
-                  variant="ghost"
-                  disabled={isLoading}
-                  onClick={() => setOpenGenerateAgentDialog(true)}
-                  data-testid="agent-generate-with-ai-button"
-                >
-                  <WandSparklesIcon className="size-3" />
-                  {t("Common.generateWithAI")}
-                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -521,6 +415,35 @@ export default function EditAgent({
                 }
               />
             )}
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="agent-model-select" className="text-base">
+                {t("Agent.agentModelLabel")}
+              </Label>
+              <div
+                className={cn(
+                  "w-full",
+                  (isLoading || !hasEditAccess) &&
+                    "pointer-events-none opacity-60",
+                )}
+              >
+                <SelectModel
+                  currentModel={agent.instructions?.chatModel}
+                  buttonClassName="w-full justify-between"
+                  onSelect={(model) => {
+                    if (isLoading || !hasEditAccess) {
+                      return;
+                    }
+
+                    setAgent({
+                      instructions: {
+                        ...agent.instructions,
+                        chatModel: model,
+                      },
+                    });
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -550,13 +473,6 @@ export default function EditAgent({
           </div>
         )}
       </div>
-
-      <GenerateAgentDialog
-        open={openGenerateAgentDialog}
-        onOpenChange={setOpenGenerateAgentDialog}
-        onAgentChange={handleAgentChange}
-        onToolsGenerated={assignToolsByNames}
-      />
     </ScrollArea>
   );
 }

@@ -2,15 +2,13 @@
 import { EditWorkflowPopup } from "@/components/workflow/edit-workflow-popup";
 import { authClient } from "auth/client";
 import { canCreateWorkflow } from "lib/auth/client-permissions";
-
-import { ArrowUpRight } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { Card, CardDescription, CardHeader, CardTitle } from "ui/card";
 import { Button } from "ui/button";
 import useSWR, { mutate } from "swr";
 import { fetcher } from "lib/utils";
 import { Skeleton } from "ui/skeleton";
-import { BackgroundPaths } from "ui/background-paths";
 import { ShareableCard } from "@/components/shareable-card";
 import { WorkflowSummary } from "app-types/workflow";
 import { useTranslations } from "next-intl";
@@ -103,6 +101,24 @@ export default function WorkflowListPage({
 
   return (
     <div className="w-full flex flex-col gap-4 p-8">
+      <div className="flex items-center gap-3">
+        <h1 className="text-2xl font-bold" data-testid="workflows-title">
+          {t("Workflow.title")}
+        </h1>
+        {canCreate && (
+          <EditWorkflowPopup>
+            <Button
+              variant="outline"
+              size="sm"
+              data-testid="create-workflow-button"
+            >
+              <Plus />
+              {t("Workflow.createWorkflow")}
+            </Button>
+          </EditWorkflowPopup>
+        )}
+      </div>
+
       {/* My Workflows / Available Workflows Section */}
       {(canCreate || displayWorkflows.length > 0) && (
         <div className="flex flex-col gap-4">
@@ -116,33 +132,6 @@ export default function WorkflowListPage({
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {canCreate && (
-              <EditWorkflowPopup>
-                <Card className="relative bg-secondary overflow-hidden w-full hover:bg-input transition-colors h-[196px] cursor-pointer">
-                  <div className="absolute inset-0 w-full h-full opacity-50">
-                    <BackgroundPaths />
-                  </div>
-                  <CardHeader>
-                    <CardTitle>
-                      <h1 className="text-lg font-bold">
-                        {t("Workflow.createWorkflow")}
-                      </h1>
-                    </CardTitle>
-                    <CardDescription className="mt-2">
-                      <p className="">
-                        {t("Workflow.createWorkflowDescription")}
-                      </p>
-                    </CardDescription>
-                    <div className="mt-auto ml-auto flex-1">
-                      <Button variant="ghost" size="lg">
-                        {t("Common.create")}
-                        <ArrowUpRight className="size-3.5" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                </Card>
-              </EditWorkflowPopup>
-            )}
             {isLoading
               ? Array(6)
                   .fill(null)
@@ -184,7 +173,7 @@ export default function WorkflowListPage({
             <div className="flex-1 h-px bg-border" />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {sharedWorkflows?.map((workflow) => (
               <ShareableCard
                 key={workflow.id}

@@ -15,7 +15,7 @@ import {
 } from "ui/dropdown-menu";
 import { UserMenuList } from "./app-sidebar-user";
 import { BasicUser } from "app-types/user";
-import { getUserAvatar } from "lib/user/utils";
+import { getIsUserAdmin, getUserAvatar } from "lib/user/utils";
 
 const ITEM_CLASS =
   "flex flex-col items-center justify-center gap-1 px-2 py-3 text-xs hover:bg-accent hover:text-accent-foreground rounded-md transition-colors";
@@ -54,10 +54,11 @@ function ToolbarItem({
 export function AppToolbar({ user }: { user?: BasicUser }) {
   const pathname = usePathname();
   const t = useTranslations("");
+  const isAdmin = getIsUserAdmin(user);
 
   return (
     <aside
-      className="fixed left-0 top-0 z-30 h-svh w-16 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex flex-col items-center justify-between py-3"
+      className="fixed left-0 top-0 z-30 h-svh w-16 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 hidden md:flex flex-col items-center justify-between py-3"
       style={{
         // Expose width to other components (sidebar offset)
         ["--app-toolbar-w" as any]: "4rem",
@@ -75,8 +76,8 @@ export function AppToolbar({ user }: { user?: BasicUser }) {
           <img
             src="/logo.png"
             alt="Logo"
-            width={28}
-            height={28}
+            width={36}
+            height={36}
             className="object-contain"
           />
         </Link>
@@ -98,18 +99,22 @@ export function AppToolbar({ user }: { user?: BasicUser }) {
           label={t("Archive.title") || "Archive"}
           isActive={pathname.startsWith("/archive")}
         />
-        <ToolbarItem
-          href="/admin/providers"
-          icon={Boxes}
-          label={"Providers"}
-          isActive={pathname.startsWith("/admin/providers")}
-        />
-        <ToolbarItem
-          href="/admin/users"
-          icon={Users}
-          label={t("Admin.Users.title") || "Users"}
-          isActive={pathname.startsWith("/admin/users")}
-        />
+        {isAdmin && (
+          <ToolbarItem
+            href="/admin/providers"
+            icon={Boxes}
+            label={"Providers"}
+            isActive={pathname.startsWith("/admin/providers")}
+          />
+        )}
+        {isAdmin && (
+          <ToolbarItem
+            href="/admin/users"
+            icon={Users}
+            label={t("Admin.Users.title") || "Users"}
+            isActive={pathname.startsWith("/admin/users")}
+          />
+        )}
       </div>
       {user && (
         <DropdownMenu>

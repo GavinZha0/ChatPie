@@ -4,9 +4,8 @@ import { useTranslations } from "next-intl";
 import { AgentSummary, AgentUpdateSchema } from "app-types/agent";
 import { Card, CardDescription, CardHeader, CardTitle } from "ui/card";
 import { Button } from "ui/button";
-import { Plus, ArrowUpRight } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
-import { BackgroundPaths } from "ui/background-paths";
 import { useBookmark } from "@/hooks/queries/use-bookmark";
 import { useMutateAgents } from "@/hooks/queries/use-agents";
 import { toast } from "sonner";
@@ -115,13 +114,17 @@ export function AgentsList({
 
   return (
     <div className="w-full flex flex-col gap-4 p-8">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center gap-3">
         <h1 className="text-2xl font-bold" data-testid="agents-title">
           {t("Layout.agents")}
         </h1>
         {canCreate && (
           <Link href="/agent/new">
-            <Button variant="ghost" data-testid="create-agent-button">
+            <Button
+              variant="outline"
+              size="sm"
+              data-testid="create-agent-button"
+            >
               <Plus />
               {t("Agent.newAgent")}
             </Button>
@@ -138,35 +141,6 @@ export function AgentsList({
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {canCreate && (
-              <Link href="/agent/new">
-                <Card
-                  className="relative bg-secondary overflow-hidden cursor-pointer hover:bg-input transition-colors h-[196px]"
-                  data-testid="create-agent-card"
-                >
-                  <div className="absolute inset-0 w-full h-full opacity-50">
-                    <BackgroundPaths />
-                  </div>
-                  <CardHeader>
-                    <CardTitle>
-                      <h1 className="text-lg font-bold">
-                        {t("Agent.newAgent")}
-                      </h1>
-                    </CardTitle>
-                    <CardDescription className="mt-2">
-                      <p>{t("Layout.createYourOwnAgent")}</p>
-                    </CardDescription>
-                    <div className="mt-auto ml-auto flex-1">
-                      <Button variant="ghost" size="lg">
-                        {t("Common.create")}
-                        <ArrowUpRight className="size-3.5" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                </Card>
-              </Link>
-            )}
-
             {myAgents.map((agent) => (
               <ShareableCard
                 key={agent.id}

@@ -51,22 +51,13 @@ import { Badge } from "ui/badge";
 import { handleErrorWithToast } from "ui/shared-toast";
 import { generateExampleToolSchemaAction } from "@/app/api/chat/actions";
 import { appStore } from "@/app/store";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "ui/select";
 import { MCPToolInfo } from "app-types/mcp";
 import { Label } from "ui/label";
 import { safe } from "ts-safe";
 import { useObjectState } from "@/hooks/use-object-state";
 import { useTranslations } from "next-intl";
-import { useChatModels } from "@/hooks/queries/use-chat-models";
 import { ChatModel } from "app-types/chat";
+import { SelectModel } from "@/components/select-model";
 
 // Type definitions
 type SchemaProperty = {
@@ -271,28 +262,6 @@ const GenerateExampleInputJsonDialog = ({
   const currentModelName = appStore((state) => state.chatModel);
   const t = useTranslations();
 
-  const { data: providers } = useChatModels();
-
-  const aliasGroups = useMemo(() => {
-    const grouped = new Map<
-      string,
-      { alias: string; items: { provider: string; model: string }[] }
-    >();
-    (providers ?? [])
-      .filter((p) => p.hasAPIKey)
-      .forEach((p) => {
-        const key = p.alias || p.provider;
-        if (!grouped.has(key)) {
-          grouped.set(key, { alias: key, items: [] });
-        }
-        const group = grouped.get(key)!;
-        p.models.forEach((m) => {
-          group.items.push({ provider: p.provider, model: m.name });
-        });
-      });
-    return Array.from(grouped.values());
-  }, [providers]);
-
   const [option, setOption] = useObjectState({
     open: false,
     model: currentModelName,
@@ -337,35 +306,11 @@ const GenerateExampleInputJsonDialog = ({
         </DialogHeader>
         <div className="flex flex-col gap-2 py-4 text-foreground">
           <Label>{t("MCP.model")}</Label>
-          <Select
-            value={JSON.stringify(option.model ?? "{}")}
-            onValueChange={(value) => {
-              const model = JSON.parse(value) as ChatModel;
-              setOption({ model });
-            }}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder={t("MCP.selectModel")} />
-            </SelectTrigger>
-            <SelectContent>
-              {aliasGroups.map((group) => (
-                <SelectGroup key={group.alias}>
-                  <SelectLabel>{group.alias}</SelectLabel>
-                  {group.items.map((item) => (
-                    <SelectItem
-                      key={`${item.provider}:${item.model}`}
-                      value={JSON.stringify({
-                        provider: item.provider,
-                        model: item.model,
-                      })}
-                    >
-                      {item.model}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              ))}
-            </SelectContent>
-          </Select>
+          <SelectModel
+            showProvider
+            currentModel={option.model as ChatModel}
+            onSelect={(model) => setOption({ model })}
+          />
           <div className="my-2" />
           <Label>
             {t("MCP.prompt")}{" "}

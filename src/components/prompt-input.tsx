@@ -2,7 +2,6 @@
 
 import {
   AudioWaveformIcon,
-  ChevronDown,
   CornerRightUp,
   FileIcon,
   FileTextIcon,
@@ -34,8 +33,6 @@ import { MCPIcon } from "ui/mcp-icon";
 import { DefaultToolName } from "lib/ai/tools";
 import { DefaultToolIcon } from "./default-tool-icon";
 import { OpenAIIcon } from "ui/openai-icon";
-import { GrokIcon } from "ui/grok-icon";
-import { ClaudeIcon } from "ui/claude-icon";
 import { GeminiIcon } from "ui/gemini-icon";
 import {
   DropdownMenu,
@@ -438,7 +435,7 @@ export default function PromptInput({
                   type="button"
                   size="icon"
                   variant="ghost"
-                  className="h-16 w-16 rounded-md border border-border/60 bg-input/40 hover:bg-input shrink-0 self-center"
+                  className="hidden md:flex h-16 w-16 rounded-md border border-border/60 bg-input/40 hover:bg-input shrink-0 self-center"
                   onClick={onNewChat}
                   aria-label={layoutT("Layout.newChat")}
                 >
@@ -621,38 +618,10 @@ export default function PromptInput({
 
                   <div className="flex-1" />
 
-                  <SelectModel onSelect={setChatModel} currentModel={chatModel}>
-                    <Button
-                      variant={"ghost"}
-                      size={"sm"}
-                      className="rounded-full group data-[state=open]:bg-input! hover:bg-input! mr-1"
-                      data-testid="model-selector-button"
-                    >
-                      {chatModel?.model ? (
-                        <>
-                          {chatModel.provider === "openai" ? (
-                            <OpenAIIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
-                          ) : chatModel.provider === "xai" ? (
-                            <GrokIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
-                          ) : chatModel.provider === "anthropic" ? (
-                            <ClaudeIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
-                          ) : chatModel.provider === "google" ? (
-                            <GeminiIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
-                          ) : null}
-                          <span
-                            className="text-foreground group-data-[state=open]:text-foreground"
-                            data-testid="selected-model-name"
-                          >
-                            {chatModel.model}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-muted-foreground">model</span>
-                      )}
-
-                      <ChevronDown className="size-3" />
-                    </Button>
-                  </SelectModel>
+                  <SelectModel
+                    onSelect={setChatModel}
+                    currentModel={chatModel}
+                  ></SelectModel>
                   {!isLoading && !input.length && !voiceDisabled ? (
                     <Tooltip>
                       <TooltipTrigger asChild>

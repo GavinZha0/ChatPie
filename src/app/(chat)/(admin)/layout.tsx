@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { requireAdminPermission } from "auth/permissions";
-import { unauthorized } from "next/navigation";
+import AdminUnauthorized from "./unauthorized";
 
 export default async function AdminLayout({
   children,
@@ -10,7 +10,7 @@ export default async function AdminLayout({
   try {
     await requireAdminPermission();
   } catch (_error) {
-    unauthorized();
+    return <AdminUnauthorized />;
   }
   return <>{children}</>;
 }

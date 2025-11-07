@@ -71,6 +71,7 @@ export interface AppState {
   };
   pendingThreadMention?: ChatMention;
   chatWidthMode: ChatWidthMode;
+  newChatHandler?: () => void;
 }
 
 export interface AppDispatch {
@@ -118,6 +119,7 @@ const initialState: AppState = {
   },
   pendingThreadMention: undefined,
   chatWidthMode: "centered",
+  newChatHandler: undefined,
 };
 
 export const appStore = create<AppState & AppDispatch>()(

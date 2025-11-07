@@ -1,20 +1,15 @@
 "use client";
 
 import { appStore } from "@/app/store";
-import {
-  getShortcutKeyList,
-  isShortcutEvent,
-  Shortcuts,
-} from "lib/keyboard-shortcuts";
+import { isShortcutEvent, Shortcuts } from "lib/keyboard-shortcuts";
 import {
   Check,
   CheckIcon,
   ClipboardCheck,
   Infinity,
   PenOff,
-  Settings2,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "ui/button";
 import { useTranslations } from "next-intl";
 
@@ -23,9 +18,7 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "ui/dropdown-menu";
 
@@ -44,6 +37,19 @@ export const ToolModeDropdown = ({ disabled }: { disabled?: boolean }) => {
   const [open, setOpen] = useState(false);
 
   const [toolChoiceChangeInfo, setToolChoiceChangeInfo] = useState(false);
+
+  const currentToolIcon = useMemo(() => {
+    switch (toolChoice) {
+      case "auto":
+        return <Infinity />;
+      case "manual":
+        return <ClipboardCheck />;
+      case "none":
+        return <PenOff />;
+      default:
+        return <Infinity />;
+    }
+  }, [toolChoice]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -96,28 +102,16 @@ export const ToolModeDropdown = ({ disabled }: { disabled?: boolean }) => {
                 )}
                 onClick={() => setOpen(true)}
               >
-                <Settings2 />
+                {currentToolIcon}
               </Button>
             </TooltipTrigger>
             <TooltipContent className="flex items-center gap-2" side="top">
               {t("selectToolMode")}
-              <span className="text-muted-foreground ml-2">
-                {getShortcutKeyList(Shortcuts.toolMode).join("")}
-              </span>
             </TooltipContent>
           </Tooltip>
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" side="top">
-        <DropdownMenuLabel className="text-muted-foreground flex items-center gap-2">
-          {t("selectToolMode")}
-          <DropdownMenuShortcut>
-            <span className="text-xs text-muted-foreground bg-muted rounded-md px-2 py-0.5">
-              {getShortcutKeyList(Shortcuts.toolMode).join("")}
-            </span>
-          </DropdownMenuShortcut>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem
             onClick={() => appStoreMutate({ toolChoice: "auto" })}
@@ -160,12 +154,8 @@ export const ToolModeDropdown = ({ disabled }: { disabled?: boolean }) => {
               <div className="flex items-center gap-2">
                 <PenOff />
                 <span className="font-bold">None</span>
-                <span className="text-xs text-muted-foreground ml-4">
-                  @mention only
-                </span>
                 {toolChoice == "none" && <Check className="ml-auto" />}
               </div>
-
               <p className="text-xs text-muted-foreground">
                 {t("noneToolModeDescription")}
               </p>

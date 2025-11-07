@@ -38,7 +38,7 @@ export default async function ChatLayout({
         {/* Fixed left toolbar */}
         <AppToolbar user={session.user} />
         <AppSidebar user={session.user} />
-        <main className="relative bg-background w-full flex flex-col h-screen pl-16">
+        <main className="relative bg-background w-full flex flex-col h-screen md:pl-16">
           <AppHeader />
           <div className="flex-1 overflow-y-auto">{children}</div>
         </main>

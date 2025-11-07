@@ -3,6 +3,7 @@
 import { appStore } from "@/app/store";
 import { useChatModels } from "@/hooks/queries/use-chat-models";
 import { ChatModel } from "app-types/chat";
+import { cn } from "lib/utils";
 import { CheckIcon, ChevronDown } from "lucide-react";
 import {
   Fragment,
@@ -31,6 +32,7 @@ interface SelectModelProps {
   align?: "start" | "end";
   currentModel?: ChatModel;
   showProvider?: boolean;
+  buttonClassName?: string;
 }
 
 export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
@@ -46,12 +48,6 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
     }
   }, [props.currentModel]);
 
-  const selectedAlias = useMemo(() => {
-    if (!model || !providers) return undefined;
-    const p = providers.find((x) => x.provider === model.provider);
-    return p?.alias || p?.provider;
-  }, [model, providers]);
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -59,19 +55,22 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
           <Button
             variant={"secondary"}
             size={"sm"}
-            className="data-[state=open]:bg-input! hover:bg-input! "
+            className={cn(
+              "data-[state=open]:bg-input! hover:bg-input!",
+              props.buttonClassName,
+            )}
             data-testid="model-selector-button"
           >
             <div className="mr-auto flex items-center gap-1">
               {(props.showProvider ?? true) && (
                 <ModelProviderIcon
                   provider={model?.provider || ""}
-                  className="size-2.5 mr-1"
+                  size={16}
+                  colorful={true}
+                  className="mr-1 size-4 shrink-0"
                 />
               )}
-              <p data-testid="selected-model-name">
-                {selectedAlias || model?.model || "model"}
-              </p>
+              <p data-testid="selected-model-name">{model?.model || "model"}</p>
             </div>
             <ChevronDown className="size-3" />
           </Button>

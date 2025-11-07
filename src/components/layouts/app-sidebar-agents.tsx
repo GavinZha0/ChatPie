@@ -5,13 +5,7 @@ import Link from "next/link";
 import { SidebarMenuButton, SidebarMenuSkeleton } from "ui/sidebar";
 import { SidebarGroupContent, SidebarMenu, SidebarMenuItem } from "ui/sidebar";
 import { SidebarGroup } from "ui/sidebar";
-import {
-  ArrowUpRightIcon,
-  ChevronDown,
-  ChevronUp,
-  MoreHorizontal,
-  PlusIcon,
-} from "lucide-react";
+import { ChevronDown, ChevronUp, MoreHorizontal, PlusIcon } from "lucide-react";
 
 import { useMounted } from "@/hooks/use-mounted";
 
@@ -153,40 +147,15 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
             </SidebarMenuItem>
           ) : agents.length == 0 ? (
             <div className="px-2 mt-1">
-              {canCreateAgent(userRole) ? (
-                <Link
-                  href={"/agent/new"}
-                  className="bg-input/40 py-8 px-4 hover:bg-input/100 rounded-lg cursor-pointer flex justify-between items-center text-xs overflow-hidden"
-                  data-testid="sidebar-create-agent-link"
-                >
-                  <div className="gap-1 z-10">
-                    <div className="flex items-center mb-4 gap-1">
-                      <p className="font-semibold">{t("Layout.createAgent")}</p>
-                      <ArrowUpRightIcon className="size-3" />
-                    </div>
-                    <p className="text-muted-foreground">
-                      {sharedAgents.length > 0
-                        ? t("Layout.createYourOwnAgentOrSelectShared")
-                        : t("Layout.createYourOwnAgent")}
-                    </p>
-                  </div>
-                </Link>
-              ) : (
-                <div className="bg-input/40 py-8 px-4 rounded-lg text-xs overflow-hidden">
-                  <div className="gap-1 z-10">
-                    <p className="font-semibold mb-2">
-                      {sharedAgents.length > 0
-                        ? t("Layout.availableAgents")
-                        : t("Layout.noAgentsAvailable")}
-                    </p>
-                    <p className="text-muted-foreground">
-                      {sharedAgents.length > 0
-                        ? t("Layout.browseAgentsToBookmark")
-                        : t("Layout.askAdminToShareAgents")}
-                    </p>
-                  </div>
+              <div className="bg-input/40 py-8 px-4 rounded-lg text-xs overflow-hidden">
+                <div className="gap-1 z-10">
+                  <p className="font-semibold mb-2">
+                    {sharedAgents.length + sharedAgents.length > 0
+                      ? t("Layout.availableAgents")
+                      : t("Layout.noAgentsAvailable")}
+                  </p>
                 </div>
-              )}
+              </div>
             </div>
           ) : (
             <div className="flex flex-col">

@@ -4,13 +4,13 @@ import { useSidebar } from "ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import {
   GalleryHorizontal,
-  AudioWaveformIcon,
   ChevronDown,
   ClockIcon,
   MessageCircleDashed,
   PanelLeft,
   StretchHorizontal,
 } from "lucide-react";
+import { WriteIcon } from "ui/write-icon";
 import { Button } from "ui/button";
 import { Separator } from "ui/separator";
 
@@ -27,8 +27,12 @@ import { BackButton } from "@/components/layouts/back-button";
 
 export function AppHeader() {
   const t = useTranslations();
-  const [appStoreMutate, chatWidthMode] = appStore(
-    useShallow((state) => [state.mutate, state.chatWidthMode]),
+  const [appStoreMutate, chatWidthMode, newChatHandler] = appStore(
+    useShallow((state) => [
+      state.mutate,
+      state.chatWidthMode,
+      state.newChatHandler,
+    ]),
   );
   const { toggleSidebar, open } = useSidebar();
   const currentPaths = usePathname();
@@ -106,7 +110,7 @@ export function AppHeader() {
               <Button
                 size={"icon"}
                 variant={"ghost"}
-                className="bg-secondary/40"
+                className="hidden md:flex bg-secondary/40"
                 onClick={() => {
                   appStoreMutate((state) => ({
                     chatWidthMode:
@@ -130,41 +134,25 @@ export function AppHeader() {
             </TooltipContent>
           </Tooltip>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size={"icon"}
-                variant={"ghost"}
-                className="bg-secondary/40"
-                onClick={() => {
-                  appStoreMutate((state) => ({
-                    voiceChat: {
-                      ...state.voiceChat,
-                      isOpen: true,
-                      agentId: undefined,
-                    },
-                  }));
-                }}
-              >
-                <AudioWaveformIcon className="size-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent align="end" side="bottom">
-              <div className="text-xs flex items-center gap-2">
-                {t("KeyboardShortcuts.toggleVoiceChat")}
-                <div className="text-xs text-muted-foreground flex items-center gap-1">
-                  {getShortcutKeyList(Shortcuts.toggleVoiceChat).map((key) => (
-                    <span
-                      className="w-5 h-5 flex items-center justify-center bg-muted rounded "
-                      key={key}
-                    >
-                      {key}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </TooltipContent>
-          </Tooltip>
+          {/* New Chat Button - Mobile Only */}
+          {newChatHandler && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size={"icon"}
+                  variant={"secondary"}
+                  className="md:hidden bg-secondary/40"
+                  onClick={newChatHandler}
+                  aria-label={t("Layout.newChat")}
+                >
+                  <WriteIcon className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent align="end" side="bottom">
+                <div className="text-xs">{t("Layout.newChat")}</div>
+              </TooltipContent>
+            </Tooltip>
+          )}
 
           <Tooltip>
             <TooltipTrigger asChild>
@@ -196,7 +184,7 @@ export function AppHeader() {
               <Button
                 size={"icon"}
                 variant={"secondary"}
-                className="bg-secondary/40"
+                className="hidden md:flex bg-secondary/40"
                 onClick={() => {
                   appStoreMutate((state) => ({
                     temporaryChat: {

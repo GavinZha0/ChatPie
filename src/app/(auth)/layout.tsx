@@ -16,19 +16,19 @@ export default async function AuthLayout({
             <div className="absolute inset-0 w-full h-full">
               <BackgroundPaths />
             </div>
-            <h1 className="text-xl font-semibold flex items-center gap-3 animate-in fade-in duration-1000">
-              <Think />
+            <h1 className="text-2xl font-semibold flex items-center gap-3 animate-in fade-in duration-1000">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logo.png"
                 alt="Logo"
-                width={36}
-                height={36}
+                width={64}
+                height={64}
                 className="object-contain"
               />
               <span>
                 {APP_NAME} - {APP_SLOGAN}
               </span>
+              <Think />
             </h1>
             <div className="flex-1" />
             <FlipWords
