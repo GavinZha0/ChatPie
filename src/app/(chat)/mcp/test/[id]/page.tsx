@@ -44,7 +44,6 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogPortal,
   DialogTitle,
   DialogTrigger,
 } from "ui/dialog";
@@ -417,8 +416,6 @@ export default function Page() {
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [callResult, setCallResult] = useState<CallResult | null>(null);
   const [isCallLoading, setIsCallLoading] = useState(false);
-  // Deprecated by Tabs: kept for reset on tool change if needed
-  const [showInputSchema, setShowInputSchema] = useState(false);
 
   const { data: client, isLoading } = useSWR(`/mcp/${id}`, () =>
     selectMcpClientAction(id as string),
@@ -445,7 +442,6 @@ export default function Page() {
   }, [selectedTool]);
 
   const toggleDescription = () => setShowFullDescription(!showFullDescription);
-  const _toggleInputSchema = () => setShowInputSchema(!showInputSchema);
 
   const handleInputChange = (data: string) => {
     setJsonInput(data);
@@ -517,7 +513,6 @@ export default function Page() {
     setIsCallLoading(false);
     setJsonError(null);
     setJsonInput("");
-    setShowInputSchema(false);
     setShowFullDescription(false);
   }, [selectedToolIndex]);
 
