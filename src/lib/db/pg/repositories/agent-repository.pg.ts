@@ -15,6 +15,7 @@ export const pgAgentRepository: AgentRepository = {
         icon: agent.icon,
         userId: agent.userId,
         instructions: agent.instructions,
+        llmId: agent.llmId ?? null,
         visibility: agent.visibility || "private",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -26,6 +27,7 @@ export const pgAgentRepository: AgentRepository = {
       description: result.description ?? undefined,
       icon: result.icon ?? undefined,
       instructions: result.instructions ?? {},
+      llmId: result.llmId ?? undefined,
     };
   },
 
@@ -38,6 +40,7 @@ export const pgAgentRepository: AgentRepository = {
         icon: AgentTable.icon,
         userId: AgentTable.userId,
         instructions: AgentTable.instructions,
+        llmId: AgentTable.llmId,
         visibility: AgentTable.visibility,
         createdAt: AgentTable.createdAt,
         updatedAt: AgentTable.updatedAt,
@@ -71,6 +74,7 @@ export const pgAgentRepository: AgentRepository = {
       icon: result.icon ?? undefined,
       instructions: result.instructions ?? {},
       isBookmarked: result.isBookmarked ?? false,
+      llmId: result.llmId ?? undefined,
     };
   },
 
@@ -83,6 +87,7 @@ export const pgAgentRepository: AgentRepository = {
         icon: AgentTable.icon,
         userId: AgentTable.userId,
         instructions: AgentTable.instructions,
+        llmId: AgentTable.llmId,
         visibility: AgentTable.visibility,
         createdAt: AgentTable.createdAt,
         updatedAt: AgentTable.updatedAt,
@@ -103,6 +108,7 @@ export const pgAgentRepository: AgentRepository = {
       instructions: result.instructions ?? {},
       userName: result.userName ?? undefined,
       userAvatar: result.userAvatar ?? undefined,
+      llmId: result.llmId ?? undefined,
       isBookmarked: false, // Always false for owned agents
     }));
   },
@@ -131,6 +137,7 @@ export const pgAgentRepository: AgentRepository = {
       description: result.description ?? undefined,
       icon: result.icon ?? undefined,
       instructions: result.instructions ?? {},
+      llmId: result.llmId ?? undefined,
     };
   },
 
@@ -200,6 +207,7 @@ export const pgAgentRepository: AgentRepository = {
         icon: AgentTable.icon,
         userId: AgentTable.userId,
         // Exclude instructions from list queries for performance
+        llmId: AgentTable.llmId,
         visibility: AgentTable.visibility,
         createdAt: AgentTable.createdAt,
         updatedAt: AgentTable.updatedAt,
@@ -232,6 +240,7 @@ export const pgAgentRepository: AgentRepository = {
       icon: result.icon ?? undefined,
       userName: result.userName ?? undefined,
       userAvatar: result.userAvatar ?? undefined,
+      llmId: result.llmId ?? undefined,
     }));
   },
 

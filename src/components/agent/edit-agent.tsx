@@ -439,6 +439,7 @@ export default function EditAgent({
                         ...agent.instructions,
                         chatModel: model,
                       },
+                      llmId: model.model,
                     });
                   }}
                 />

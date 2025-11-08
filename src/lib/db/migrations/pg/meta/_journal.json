@@ -134,6 +134,13 @@
       "when": 1762021587522,
       "tag": "0018_bouncy_gladiator",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1762562013723,
+      "tag": "0019_wooden_thunderball",
+      "breakpoints": true
     }
   ]
 }

@@ -52,6 +52,7 @@ export const AgentTable = pgTable("agent", {
     .notNull()
     .references(() => UserTable.id, { onDelete: "cascade" }),
   instructions: json("instructions").$type<Agent["instructions"]>(),
+  llmId: varchar("llm_id", { length: 32 }),
   visibility: varchar("visibility", {
     enum: ["public", "private", "readonly"],
   })
