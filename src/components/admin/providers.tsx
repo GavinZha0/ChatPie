@@ -37,7 +37,7 @@ import { ProviderEditDialog } from "./provider-edit-dialog";
 import {
   updateProviderApiKeyAction,
   updateProviderLLMModelsAction,
-} from "@/app/api/provider/actions";
+} from "@/app/api/admin/providers/actions";
 import { ProviderAddModelDialog } from "./provider-add-model-dialog";
 
 interface ProvidersProps {

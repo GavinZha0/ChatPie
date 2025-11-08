@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { USER_ROLES } from "app-types/roles";
 
-describe("Admin Actions - Business Logic", () => {
+describe("Admin Users Actions - Business Logic", () => {
   describe("Self-Role Update Prevention Logic", () => {
     it("should identify when admin is trying to update their own role", () => {
       const adminUser = { id: "admin-123" };

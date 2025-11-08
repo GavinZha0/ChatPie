@@ -27,7 +27,7 @@ import { Loader2 } from "lucide-react";
 import type { LlmModel, LlmModelType } from "app-types/llm";
 import type { LLMConfig } from "app-types/provider";
 import { saveLlmAction } from "@/app/api/llm/actions";
-import { updateProviderLLMModelsAction } from "@/app/api/provider/actions";
+import { updateProviderLLMModelsAction } from "@/app/api/admin/providers/actions";
 
 interface ProviderWithModels {
   id: number;

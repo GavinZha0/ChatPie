@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { UpdateUserRoleSchema } from "./validations";
 import { USER_ROLES } from "app-types/roles";
 
-describe("Admin Validations", () => {
+describe("Admin Users Validations", () => {
   describe("UpdateUserRoleSchema", () => {
     it("should validate correct user role update data", () => {
       const validData = {

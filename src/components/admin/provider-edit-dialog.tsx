@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import {
   updateProviderApiKeyAction,
   saveProviderAction,
-} from "@/app/api/provider/actions";
+} from "@/app/api/admin/providers/actions";
 import { useRouter } from "next/navigation";
 
 interface ProviderEditDialogProps {
