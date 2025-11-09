@@ -21,6 +21,7 @@ import {
   saveProviderAction,
 } from "@/app/api/admin/providers/actions";
 import { useRouter } from "next/navigation";
+import type { LLMConfig } from "app-types/provider";
 
 interface ProviderEditDialogProps {
   open: boolean;
@@ -31,6 +32,7 @@ interface ProviderEditDialogProps {
     alias: string;
     baseUrl: string;
     apiKey: string | null;
+    llm?: LLMConfig[] | null;
   } | null;
   onSuccess?: () => void;
 }
@@ -73,6 +75,7 @@ export function ProviderEditDialog({
           alias: alias.trim(),
           baseUrl: baseUrl.trim(),
           apiKey: apiKey.trim() || null,
+          llm: provider.llm, // Preserve the llm field
         });
       } else {
         // Only update apiKey
