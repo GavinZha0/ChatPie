@@ -56,6 +56,7 @@ import { isShortcutEvent, Shortcuts } from "lib/keyboard-shortcuts";
 import { useAgent } from "@/hooks/queries/use-agent";
 import { ChatMention } from "app-types/chat";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
+import { getEmojiUrl } from "lib/emoji";
 
 const prependTools: EnabledTools[] = [
   {
@@ -303,7 +304,13 @@ export function ChatBotVoice() {
                       className="size-9 items-center justify-center flex rounded-lg ring ring-secondary"
                     >
                       <Avatar className="size-6">
-                        <AvatarImage src={agent.icon?.value} />
+                        <AvatarImage
+                          src={
+                            agent.icon?.value
+                              ? getEmojiUrl(agent.icon.value, "apple", 64)
+                              : undefined
+                          }
+                        />
                         <AvatarFallback>
                           {agent.name.slice(0, 1)}
                         </AvatarFallback>

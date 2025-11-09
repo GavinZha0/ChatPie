@@ -2,7 +2,6 @@ import "server-only";
 
 import { LanguageModel } from "ai";
 import { ChatModel } from "app-types/chat";
-import type { LlmModel } from "app-types/llm";
 import { Provider } from "app-types/provider";
 import { createOllama } from "ollama-ai-provider-v2";
 import { createOpenAI } from "@ai-sdk/openai";
@@ -14,7 +13,7 @@ import { createGroq } from "@ai-sdk/groq";
 import { createDeepSeek } from "@ai-sdk/deepseek";
 import { createQwen } from "qwen-ai-provider";
 import { createDifyProvider } from "dify-ai-provider";
-import { providerRepository, llmRepository } from "lib/db/repository";
+import { providerRepository } from "lib/db/repository";
 import logger from "logger";
 import {
   DEFAULT_FILE_PART_MIME_TYPES,
@@ -65,7 +64,6 @@ type ModelCapability = {
  */
 type ModelsCache = {
   models: Record<string, Record<string, LanguageModel>>;
-  unsupportedModels: Set<LanguageModel>;
   filePartSupportByModel: Map<LanguageModel, readonly string[]>;
   providers: Provider[];
   modelCapabilities: Map<LanguageModel, ModelCapability>;
@@ -170,19 +168,8 @@ export async function loadDynamicModels() {
   try {
     // Load all providers
     const providers = await providerRepository.selectAll();
-    // Load all LLM models
-    const llmRecords = await llmRepository.selectAll();
-
-    const llmByProvider = new Map<string, Map<string, LlmModel>>();
-    for (const llm of llmRecords) {
-      if (!llmByProvider.has(llm.provider)) {
-        llmByProvider.set(llm.provider, new Map());
-      }
-      llmByProvider.get(llm.provider)!.set(llm.id, llm);
-    }
 
     const models: Record<string, Record<string, LanguageModel>> = {};
-    const unsupportedModels = new Set<LanguageModel>();
     const filePartSupportByModel = new Map<LanguageModel, readonly string[]>();
     const modelCapabilities = new Map<LanguageModel, ModelCapability>();
 
@@ -222,15 +209,8 @@ export async function loadDynamicModels() {
           );
           providerModels[llmConfig.id] = model;
 
-          const llmInfo =
-            llmByProvider.get(provider.name)?.get(llmConfig.id) ?? null;
-
-          const supportsFunctionCall = llmInfo?.functionCall ?? true;
-          const supportsImageInput = llmInfo?.imageInput ?? true;
-
-          if (!supportsFunctionCall) {
-            unsupportedModels.add(model);
-          }
+          const supportsFunctionCall = llmConfig.functionCall ?? true;
+          const supportsImageInput = llmConfig.imageInput ?? true;
 
           modelCapabilities.set(model, {
             supportsFunctionCall,
@@ -262,7 +242,6 @@ export async function loadDynamicModels() {
     // Cache result
     modelsCache = {
       models,
-      unsupportedModels,
       filePartSupportByModel,
       providers,
       modelCapabilities,
@@ -275,7 +254,6 @@ export async function loadDynamicModels() {
     // Return empty result instead of throwing error, keep app availability
     return {
       models: {},
-      unsupportedModels: new Set<LanguageModel>(),
       filePartSupportByModel: new Map<LanguageModel, readonly string[]>(),
       providers: [],
       modelCapabilities: new Map<LanguageModel, ModelCapability>(),
@@ -319,7 +297,7 @@ export const customModelProvider = {
             : undefined;
           const supportsFunctionCall =
             capabilities?.supportsFunctionCall ?? true;
-          const supportsImageInput = capabilities?.supportsImageInput ?? true;
+          const supportsImageInput = capabilities?.supportsImageInput ?? false;
           return {
             name: llm.id, // model name
             isToolCallUnsupported: !supportsFunctionCall,

@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
+import { getEmojiUrl } from "lib/emoji";
 import { useTranslations } from "next-intl";
 import { format } from "date-fns";
 import { cn } from "lib/utils";
@@ -77,7 +78,13 @@ export function ShareableCard({
                 <MCPIcon className="fill-white size-6" />
               ) : (
                 <Avatar className="size-6">
-                  <AvatarImage src={item.icon?.value} />
+                  <AvatarImage
+                    src={
+                      item.icon?.value
+                        ? getEmojiUrl(item.icon.value, "apple", 64)
+                        : undefined
+                    }
+                  />
                   <AvatarFallback />
                 </Avatar>
               )}
@@ -91,9 +98,9 @@ export function ShareableCard({
                 >
                   {item.name}
                 </span>
-                {type === "agent" && (item as any).llmId && (
+                {type === "agent" && (item as AgentSummary).chatModel && (
                   <span className="px-2 rounded-sm bg-secondary text-foreground shrink-0 text-xs">
-                    {(item as any).llmId}
+                    {(item as AgentSummary).chatModel?.model}
                   </span>
                 )}
               </div>

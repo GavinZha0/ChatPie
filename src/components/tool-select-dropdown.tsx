@@ -60,6 +60,7 @@ import { useShallow } from "zustand/shallow";
 import { useMcpList } from "@/hooks/queries/use-mcp-list";
 import { useWorkflowToolList } from "@/hooks/queries/use-workflow-tool-list";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
+import { getEmojiUrl } from "lib/emoji";
 import { WorkflowSummary } from "app-types/workflow";
 import { WorkflowGreeting } from "./workflow/workflow-greeting";
 import { AppDefaultToolkit } from "lib/ai/tools";
@@ -500,7 +501,13 @@ function WorkflowToolSelector({
                         className="p-1 rounded flex items-center justify-center ring ring-background border"
                       >
                         <Avatar className="size-3">
-                          <AvatarImage src={workflow.icon?.value} />
+                          <AvatarImage
+                            src={
+                              workflow.icon?.value
+                                ? getEmojiUrl(workflow.icon.value, "apple", 64)
+                                : undefined
+                            }
+                          />
                           <AvatarFallback>
                             {workflow.name.slice(0, 1)}
                           </AvatarFallback>
@@ -531,7 +538,13 @@ function WorkflowToolSelector({
                         className="p-1 rounded flex items-center justify-center ring ring-background border"
                       >
                         <Avatar className="size-3">
-                          <AvatarImage src={workflow.icon?.value} />
+                          <AvatarImage
+                            src={
+                              workflow.icon?.value
+                                ? getEmojiUrl(workflow.icon.value, "apple", 64)
+                                : undefined
+                            }
+                          />
                           <AvatarFallback>
                             {workflow.name.slice(0, 1)}
                           </AvatarFallback>
@@ -977,7 +990,13 @@ function AgentSelector({
                     className="p-1 rounded flex items-center justify-center ring ring-background border"
                   >
                     <Avatar className="size-3">
-                      <AvatarImage src={agent.icon?.value} />
+                      <AvatarImage
+                        src={
+                          agent.icon?.value
+                            ? getEmojiUrl(agent.icon.value, "apple", 64)
+                            : undefined
+                        }
+                      />
                       <AvatarFallback>{agent.name.slice(0, 1)}</AvatarFallback>
                     </Avatar>
                   </div>
@@ -1004,7 +1023,13 @@ function AgentSelector({
                     className="p-1 rounded flex items-center justify-center ring ring-background border"
                   >
                     <Avatar className="size-3">
-                      <AvatarImage src={agent.icon?.value} />
+                      <AvatarImage
+                        src={
+                          agent.icon?.value
+                            ? getEmojiUrl(agent.icon.value, "apple", 64)
+                            : undefined
+                        }
+                      />
                       <AvatarFallback>{agent.name.slice(0, 1)}</AvatarFallback>
                     </Avatar>
                   </div>

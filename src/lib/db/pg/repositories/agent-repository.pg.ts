@@ -74,7 +74,6 @@ export const pgAgentRepository: AgentRepository = {
       icon: result.icon ?? undefined,
       instructions: result.instructions ?? {},
       isBookmarked: result.isBookmarked ?? false,
-      llmId: result.llmId ?? undefined,
     };
   },
 
@@ -87,7 +86,6 @@ export const pgAgentRepository: AgentRepository = {
         icon: AgentTable.icon,
         userId: AgentTable.userId,
         instructions: AgentTable.instructions,
-        llmId: AgentTable.llmId,
         visibility: AgentTable.visibility,
         createdAt: AgentTable.createdAt,
         updatedAt: AgentTable.updatedAt,
@@ -108,7 +106,7 @@ export const pgAgentRepository: AgentRepository = {
       instructions: result.instructions ?? {},
       userName: result.userName ?? undefined,
       userAvatar: result.userAvatar ?? undefined,
-      llmId: result.llmId ?? undefined,
+      chatModel: (result.instructions as any)?.chatModel ?? undefined,
       isBookmarked: false, // Always false for owned agents
     }));
   },
@@ -206,8 +204,9 @@ export const pgAgentRepository: AgentRepository = {
         description: AgentTable.description,
         icon: AgentTable.icon,
         userId: AgentTable.userId,
-        // Exclude instructions from list queries for performance
-        llmId: AgentTable.llmId,
+        // Extract chatModel provider and model from instructions JSON
+        chatModelProvider: sql<string>`(${AgentTable.instructions} #>> '{chatModel,provider}')`,
+        chatModelModel: sql<string>`(${AgentTable.instructions} #>> '{chatModel,model}')`,
         visibility: AgentTable.visibility,
         createdAt: AgentTable.createdAt,
         updatedAt: AgentTable.updatedAt,
@@ -233,14 +232,23 @@ export const pgAgentRepository: AgentRepository = {
       )
       .limit(limit);
 
-    // Map database nulls to undefined
+    // Map database nulls to undefined and assemble chatModel
     return results.map((result) => ({
-      ...result,
+      id: result.id,
+      name: result.name,
       description: result.description ?? undefined,
       icon: result.icon ?? undefined,
+      userId: result.userId,
+      visibility: result.visibility,
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt,
       userName: result.userName ?? undefined,
       userAvatar: result.userAvatar ?? undefined,
-      llmId: result.llmId ?? undefined,
+      isBookmarked: result.isBookmarked ?? false,
+      chatModel:
+        result.chatModelProvider && result.chatModelModel
+          ? { provider: result.chatModelProvider, model: result.chatModelModel }
+          : undefined,
     }));
   },
 

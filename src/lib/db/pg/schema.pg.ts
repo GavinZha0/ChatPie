@@ -2,7 +2,6 @@ import { Agent } from "app-types/agent";
 import { UserPreferences } from "app-types/user";
 import { MCPServerConfig } from "app-types/mcp";
 import { LLMConfig } from "app-types/provider";
-import { LlmModelType } from "app-types/llm";
 import { sql } from "drizzle-orm";
 import {
   pgTable,
@@ -15,7 +14,6 @@ import {
   varchar,
   index,
   serial,
-  integer,
 } from "drizzle-orm/pg-core";
 import { isNotNull } from "drizzle-orm";
 import { DBWorkflow, DBEdge, DBNode } from "app-types/workflow";
@@ -380,19 +378,6 @@ export type ArchiveEntity = typeof ArchiveTable.$inferSelect;
 export type ArchiveItemEntity = typeof ArchiveItemTable.$inferSelect;
 export type BookmarkEntity = typeof BookmarkTable.$inferSelect;
 
-export const LlmTable = pgTable("llm", {
-  id: varchar("id", { length: 32 }).primaryKey().notNull(),
-  provider: varchar("provider", { length: 32 }).notNull(),
-  type: varchar("type", { length: 32 })
-    .notNull()
-    .default("chat")
-    .$type<LlmModelType>(),
-  functionCall: boolean("function_call").notNull().default(true),
-  imageInput: boolean("image_input").notNull().default(false),
-  contextLimit: integer("context_limit").notNull().default(81920),
-  updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-});
-
 export const ProviderTable = pgTable("provider", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 32 }).notNull(),
@@ -404,4 +389,3 @@ export const ProviderTable = pgTable("provider", {
 });
 
 export type ProviderEntity = typeof ProviderTable.$inferSelect;
-export type LlmEntity = typeof LlmTable.$inferSelect;

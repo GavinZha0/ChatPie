@@ -9,8 +9,7 @@ export const RandomDataGeneratorExample: Partial<Agent> = {
     style: {
       backgroundColor: "rgb(253, 58, 58)",
     },
-    value:
-      "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f3b2.png",
+    value: "1f3b2",
   },
   instructions: {
     role: "Data & Table Generator",
@@ -78,8 +77,7 @@ export const WeatherExample: Partial<Agent> = {
     style: {
       backgroundColor: "rgb(59, 130, 246)",
     },
-    value:
-      "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/26c8-fe0f.png",
+    value: "26c8-fe0f",
   },
   instructions: {
     role: "Weather Assistant",

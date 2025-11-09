@@ -11,6 +11,7 @@ import { ChatMentionInputSuggestion } from "@/components/chat-mention-input";
 import { DefaultToolIcon } from "@/components/default-tool-icon";
 import { MCPIcon } from "ui/mcp-icon";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
+import { getEmojiUrl } from "lib/emoji";
 
 interface AgentToolSelectorProps {
   mentions: ChatMention[];
@@ -92,7 +93,13 @@ export function AgentToolSelector({
               style={m.icon?.style}
               className="size-3 ring-[1px] ring-input rounded-full"
             >
-              <AvatarImage src={m.icon?.value} />
+              <AvatarImage
+                src={
+                  m.icon?.value
+                    ? getEmojiUrl(m.icon.value, "apple", 64)
+                    : undefined
+                }
+              />
               <AvatarFallback>{m.name.slice(0, 1)}</AvatarFallback>
             </Avatar>
           ) : (

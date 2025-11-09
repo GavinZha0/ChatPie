@@ -21,6 +21,7 @@ import { appStore } from "@/app/store";
 import { useRouter } from "next/navigation";
 import { ChatMention } from "app-types/chat";
 import { BACKGROUND_COLORS, EMOJI_DATA } from "lib/const";
+import { getEmojiUrl } from "lib/emoji";
 import { cn } from "lib/utils";
 import { canCreateAgent } from "lib/auth/client-permissions";
 
@@ -198,8 +199,17 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
                                   <Avatar className="size-3.5">
                                     <AvatarImage
                                       src={
-                                        agent.icon?.value ||
-                                        EMOJI_DATA[i % EMOJI_DATA.length]
+                                        agent.icon?.value
+                                          ? getEmojiUrl(
+                                              agent.icon.value,
+                                              "apple",
+                                              64,
+                                            )
+                                          : getEmojiUrl(
+                                              EMOJI_DATA[i % EMOJI_DATA.length],
+                                              "apple",
+                                              64,
+                                            )
                                       }
                                     />
                                     <AvatarFallback className="bg-transparent">

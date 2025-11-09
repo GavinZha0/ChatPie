@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "ui/dropdown-menu";
 import { AgentIcon } from "app-types/agent";
+import { getEmojiUrl } from "lib/emoji";
 
 const colorUpdateDebounce = createDebounce();
 
@@ -37,7 +38,7 @@ export function AgentIconPicker({
   const handleEmojiSelect = (emoji: any) => {
     onChange({
       ...icon!,
-      value: emoji.imageUrl,
+      value: emoji.unified,
       type: "emoji",
     });
   };
@@ -56,7 +57,9 @@ export function AgentIconPicker({
         >
           <Avatar className="size-10">
             <AvatarImage
-              src={icon?.value}
+              src={
+                icon?.value ? getEmojiUrl(icon.value, "apple", 64) : undefined
+              }
               className="group-hover:scale-110 transition-transform"
             />
             <AvatarFallback></AvatarFallback>

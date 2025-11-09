@@ -64,6 +64,7 @@ import { notify } from "lib/notify";
 import { ModelProviderIcon } from "ui/model-provider-icon";
 import { appStore } from "@/app/store";
 import { BACKGROUND_COLORS, EMOJI_DATA } from "lib/const";
+import { getEmojiUrl } from "lib/emoji";
 
 type MessagePart = UIMessage["parts"][number];
 type TextMessagePart = Extract<MessagePart, { type: "text" }>;
@@ -462,7 +463,11 @@ export const AssistMessagePart = memo(function AssistMessagePart({
                           >
                             <Avatar className="size-3">
                               <AvatarImage
-                                src={agent.icon?.value || EMOJI_DATA[0]}
+                                src={
+                                  agent.icon?.value
+                                    ? getEmojiUrl(agent.icon.value, "apple", 64)
+                                    : getEmojiUrl(EMOJI_DATA[0], "apple", 64)
+                                }
                               />
                               <AvatarFallback className="bg-transparent text-xs">
                                 {agent.name[0]}
@@ -964,6 +969,13 @@ export const ToolMessagePart = memo(
                       src={
                         (result as VercelAIWorkflowToolStreamingResult)
                           .workflowIcon?.value
+                          ? getEmojiUrl(
+                              (result as VercelAIWorkflowToolStreamingResult)
+                                .workflowIcon!.value,
+                              "apple",
+                              64,
+                            )
+                          : undefined
                       }
                     />
                     <AvatarFallback>

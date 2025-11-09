@@ -815,15 +815,17 @@
         "newModelIdLabel": "Model ID",
         "newModelIdPlaceholder": "e.g. gpt-4.1-mini",
         "modelTypeLabel": "Model Type",
-        "functionCallLabel": "Function calling",
+        "functionCallLabel": "Function call",
         "functionCallHelper": "Enable if the model supports tool/function calls",
         "imageInputLabel": "Image input",
         "imageInputHelper": "Enable if the model accepts images as input",
-        "contextLimitLabel": "Context window",
+        "contextLimitLabel": "Max context",
         "contextLimitPlaceholder": "Enter tokens (optional)",
         "modelIdRequired": "Please select or enter a model ID",
         "modelAlreadyExists": "This model is already attached",
-        "contextLimitInvalid": "Context window must be a non-negative number"
+        "contextLimitInvalid": "Context window must be a non-negative number",
+        "modelDescriptionLabel": "Description",
+        "modelDescriptionPlaceholder": "Enter model description"
       },
       "dialog": {
         "deleteTitle": "⚠️ Delete Provider",

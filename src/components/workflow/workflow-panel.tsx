@@ -12,6 +12,7 @@ import { Button } from "ui/button";
 import equal from "lib/equal";
 
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
+import { getEmojiUrl } from "lib/emoji";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { ShareableActions } from "@/components/shareable-actions";
 
@@ -150,7 +151,11 @@ export const WorkflowPanel = memo(
               >
                 <Avatar className="size-6">
                   <AvatarImage
-                    src={workflow.icon?.value}
+                    src={
+                      workflow.icon?.value
+                        ? getEmojiUrl(workflow.icon.value, "apple", 64)
+                        : undefined
+                    }
                     className="group-hover:scale-110  transition-transform"
                   />
                   <AvatarFallback></AvatarFallback>

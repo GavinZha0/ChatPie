@@ -47,12 +47,14 @@ import {
 import { cn } from "@/lib/utils";
 import { useThreadFileUploader } from "@/hooks/use-thread-file-uploader";
 import { AgentSummary } from "app-types/agent";
+import { useAgents } from "@/hooks/queries/use-agents";
 import { FileUIPart, TextUIPart } from "ai";
 import { toast } from "sonner";
 import { isFilePartSupported, isIngestSupported } from "@/lib/ai/file-support";
 import { useChatModels } from "@/hooks/queries/use-chat-models";
 import { WriteIcon } from "ui/write-icon";
 import { EMOJI_DATA } from "lib/const";
+import { getEmojiUrl } from "lib/emoji";
 
 interface PromptInputProps {
   placeholder?: string;
@@ -104,6 +106,7 @@ export default function PromptInput({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadFiles } = useThreadFileUploader(threadId);
   const { data: providers } = useChatModels();
+  const { agents } = useAgents({ limit: 50 });
 
   const [
     globalModel,
@@ -140,6 +143,60 @@ export default function PromptInput({
     return threadMentions[threadId!] ?? [];
   }, [threadMentions, threadId]);
 
+  // Determine selected agent and its predefined chat model (if any)
+  const selectedAgentId = useMemo(() => {
+    const agentMention = mentions.find((m) => m.type === "agent");
+    return agentMention?.agentId;
+  }, [mentions]);
+
+  const selectedAgent = useMemo(() => {
+    if (!selectedAgentId) return undefined;
+    return agents.find((a) => a.id === selectedAgentId);
+  }, [agents, selectedAgentId]);
+
+  const agentPreferredModel = selectedAgent?.chatModel;
+
+  // Sync agent preferred model into global chatModel when agent changes,
+  // unless user has manually overridden model for this agent/thread.
+  useEffect(() => {
+    const isAgentMentioned = mentions.some((m) => m.type === "agent");
+    if (!isAgentMentioned) return;
+    if (!agentPreferredModel || !threadId) return;
+    appStoreMutate((prev) => {
+      const manualMap = (prev as any)._agentManualModelByThread || {};
+      const manualOverride = manualMap[threadId];
+      if (manualOverride) {
+        // Honor manual override; ensure previous model captured if not yet
+        const prevByThread = (prev as any)._previousModelByThread || {};
+        const previousCaptured = prevByThread[threadId] !== undefined;
+        const next: any = {
+          chatModel: manualOverride,
+          _agentManualModelByThread: manualMap,
+          _previousModelByThread: { ...prevByThread },
+        };
+        if (!previousCaptured) {
+          next._previousModelByThread[threadId] = prev.chatModel;
+        }
+        return next;
+      }
+      // No manual override -> apply agent preferred if different
+      const isDifferent =
+        globalModel?.provider !== agentPreferredModel.provider ||
+        globalModel?.model !== agentPreferredModel.model;
+      if (!isDifferent) return prev;
+      const prevByThread = (prev as any)._previousModelByThread || {};
+      const previousCaptured = prevByThread[threadId] !== undefined;
+      const next: any = {
+        chatModel: agentPreferredModel,
+        _previousModelByThread: { ...prevByThread },
+      };
+      if (!previousCaptured) {
+        next._previousModelByThread[threadId] = prev.chatModel;
+      }
+      return next;
+    });
+  }, [agentPreferredModel, globalModel, appStoreMutate, mentions, threadId]);
+
   const uploadedFiles = useMemo<UploadedFile[]>(() => {
     if (!threadId) return [];
     return threadFiles[threadId] ?? [];
@@ -151,20 +208,36 @@ export default function PromptInput({
   }, [threadImageToolModel, threadId]);
 
   const chatModel = useMemo(() => {
-    return model ?? globalModel;
-  }, [model, globalModel]);
+    // Priority: agent predefined model > local model prop > global model
+    return agentPreferredModel ?? model ?? globalModel;
+  }, [agentPreferredModel, model, globalModel]);
 
   const editorRef = useRef<Editor | null>(null);
 
-  const setChatModel = useCallback(
+  // Allow user to override model when an agent is active (per thread)
+  const handleSelectModel = useCallback(
     (model: ChatModel) => {
       if (setModel) {
         setModel(model);
-      } else {
-        appStoreMutate({ chatModel: model });
       }
+      appStoreMutate((prev) => {
+        const next: any = { chatModel: model };
+        if (threadId) {
+          const hadAgent = (prev.threadMentions[threadId] || []).some(
+            (m) => m.type === "agent",
+          );
+          if (hadAgent) {
+            const manualMap = (prev as any)._agentManualModelByThread || {};
+            next._agentManualModelByThread = {
+              ...manualMap,
+              [threadId]: model,
+            };
+          }
+        }
+        return next;
+      });
     },
-    [setModel, appStoreMutate],
+    [setModel, appStoreMutate, threadId],
   );
 
   const deleteMention = useCallback(
@@ -172,15 +245,24 @@ export default function PromptInput({
       if (!threadId) return;
       appStoreMutate((prev) => {
         const newMentions = mentions.filter((m) => !equal(m, mention));
-        return {
+        const next: any = {
           threadMentions: {
             ...prev.threadMentions,
             [threadId!]: newMentions,
           },
         };
+        if (mention.type === "agent") {
+          const prevByThread = (prev as any)._previousModelByThread || {};
+          const previousModel = prevByThread[threadId];
+          // Revert to previous model if captured; and clear the capture for this thread
+          next.chatModel = previousModel;
+          next._previousModelByThread = { ...prevByThread };
+          delete next._previousModelByThread[threadId];
+        }
+        return next;
       });
     },
-    [mentions, threadId],
+    [mentions, threadId, appStoreMutate],
   );
 
   const deleteFile = useCallback(
@@ -390,7 +472,7 @@ export default function PromptInput({
     }));
   };
 
-  // Handle ESC key to clear mentions
+  // Handle ESC key to clear mentions (and revert model if agent was active)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -400,17 +482,38 @@ export default function PromptInput({
       ) {
         e.preventDefault();
         e.stopPropagation();
-        appStoreMutate(() => ({
-          threadMentions: {},
-          agentId: undefined,
-          threadImageToolModel: {},
-        }));
+        appStoreMutate((prev) => {
+          const prevByThread = (prev as any)._previousModelByThread || {};
+          const previousModel = prevByThread[threadId!];
+          const hadAgent = (prev.threadMentions[threadId!] || []).some(
+            (m) => m.type === "agent",
+          );
+          const next: any = {
+            // Only clear mentions for current thread
+            threadMentions: {
+              ...prev.threadMentions,
+              [threadId!]: [],
+            },
+            // Clear image tool model for current thread
+            threadImageToolModel: {
+              ...prev.threadImageToolModel,
+              [threadId!]: undefined,
+            },
+            agentId: undefined,
+          };
+          if (hadAgent) {
+            next.chatModel = previousModel;
+            next._previousModelByThread = { ...prevByThread };
+            delete next._previousModelByThread[threadId!];
+          }
+          return next;
+        });
         editorRef.current?.commands.focus();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [mentions.length, threadId, appStoreMutate, imageToolModel]);
+  }, [mentions.length, threadId, appStoreMutate, imageToolModel, editorRef]);
 
   // Drag overlay handled globally in ChatBot
 
@@ -454,7 +557,7 @@ export default function PromptInput({
           <fieldset className="flex flex-1 min-w-0 max-w-full flex-col px-4">
             <div className="shadow-lg overflow-hidden rounded-4xl backdrop-blur-sm transition-all duration-200 bg-muted/60 relative flex w-full flex-col cursor-text z-10 items-stretch focus-within:bg-muted hover:bg-muted focus-within:ring-muted hover:ring-muted">
               {mentions.length > 0 ? (
-                <div className="bg-input rounded-b-sm rounded-t-3xl p-3 flex flex-col gap-4 mx-2 my-2">
+                <div className="bg-input rounded-b-sm rounded-t-3xl p-2 flex flex-col gap-2 mx-2 my-1">
                   {mentions.map((mention, i) => (
                     <div key={i} className="flex items-center gap-2">
                       {mention.type === "workflow" ||
@@ -465,8 +568,13 @@ export default function PromptInput({
                         >
                           <AvatarImage
                             src={
-                              mention.icon?.value ||
-                              EMOJI_DATA[i % EMOJI_DATA.length]
+                              mention.icon?.value
+                                ? getEmojiUrl(mention.icon.value, "apple", 64)
+                                : getEmojiUrl(
+                                    EMOJI_DATA[i % EMOJI_DATA.length],
+                                    "apple",
+                                    64,
+                                  )
                             }
                           />
                           <AvatarFallback>
@@ -489,11 +597,6 @@ export default function PromptInput({
                         <span className="text-sm font-semibold truncate">
                           {mention.name}
                         </span>
-                        {mention.description ? (
-                          <span className="text-muted-foreground text-xs truncate">
-                            {mention.description}
-                          </span>
-                        ) : null}
                       </div>
                       <Button
                         variant={"ghost"}
@@ -619,7 +722,7 @@ export default function PromptInput({
                   <div className="flex-1" />
 
                   <SelectModel
-                    onSelect={setChatModel}
+                    onSelect={handleSelectModel}
                     currentModel={chatModel}
                   ></SelectModel>
                   {!isLoading && !input.length && !voiceDisabled ? (

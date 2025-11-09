@@ -21,6 +21,7 @@ import { appStore } from "@/app/store";
 import { cn, toAny } from "lib/utils";
 import { useShallow } from "zustand/shallow";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
+import { getEmojiUrl } from "lib/emoji";
 import { Editor } from "@tiptap/react";
 import { DefaultToolName } from "lib/ai/tools";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
@@ -332,7 +333,13 @@ export function ChatMentionInputSuggestion({
               style={workflow.icon?.style}
               className="size-3.5 ring-[1px] ring-input rounded-full"
             >
-              <AvatarImage src={workflow.icon?.value} />
+              <AvatarImage
+                src={
+                  workflow.icon?.value
+                    ? getEmojiUrl(workflow.icon.value, "apple", 64)
+                    : undefined
+                }
+              />
               <AvatarFallback>{workflow.name.slice(0, 1)}</AvatarFallback>
             </Avatar>
           ),

@@ -15,7 +15,7 @@ import { useTranslations } from "next-intl";
 interface EmojiAvatarDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelect: (emojiUrl: string) => void;
+  onSelect: (unified: string) => void;
 }
 
 export function EmojiAvatarDialog({
@@ -28,10 +28,8 @@ export function EmojiAvatarDialog({
   const tCommon = useTranslations("Common");
 
   const handleEmojiClick = (emojiData: EmojiClickData) => {
-    // Use the emoji image URL from emoji-picker-react
-    onSelect(emojiData.imageUrl);
+    onSelect(emojiData.unified);
 
-    // Close dialog after a short delay for visual feedback
     setTimeout(() => {
       onOpenChange(false);
     }, 200);

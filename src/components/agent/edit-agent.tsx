@@ -10,7 +10,7 @@ import { useWorkflowToolList } from "@/hooks/queries/use-workflow-tool-list";
 import { useObjectState } from "@/hooks/use-object-state";
 import { useBookmark } from "@/hooks/queries/use-bookmark";
 import { Agent, AgentCreateSchema, AgentUpdateSchema } from "app-types/agent";
-import { BACKGROUND_COLORS } from "lib/const";
+import { BACKGROUND_COLORS, EMOJI_DATA } from "lib/const";
 import { cn, fetcher } from "lib/utils";
 import { safe } from "ts-safe";
 import { handleErrorWithToast } from "ui/shared-toast";
@@ -46,8 +46,7 @@ const defaultConfig = (): PartialBy<
     description: "",
     icon: {
       type: "emoji",
-      value:
-        "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f916.png",
+      value: EMOJI_DATA[0],
       style: {
         backgroundColor: BACKGROUND_COLORS[0],
       },
@@ -439,7 +438,6 @@ export default function EditAgent({
                         ...agent.instructions,
                         chatModel: model,
                       },
-                      llmId: model.model,
                     });
                   }}
                 />

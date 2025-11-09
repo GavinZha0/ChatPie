@@ -1,5 +1,5 @@
 import z from "zod";
-import { ChatMentionSchema } from "./chat";
+import { ChatMentionSchema, ChatModel } from "./chat";
 import { VisibilitySchema } from "./util";
 
 export type AgentIcon = {
@@ -68,7 +68,7 @@ export type AgentSummary = {
   description?: string;
   icon?: AgentIcon;
   userId: string;
-  llmId?: string;
+  chatModel?: ChatModel;
   visibility: AgentVisibility;
   createdAt: Date;
   updatedAt: Date;

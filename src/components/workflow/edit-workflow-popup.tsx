@@ -25,6 +25,7 @@ import {
 } from "ui/dropdown-menu";
 
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
+import { getEmojiUrl } from "lib/emoji";
 import { Loader } from "lucide-react";
 import { safe } from "ts-safe";
 import { z } from "zod";
@@ -44,8 +45,7 @@ const defaultConfig = {
   id: undefined as string | undefined,
   icon: {
     type: "emoji",
-    value:
-      "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f916.png",
+    value: "1f916",
     style: {
       backgroundColor: BACKGROUND_COLORS[0],
     },
@@ -187,7 +187,11 @@ export function EditWorkflowPopup({
                   >
                     <Avatar className="size-10">
                       <AvatarImage
-                        src={config.icon.value}
+                        src={
+                          config.icon.value
+                            ? getEmojiUrl(config.icon.value, "apple", 64)
+                            : undefined
+                        }
                         className="group-hover:scale-110  transition-transform"
                       />
                       <AvatarFallback></AvatarFallback>

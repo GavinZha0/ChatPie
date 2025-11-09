@@ -16,8 +16,7 @@ export const GetWeather = (): {
       visibility: "private",
       icon: {
         type: "emoji",
-        value:
-          "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/26c8-fe0f.png",
+        value: "26c8-fe0f",
         style: {
           backgroundColor: "oklch(20.5% 0 0)",
         },
@@ -45,8 +44,7 @@ export const BabyResearch = (): {
       visibility: "private",
       icon: {
         type: "emoji",
-        value:
-          "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f468-1f3fb-200d-1f52c.png",
+        value: "1f468-1f3fb-200d-1f52c",
         style: {
           backgroundColor: "oklch(78.5% 0.115 274.713)",
         },

@@ -27,7 +27,7 @@ import {
 } from "ui/alert-dialog";
 import { Pencil, Plus, Trash2, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
-import type { LlmModel } from "app-types/llm";
+import type { LLMConfig } from "app-types/provider";
 import { cn } from "lib/utils";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -47,10 +47,10 @@ interface ProvidersProps {
     alias: string;
     baseUrl: string;
     apiKey: string | null;
-    llm: Array<{ id: string; enabled: boolean; temperature?: number }> | null;
+    llm: LLMConfig[] | null;
     updatedAt: Date;
   }>;
-  llmMap: Map<string, LlmModel>;
+  llmMap: Map<string, LLMConfig>;
 }
 
 export function Providers({ providers, llmMap }: ProvidersProps) {
@@ -257,7 +257,23 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
         model.id === modelId ? { ...model, enabled: checked } : model,
       );
 
-      await updateProviderLLMModelsAction(selectedProvider.id, updatedModels);
+      // Map minimal model objects to full LLMConfig using llmMap
+      const providerNameLower = selectedProvider.name.toLowerCase();
+      const persistModels: LLMConfig[] = updatedModels
+        .map((model) => {
+          const full = llmMap.get(`${providerNameLower}:${model.id}`);
+          if (!full) {
+            return undefined;
+          }
+          return {
+            ...full,
+            enabled: model.enabled,
+            temperature: model.temperature,
+          } as LLMConfig;
+        })
+        .filter(Boolean) as LLMConfig[];
+
+      await updateProviderLLMModelsAction(selectedProvider.id, persistModels);
       toast.success(t("toast.updateSuccess"));
       router.refresh();
     } catch (error) {
@@ -286,7 +302,23 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
         (model) => model.id !== modelId,
       );
 
-      await updateProviderLLMModelsAction(selectedProvider.id, updatedModels);
+      // Map minimal model objects to full LLMConfig using llmMap
+      const providerNameLower = selectedProvider.name.toLowerCase();
+      const persistModels: LLMConfig[] = updatedModels
+        .map((model) => {
+          const full = llmMap.get(`${providerNameLower}:${model.id}`);
+          if (!full) {
+            return undefined;
+          }
+          return {
+            ...full,
+            enabled: model.enabled,
+            temperature: model.temperature,
+          } as LLMConfig;
+        })
+        .filter(Boolean) as LLMConfig[];
+
+      await updateProviderLLMModelsAction(selectedProvider.id, persistModels);
       toast.success(t("toast.updateSuccess"));
       setModelToggleOverrides((prev) => {
         const next = new Map(prev);
@@ -663,7 +695,6 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
           setAddModelDialogOpen(open);
         }}
         provider={addModelProvider}
-        llmMap={llmMap}
         onSuccess={() => {
           setAddModelDialogOpen(false);
           setAddModelProvider(null);

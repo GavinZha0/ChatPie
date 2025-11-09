@@ -1,11 +1,18 @@
 // Provider and LLM model configuration types
 
+export type LlmType = "chat" | "vision" | "audio" | "agent";
+
 /**
  * LLM model configuration
  */
 export interface LLMConfig {
   id: string;
   enabled: boolean;
+  type: LlmType;
+  functionCall: boolean;
+  imageInput: boolean;
+  contextLimit: number;
+  description?: string;
   temperature?: number;
 }
 
