@@ -46,7 +46,7 @@ export const ChatGreeting = ({ widthMode = "centered" }: ChatGreetingProps) => {
       key="welcome"
       className={cn(
         "mx-auto my-4 h-20",
-        widthMode === "wide" ? "max-w-none px-6" : "max-w-3xl",
+        widthMode === "wide" ? "max-w-none px-10" : "max-w-4xl px-6",
       )}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}

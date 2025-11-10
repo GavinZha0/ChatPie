@@ -29,6 +29,7 @@ import { DefaultToolIcon } from "./default-tool-icon";
 import equal from "lib/equal";
 import { EMOJI_DATA } from "lib/const";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAgents } from "@/hooks/queries/use-agents";
 
 type MentionItemType = {
   id: string;
@@ -86,7 +87,7 @@ export default function ChatMentionInput({
       content={input}
       onEnter={onEnter}
       placeholder={placeholder}
-      suggestionChar="@"
+      suggestionChar={["@", "$"]}
       disabledMention={disabledMention}
       onChange={handleChange}
       MentionItem={ChatMentionInputMentionItem}
@@ -143,6 +144,7 @@ export function ChatMentionInputSuggestion({
   children,
   style,
   disabledType,
+  triggerChar = "@",
 }: {
   onClose: () => void;
   onSelectMention: (item: { label: string; id: string }) => void;
@@ -155,15 +157,27 @@ export function ChatMentionInputSuggestion({
   children?: React.ReactNode;
   style?: React.CSSProperties;
   disabledType?: ("mcp" | "workflow" | "defaultTool" | "agent")[];
+  triggerChar?: string;
 }) {
   const t = useTranslations("Common");
-  const [mcpList, workflowList, agentList] = appStore(
-    useShallow((state) => [
-      state.mcpList,
-      state.workflowToolList,
-      state.agentList,
-    ]),
+  const [mcpList, workflowList] = appStore(
+    useShallow((state) => [state.mcpList, state.workflowToolList]),
   );
+  const { myAgents, bookmarkedAgents } = useAgents({
+    filters: ["mine", "bookmarked"],
+  });
+
+  // Combine my agents and bookmarked agents, deduplicate by id
+  const agentList = useMemo(() => {
+    const combined = [...myAgents, ...bookmarkedAgents];
+    const seen = new Set<string>();
+    return combined.filter((a) => {
+      if (seen.has(a.id)) return false;
+      seen.add(a.id);
+      return true;
+    });
+  }, [myAgents, bookmarkedAgents]);
+
   const [searchValue, setSearchValue] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const itemRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
@@ -445,15 +459,29 @@ export function ChatMentionInputSuggestion({
     );
   }, [children, top, left]);
 
-  // Combine all mentions
+  // Filter mentions based on trigger character
   const allMentions = useMemo(() => {
+    if (triggerChar === "@") {
+      // @ only shows agents
+      return [...agentMentions];
+    } else if (triggerChar === "$") {
+      // $ shows workflows and tools
+      return [...workflowMentions, ...defaultToolMentions, ...mcpMentions];
+    }
+    // Fallback: show all (for backward compatibility)
     return [
       ...agentMentions,
       ...workflowMentions,
       ...defaultToolMentions,
       ...mcpMentions,
     ];
-  }, [agentMentions, workflowMentions, defaultToolMentions, mcpMentions]);
+  }, [
+    triggerChar,
+    agentMentions,
+    workflowMentions,
+    defaultToolMentions,
+    mcpMentions,
+  ]);
 
   // Reset selected index when mentions change
   useEffect(() => {
@@ -594,7 +622,9 @@ export function ChatMentionInputSuggestion({
                   <div className="mb-2">
                     {searchValue
                       ? t("noResults")
-                      : "Type @ to see available mentions"}
+                      : triggerChar === "@"
+                        ? "Type @ to mention an agent"
+                        : "Type $ to use a tool or workflow"}
                   </div>
                   {searchValue && (
                     <div className="text-xs opacity-60">
@@ -606,205 +636,218 @@ export function ChatMentionInputSuggestion({
             ) : isMobile ? (
               // Mobile vertical layout
               <div className="overflow-y-auto max-h-[50vh]">
-                {groupedMentions.agent.items.length > 0 && (
-                  <div className="p-2">
-                    <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
-                      {groupedMentions.agent.title}
+                {triggerChar === "@" &&
+                  groupedMentions.agent.items.length > 0 && (
+                    <div className="p-2">
+                      <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
+                        {groupedMentions.agent.title}
+                      </div>
+                      <div className="space-y-1">
+                        {groupedMentions.agent.items.map((item) => (
+                          <MentionItem
+                            key={item.id}
+                            item={item}
+                            isSelected={
+                              allMentions[selectedIndex]?.id === item.id
+                            }
+                            ref={(el) => {
+                              itemRefs.current[item.id] = el;
+                            }}
+                          />
+                        ))}
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      {groupedMentions.agent.items.map((item) => (
-                        <MentionItem
-                          key={item.id}
-                          item={item}
-                          isSelected={
-                            allMentions[selectedIndex]?.id === item.id
-                          }
-                          ref={(el) => {
-                            itemRefs.current[item.id] = el;
-                          }}
-                        />
-                      ))}
+                  )}
+                {triggerChar === "$" &&
+                  groupedMentions.workflow.items.length > 0 && (
+                    <div className="p-2">
+                      <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
+                        {groupedMentions.workflow.title}
+                      </div>
+                      <div className="space-y-1">
+                        {groupedMentions.workflow.items.map((item) => (
+                          <MentionItem
+                            key={item.id}
+                            item={item}
+                            isSelected={
+                              allMentions[selectedIndex]?.id === item.id
+                            }
+                            ref={(el) => {
+                              itemRefs.current[item.id] = el;
+                            }}
+                          />
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-                {groupedMentions.workflow.items.length > 0 && (
-                  <div className="p-2 border-t">
-                    <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
-                      {groupedMentions.workflow.title}
+                  )}
+                {triggerChar === "$" &&
+                  groupedMentions.defaultTool.items.length > 0 && (
+                    <div className="p-2 border-t">
+                      <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
+                        {groupedMentions.defaultTool.title}
+                      </div>
+                      <div className="space-y-1">
+                        {groupedMentions.defaultTool.items.map((item) => (
+                          <MentionItem
+                            key={item.id}
+                            item={item}
+                            isSelected={
+                              allMentions[selectedIndex]?.id === item.id
+                            }
+                            ref={(el) => {
+                              itemRefs.current[item.id] = el;
+                            }}
+                          />
+                        ))}
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      {groupedMentions.workflow.items.map((item) => (
-                        <MentionItem
-                          key={item.id}
-                          item={item}
-                          isSelected={
-                            allMentions[selectedIndex]?.id === item.id
-                          }
-                          ref={(el) => {
-                            itemRefs.current[item.id] = el;
-                          }}
-                        />
-                      ))}
+                  )}
+                {triggerChar === "$" &&
+                  groupedMentions.mcp.items.length > 0 && (
+                    <div className="p-2 border-t">
+                      <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
+                        {groupedMentions.mcp.title}
+                      </div>
+                      <div className="space-y-1">
+                        {groupedMentions.mcp.items.map((item) => (
+                          <MentionItem
+                            key={item.id}
+                            item={item}
+                            isSelected={
+                              allMentions[selectedIndex]?.id === item.id
+                            }
+                            ref={(el) => {
+                              itemRefs.current[item.id] = el;
+                            }}
+                          />
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-                {groupedMentions.defaultTool.items.length > 0 && (
-                  <div className="p-2 border-t">
-                    <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
-                      {groupedMentions.defaultTool.title}
-                    </div>
-                    <div className="space-y-1">
-                      {groupedMentions.defaultTool.items.map((item) => (
-                        <MentionItem
-                          key={item.id}
-                          item={item}
-                          isSelected={
-                            allMentions[selectedIndex]?.id === item.id
-                          }
-                          ref={(el) => {
-                            itemRefs.current[item.id] = el;
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {groupedMentions.mcp.items.length > 0 && (
-                  <div className="p-2 border-t">
-                    <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
-                      {groupedMentions.mcp.title}
-                    </div>
-                    <div className="space-y-1">
-                      {groupedMentions.mcp.items.map((item) => (
-                        <MentionItem
-                          key={item.id}
-                          item={item}
-                          isSelected={
-                            allMentions[selectedIndex]?.id === item.id
-                          }
-                          ref={(el) => {
-                            itemRefs.current[item.id] = el;
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  )}
               </div>
             ) : (
               // Desktop horizontal layout
               <div className="flex flex-1 h-[300px]">
-                {/* Agents & Workflows Column */}
-                <div className="flex-1 border-r overflow-y-auto">
-                  <div className="p-2">
-                    <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
-                      {groupedMentions.agent.title}
-                    </div>
-                    <div className="space-y-1">
-                      {groupedMentions.agent.items.length > 0 ? (
-                        groupedMentions.agent.items.map((item) => (
-                          <MentionItem
-                            key={item.id}
-                            item={item}
-                            isSelected={
-                              allMentions[selectedIndex]?.id === item.id
-                            }
-                            ref={(el) => {
-                              itemRefs.current[item.id] = el;
-                            }}
-                          />
-                        ))
-                      ) : (
-                        <div className="px-2 py-3 text-xs text-muted-foreground text-center">
-                          No agents found
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="p-2 border-t">
-                    <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
-                      {groupedMentions.workflow.title}
-                    </div>
-                    <div className="space-y-1">
-                      {groupedMentions.workflow.items.length > 0 ? (
-                        groupedMentions.workflow.items.map((item) => (
-                          <MentionItem
-                            key={item.id}
-                            item={item}
-                            isSelected={
-                              allMentions[selectedIndex]?.id === item.id
-                            }
-                            ref={(el) => {
-                              itemRefs.current[item.id] = el;
-                            }}
-                          />
-                        ))
-                      ) : (
-                        <div className="px-2 py-3 text-xs text-muted-foreground text-center">
-                          No workflows found
-                        </div>
-                      )}
+                {triggerChar === "@" ? (
+                  // Agents only layout
+                  <div className="flex-1 overflow-y-auto">
+                    <div className="p-2">
+                      <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
+                        {groupedMentions.agent.title}
+                      </div>
+                      <div className="space-y-1">
+                        {groupedMentions.agent.items.length > 0 ? (
+                          groupedMentions.agent.items.map((item) => (
+                            <MentionItem
+                              key={item.id}
+                              item={item}
+                              isSelected={
+                                allMentions[selectedIndex]?.id === item.id
+                              }
+                              ref={(el) => {
+                                itemRefs.current[item.id] = el;
+                              }}
+                            />
+                          ))
+                        ) : (
+                          <div className="px-2 py-3 text-xs text-muted-foreground text-center">
+                            No agents found
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  // Tools layout (workflows, MCP, default tools)
+                  <>
+                    {/* Workflows Column */}
+                    <div className="flex-1 border-r overflow-y-auto">
+                      <div className="p-2">
+                        <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
+                          {groupedMentions.workflow.title}
+                        </div>
+                        <div className="space-y-1">
+                          {groupedMentions.workflow.items.length > 0 ? (
+                            groupedMentions.workflow.items.map((item) => (
+                              <MentionItem
+                                key={item.id}
+                                item={item}
+                                isSelected={
+                                  allMentions[selectedIndex]?.id === item.id
+                                }
+                                ref={(el) => {
+                                  itemRefs.current[item.id] = el;
+                                }}
+                              />
+                            ))
+                          ) : (
+                            <div className="px-2 py-3 text-xs text-muted-foreground text-center">
+                              No workflows found
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
 
-                {/* MCP Tools Column */}
-                <div className="flex-1 border-r overflow-y-auto">
-                  <div className="p-2">
-                    <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
-                      {groupedMentions.mcp.title}
-                    </div>
-                    <div className="space-y-1">
-                      {groupedMentions.mcp.items.length > 0 ? (
-                        groupedMentions.mcp.items.map((item) => (
-                          <MentionItem
-                            key={item.id}
-                            item={item}
-                            isSelected={
-                              allMentions[selectedIndex]?.id === item.id
-                            }
-                            ref={(el) => {
-                              itemRefs.current[item.id] = el;
-                            }}
-                          />
-                        ))
-                      ) : (
-                        <div className="px-2 py-3 text-xs text-muted-foreground text-center">
-                          No MCP tools found
+                    {/* MCP Tools Column */}
+                    <div className="flex-1 border-r overflow-y-auto">
+                      <div className="p-2">
+                        <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
+                          {groupedMentions.mcp.title}
                         </div>
-                      )}
+                        <div className="space-y-1">
+                          {groupedMentions.mcp.items.length > 0 ? (
+                            groupedMentions.mcp.items.map((item) => (
+                              <MentionItem
+                                key={item.id}
+                                item={item}
+                                isSelected={
+                                  allMentions[selectedIndex]?.id === item.id
+                                }
+                                ref={(el) => {
+                                  itemRefs.current[item.id] = el;
+                                }}
+                              />
+                            ))
+                          ) : (
+                            <div className="px-2 py-3 text-xs text-muted-foreground text-center">
+                              No MCP tools found
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* Default Tools Column */}
-                <div className="flex-1 overflow-y-auto">
-                  <div className="p-2">
-                    <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
-                      {groupedMentions.defaultTool.title}
-                    </div>
-                    <div className="space-y-1">
-                      {groupedMentions.defaultTool.items.length > 0 ? (
-                        groupedMentions.defaultTool.items.map((item) => (
-                          <MentionItem
-                            key={item.id}
-                            item={item}
-                            isSelected={
-                              allMentions[selectedIndex]?.id === item.id
-                            }
-                            ref={(el) => {
-                              itemRefs.current[item.id] = el;
-                            }}
-                          />
-                        ))
-                      ) : (
-                        <div className="px-2 py-3 text-xs text-muted-foreground text-center">
-                          No app tools found
+                    {/* Default Tools Column */}
+                    <div className="flex-1 overflow-y-auto">
+                      <div className="p-2">
+                        <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
+                          {groupedMentions.defaultTool.title}
                         </div>
-                      )}
+                        <div className="space-y-1">
+                          {groupedMentions.defaultTool.items.length > 0 ? (
+                            groupedMentions.defaultTool.items.map((item) => (
+                              <MentionItem
+                                key={item.id}
+                                item={item}
+                                isSelected={
+                                  allMentions[selectedIndex]?.id === item.id
+                                }
+                                ref={(el) => {
+                                  itemRefs.current[item.id] = el;
+                                }}
+                              />
+                            ))
+                          ) : (
+                            <div className="px-2 py-3 text-xs text-muted-foreground text-center">
+                              No app tools found
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  </>
+                )}
               </div>
             )}
           </div>

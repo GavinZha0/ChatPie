@@ -10,7 +10,6 @@ import {
   PanelLeft,
   StretchHorizontal,
 } from "lucide-react";
-import { WriteIcon } from "ui/write-icon";
 import { Button } from "ui/button";
 import { Separator } from "ui/separator";
 
@@ -27,12 +26,8 @@ import { BackButton } from "@/components/layouts/back-button";
 
 export function AppHeader() {
   const t = useTranslations();
-  const [appStoreMutate, chatWidthMode, newChatHandler] = appStore(
-    useShallow((state) => [
-      state.mutate,
-      state.chatWidthMode,
-      state.newChatHandler,
-    ]),
+  const [appStoreMutate, chatWidthMode] = appStore(
+    useShallow((state) => [state.mutate, state.chatWidthMode]),
   );
   const { toggleSidebar, open } = useSidebar();
   const currentPaths = usePathname();
@@ -133,26 +128,6 @@ export function AppHeader() {
               </div>
             </TooltipContent>
           </Tooltip>
-
-          {/* New Chat Button - Mobile Only */}
-          {newChatHandler && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size={"icon"}
-                  variant={"secondary"}
-                  className="md:hidden bg-secondary/40"
-                  onClick={newChatHandler}
-                  aria-label={t("Layout.newChat")}
-                >
-                  <WriteIcon className="size-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent align="end" side="bottom">
-                <div className="text-xs">{t("Layout.newChat")}</div>
-              </TooltipContent>
-            </Tooltip>
-          )}
 
           <Tooltip>
             <TooltipTrigger asChild>

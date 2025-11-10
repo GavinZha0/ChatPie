@@ -488,8 +488,10 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
                 <>
                   <div
                     className={cn(
-                      "w-full mx-auto px-6 relative",
-                      chatWidthMode === "wide" ? "max-w-none" : "max-w-3xl",
+                      "w-full mx-auto relative",
+                      chatWidthMode === "wide"
+                        ? "max-w-none px-10"
+                        : "max-w-4xl px-6",
                     )}
                   >
                     <div className={space == "space" ? "opacity-0" : ""}>
@@ -515,7 +517,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           <div
             className={cn(
               "mx-auto relative flex justify-center items-center -top-2",
-              chatWidthMode === "wide" ? "max-w-none px-6" : "max-w-3xl",
+              chatWidthMode === "wide" ? "max-w-none px-10" : "max-w-4xl px-6",
             )}
           >
             <ScrollToBottomButton
@@ -533,7 +535,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             onStop={stop}
             onFocus={isFirstTime ? undefined : handleFocus}
             widthMode={chatWidthMode}
-            showNewChatButton={!emptyMessage}
             onNewChat={() => {
               router.push("/");
               router.refresh();

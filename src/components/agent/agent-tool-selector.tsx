@@ -123,7 +123,7 @@ export function AgentToolSelector({
       onSelectMention={handleSelectMention}
       onClose={noop}
       open={open && hasEditAccess && !disabled}
-      disabledType={["agent"]}
+      triggerChar="$"
       onOpenChange={(newOpen) => hasEditAccess && !disabled && setOpen(newOpen)}
       top={0}
       left={0}

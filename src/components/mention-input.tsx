@@ -33,7 +33,7 @@ interface MentionInputProps {
   }) => void;
   onEnter?: () => void;
   placeholder?: string;
-  suggestionChar?: string;
+  suggestionChar?: string | string[];
   className?: string;
   disabledMention?: boolean;
   editorRef?: RefObject<Editor | null>;
@@ -50,6 +50,7 @@ interface MentionInputProps {
     onClose: () => void;
     onSelectMention: (item: { label: string; id: string }) => void;
     style?: React.CSSProperties;
+    triggerChar?: string;
   }>;
 }
 
@@ -71,6 +72,7 @@ export default function MentionInput({
   fullWidthSuggestion = false,
 }: MentionInputProps) {
   const [open, setOpen] = useState(false);
+  const [currentTriggerChar, setCurrentTriggerChar] = useState<string>("@");
   const position = useRef<{
     top: number;
     left: number;
@@ -85,8 +87,73 @@ export default function MentionInput({
     text: string;
   } | null>(null);
 
+  // Normalize suggestionChar to array
+  const suggestionChars = useMemo(() => {
+    return Array.isArray(suggestionChar) ? suggestionChar : [suggestionChar];
+  }, [suggestionChar]);
+
   // Memoize editor configuration
   const editorConfig = useMemo<UseEditorOptions>(() => {
+    // Create multiple Mention extensions for each trigger character
+    const mentionExtensions = suggestionChars.map((char) =>
+      Mention.configure({
+        HTMLAttributes: {
+          class: "mention",
+        },
+        renderHTML: (props) => {
+          const el = document.createElement("div");
+          el.className = "inline-flex";
+          const root = createRoot(el);
+          if (MentionItem)
+            root.render(
+              <MentionItem
+                label={props.node.attrs.label}
+                id={props.node.attrs.id}
+              />,
+            );
+          return el;
+        },
+        suggestion: {
+          char: char,
+          render: () => {
+            return {
+              onStart: (props) => {
+                // Set the trigger char for this mention instance
+                // Each Mention extension instance corresponds to one trigger char
+                setCurrentTriggerChar(char);
+
+                if (fullWidthSuggestion) {
+                  const containerRect =
+                    containerRef.current?.getBoundingClientRect();
+                  if (containerRect) {
+                    position.current = {
+                      top: containerRect.top,
+                      left: containerRect.left,
+                      range: props.range,
+                    };
+                    setContainerWidth(containerRect.width);
+                    setOpen(true);
+                  }
+                } else {
+                  const rect = props.clientRect?.();
+                  if (rect) {
+                    position.current = {
+                      top: rect.top,
+                      left: rect.left,
+                      range: props.range,
+                    };
+                    setContainerWidth(undefined);
+                    setOpen(true);
+                  }
+                }
+              },
+              onExit: () => setOpen(false),
+            };
+          },
+        },
+      }),
+    );
+
     return {
       editable: !disabled,
       immediatelyRender: false,
@@ -96,58 +163,7 @@ export default function MentionInput({
           blockquote: false,
           code: false,
         }),
-        Mention.configure({
-          HTMLAttributes: {
-            class: "mention",
-          },
-          renderHTML: (props) => {
-            const el = document.createElement("div");
-            el.className = "inline-flex";
-            const root = createRoot(el);
-            if (MentionItem)
-              root.render(
-                <MentionItem
-                  label={props.node.attrs.label}
-                  id={props.node.attrs.id}
-                />,
-              );
-            return el;
-          },
-          suggestion: {
-            char: suggestionChar,
-            render: () => {
-              return {
-                onStart: (props) => {
-                  if (fullWidthSuggestion) {
-                    const containerRect =
-                      containerRef.current?.getBoundingClientRect();
-                    if (containerRect) {
-                      position.current = {
-                        top: containerRect.top,
-                        left: containerRect.left,
-                        range: props.range,
-                      };
-                      setContainerWidth(containerRect.width);
-                      setOpen(true);
-                    }
-                  } else {
-                    const rect = props.clientRect?.();
-                    if (rect) {
-                      position.current = {
-                        top: rect.top,
-                        left: rect.left,
-                        range: props.range,
-                      };
-                      setContainerWidth(undefined);
-                      setOpen(true);
-                    }
-                  }
-                },
-                onExit: () => setOpen(false),
-              };
-            },
-          },
-        }),
+        ...mentionExtensions,
       ],
       content: defaultContent ?? content,
       autofocus: true,
@@ -184,7 +200,7 @@ export default function MentionInput({
         },
       },
     };
-  }, [disabled, MentionItem, suggestionChar, onChange]);
+  }, [disabled, MentionItem, suggestionChars, onChange, fullWidthSuggestion]);
 
   const editor = useEditor(editorConfig);
 
@@ -244,10 +260,17 @@ export default function MentionInput({
               ? `${containerWidth}px`
               : undefined,
         }}
+        triggerChar={currentTriggerChar}
       />,
       document.body,
     );
-  }, [open, disabledMention, containerWidth, fullWidthSuggestion]);
+  }, [
+    open,
+    disabledMention,
+    containerWidth,
+    fullWidthSuggestion,
+    currentTriggerChar,
+  ]);
 
   const placeholderElement = useMemo(() => {
     if (!editor?.isEmpty) return null;

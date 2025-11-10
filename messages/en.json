@@ -197,7 +197,7 @@
   "Chat": {
     "Error": "Chat Error",
     "thisMessageWasNotSavedPleaseTryTheChatAgain": "This message was not saved. Please try the chat again.",
-    "uploadImage": "Upload File",
+    "uploadImage": "Upload",
     "generateImage": "Generate Image",
     "imageUploadedSuccessfully": "Image uploaded successfully",
     "pleaseUploadImageFile": "Please upload an image file",
@@ -225,7 +225,7 @@
       "temporaryChatInstructionsPlaceholder": "Enter your instructions here",
       "temporaryChatInstructionsDescription": "You can set instructions for the temporary chat. This will be used as a system prompt for the temporary chat."
     },
-    "chatPlaceholder": "Ask anything or @mention",
+    "chatPlaceholder": "Ask anything, @agent or $tool",
     "toggleWidthMode": "Width mode",
     "widthModeCentered": "Centered",
     "widthModeWide": "Full width",
@@ -336,7 +336,7 @@
     "admin": "Admin",
     "users": "Users",
     "toggleSidebar": "Toggle Sidebar",
-    "newChat": "New Chat",
+    "newChat": "New chat",
     "mcpConfiguration": "MCP Config",
     "agents": "Agents",
     "newAgent": "Create Agent",

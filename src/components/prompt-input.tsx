@@ -20,7 +20,6 @@ import { appStore, UploadedFile, type ChatWidthMode } from "@/app/store";
 import { useShallow } from "zustand/shallow";
 import { ChatMention, ChatModel } from "app-types/chat";
 import dynamic from "next/dynamic";
-import { ToolModeDropdown } from "./tool-mode-dropdown";
 
 import { ToolSelectDropdown } from "./tool-select-dropdown";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
@@ -72,7 +71,6 @@ interface PromptInputProps {
   onFocus?: () => void;
   widthMode?: ChatWidthMode;
   onNewChat?: () => void;
-  showNewChatButton?: boolean;
 }
 
 const ChatMentionInput = dynamic(() => import("./chat-mention-input"), {
@@ -98,7 +96,6 @@ export default function PromptInput({
   disabledMention,
   widthMode = "centered",
   onNewChat,
-  showNewChatButton = true,
 }: PromptInputProps) {
   const t = useTranslations("Chat");
   const layoutT = useTranslations("");
@@ -521,39 +518,16 @@ export default function PromptInput({
     <div
       className={cn(
         "fade-in animate-in w-full",
-        widthMode === "wide" ? "px-6" : "max-w-3xl mx-auto",
+        widthMode === "wide" ? "px-10" : "max-w-4xl mx-auto",
       )}
     >
       <div
         className={cn(
           "z-10 mx-auto w-full relative",
-          widthMode === "wide" ? "max-w-none" : "max-w-3xl",
+          widthMode === "wide" ? "max-w-none" : "max-w-4xl",
         )}
       >
         <div className="flex w-full items-end gap-2">
-          {onNewChat && showNewChatButton ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="hidden md:flex h-16 w-16 rounded-md border border-border/60 bg-input/40 hover:bg-input shrink-0 self-center"
-                  onClick={onNewChat}
-                  aria-label={layoutT("Layout.newChat")}
-                >
-                  <WriteIcon className="size-8" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top" align="start">
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-semibold">
-                    {layoutT("Layout.newChat")}
-                  </span>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          ) : null}
           <fieldset className="flex flex-1 min-w-0 max-w-full flex-col px-4">
             <div className="shadow-lg overflow-hidden rounded-4xl backdrop-blur-sm transition-all duration-200 bg-muted/60 relative flex w-full flex-col cursor-text z-10 items-stretch focus-within:bg-muted hover:bg-muted focus-within:ring-muted hover:ring-muted">
               {mentions.length > 0 ? (
@@ -637,20 +611,50 @@ export default function PromptInput({
                     disabled={!threadId}
                   />
 
+                  {onNewChat ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          size={"sm"}
+                          onClick={onNewChat}
+                          aria-label={layoutT("Layout.newChat")}
+                          className="rounded-full p-2!"
+                        >
+                          <WriteIcon className="size-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" align="center">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-semibold">
+                            {layoutT("Layout.newChat")}
+                          </span>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : null}
+
                   <DropdownMenu
                     open={isUploadDropdownOpen}
                     onOpenChange={setIsUploadDropdownOpen}
                   >
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant={"ghost"}
-                        size={"sm"}
-                        className="rounded-full hover:bg-input! p-2! data-[state=open]:bg-input!"
-                        disabled={!threadId}
-                      >
-                        <PlusIcon />
-                      </Button>
-                    </DropdownMenuTrigger>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant={"ghost"}
+                            size={"sm"}
+                            className="rounded-full hover:bg-input! p-2! data-[state=open]:bg-input! ml-2"
+                            disabled={!threadId}
+                          >
+                            <PlusIcon />
+                          </Button>
+                        </DropdownMenuTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" align="center">
+                        <span className="text-sm">{t("uploadImage")}</span>
+                      </TooltipContent>
+                    </Tooltip>
                     <DropdownMenuContent align="start" side="top">
                       <DropdownMenuItem
                         className="cursor-pointer"
@@ -705,18 +709,15 @@ export default function PromptInput({
                         <XIcon className="size-3 group-hover/image-generator:opacity-100 opacity-0 transition-opacity duration-200" />
                       </Button>
                     ) : (
-                      <>
-                        <ToolModeDropdown />
-                        <ToolSelectDropdown
-                          className="mx-1"
-                          align="start"
-                          side="top"
-                          onSelectWorkflow={onSelectWorkflow}
-                          onSelectAgent={onSelectAgent}
-                          onGenerateImage={handleGenerateImage}
-                          mentions={mentions}
-                        />
-                      </>
+                      <ToolSelectDropdown
+                        className="mx-1"
+                        align="start"
+                        side="top"
+                        onSelectWorkflow={onSelectWorkflow}
+                        onSelectAgent={onSelectAgent}
+                        onGenerateImage={handleGenerateImage}
+                        mentions={mentions}
+                      />
                     ))}
 
                   <div className="flex-1" />

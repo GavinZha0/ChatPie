@@ -68,8 +68,8 @@ const PurePreviewMessage = ({
   return (
     <div
       className={cn(
-        "w-full mx-auto px-6 group/message",
-        widthMode === "wide" ? "max-w-none" : "max-w-3xl",
+        "w-full mx-auto group/message",
+        widthMode === "wide" ? "max-w-none px-10" : "max-w-4xl px-6",
       )}
     >
       <div

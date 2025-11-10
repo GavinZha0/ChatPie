@@ -2,19 +2,18 @@
 
 import { appStore } from "@/app/store";
 import { AllowedMCPServer, MCPServerInfo } from "app-types/mcp";
-import { cn, objectFlow } from "lib/utils";
+import { cn, objectFlow, fetcher } from "lib/utils";
 import {
-  ArrowUpRightIcon,
-  AtSign,
   ChartColumn,
+  Check,
   ChevronRight,
   CodeIcon,
   GlobeIcon,
+  HammerIcon,
   HardDriveUploadIcon,
   ImagesIcon,
   InfoIcon,
   Loader,
-  MessageCircle,
   MousePointer2,
   Package,
   Plus,
@@ -67,21 +66,24 @@ import { AppDefaultToolkit } from "lib/ai/tools";
 import { ChatMention } from "app-types/chat";
 import { CountAnimation } from "ui/count-animation";
 
+import useSWR from "swr";
+import { Agent } from "app-types/agent";
+
 import { Separator } from "ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { AgentSummary } from "app-types/agent";
 import { authClient } from "auth/client";
-import { EditAgentDialog } from "./agent/edit-agent-dialog";
 
 import { Alert, AlertDescription, AlertTitle } from "ui/alert";
 import { safe } from "ts-safe";
 import { mutate } from "swr";
 import { handleErrorWithToast } from "ui/shared-toast";
-import { useAgents } from "@/hooks/queries/use-agents";
 import { redriectMcpOauth } from "lib/ai/mcp/oauth-redirect";
 import { GeminiIcon } from "ui/gemini-icon";
 import { useChatModels } from "@/hooks/queries/use-chat-models";
 import { OpenAIIcon } from "ui/openai-icon";
+import { capitalizeFirstLetter } from "lib/utils";
+import { Infinity, ClipboardCheck, PenOff } from "lucide-react";
 
 interface ToolSelectDropdownProps {
   align?: "start" | "end" | "center";
@@ -108,7 +110,6 @@ export function ToolSelectDropdown({
   align,
   side,
   onSelectWorkflow,
-  onSelectAgent,
   onGenerateImage,
   mentions,
   className,
@@ -147,6 +148,22 @@ export function ToolSelectDropdown({
     return mentions?.find((m) => m.type === "agent");
   }, [mentions]);
 
+  // Fetch agent details if in agent mode to get tool count
+  const { data: agentDetails } = useSWR<Agent>(
+    agentMention ? `/api/agent/${agentMention.agentId}` : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    },
+  );
+
+  // Calculate agent tool count
+  const agentToolCount = useMemo(() => {
+    if (!agentDetails?.instructions?.mentions) return 0;
+    return agentDetails.instructions.mentions.length;
+  }, [agentDetails]);
+
   const bindingTools = useMemo<string[]>(() => {
     if (mentions?.length) {
       return mentions.map((m) => m.name);
@@ -174,30 +191,53 @@ export function ToolSelectDropdown({
     mcpList,
   ]);
 
+  // Determine if in manual mention mode (user manually selected tools)
+  const isManualMode = useMemo(() => {
+    return !agentMention && (mentions?.length ?? 0) > 0;
+  }, [agentMention, mentions]);
+
   const triggerButton = useMemo(() => {
+    // Agent mode - disabled state
+    const isAgentMode = !!agentMention;
+    const isDisabled = isAgentMode;
+
+    // Determine tool count to display
+    const displayToolCount = isAgentMode ? agentToolCount : bindingTools.length;
+
     return (
       <Button
         variant="ghost"
         size={"sm"}
+        disabled={isDisabled}
         className={cn(
           "gap-0.5 bg-input/60 border rounded-full data-[state=open]:bg-input! hover:bg-input!",
-          !bindingTools.length &&
+          // Manual mode - highlight with primary color
+          isManualMode &&
+            "bg-primary/10 border-primary text-primary hover:bg-primary/20!",
+          // Agent mode - disabled styling
+          isAgentMode && "opacity-50 cursor-not-allowed",
+          // Empty state
+          !displayToolCount &&
             !isLoading &&
+            !isManualMode &&
+            !isAgentMode &&
             "text-muted-foreground bg-transparent border-transparent",
           isLoading && "bg-input/60",
-          open && "bg-input!",
+          open && !isManualMode && "bg-input!",
           className,
         )}
       >
-        <span className={!bindingTools ? "text-muted-foreground" : ""}>
-          {agentMention
-            ? "Agent"
-            : (mentions?.length ?? 0 > 0)
-              ? "Mention"
-              : "Tools"}
-        </span>
+        {/* Hammer icon instead of text */}
+        <HammerIcon
+          className={cn(
+            "size-3.5",
+            isManualMode && "text-primary",
+            isAgentMode && "text-muted-foreground",
+          )}
+        />
 
-        {((!agentMention && bindingTools.length > 0) || isLoading) && (
+        {/* Show tool count or loading state */}
+        {(displayToolCount > 0 || isLoading) && (
           <>
             <div className="h-4 hidden sm:block mx-1">
               <Separator orientation="vertical" />
@@ -206,12 +246,14 @@ export function ToolSelectDropdown({
             <div className="min-w-5 flex justify-center">
               {isLoading ? (
                 <Loader className="animate-spin size-3.5" />
-              ) : (mentions?.length ?? 0) > 0 ? (
-                <AtSign className="size-3.5" />
               ) : (
                 <CountAnimation
-                  number={bindingTools.length}
-                  className="text-xs"
+                  number={displayToolCount}
+                  className={cn(
+                    "text-xs",
+                    isManualMode && "text-primary",
+                    isAgentMode && "text-muted-foreground",
+                  )}
                 />
               )}
             </div>
@@ -219,7 +261,15 @@ export function ToolSelectDropdown({
         )}
       </Button>
     );
-  }, [mentions?.length, bindingTools.length, isLoading, open]);
+  }, [
+    agentMention,
+    agentToolCount,
+    mentions?.length,
+    bindingTools.length,
+    isLoading,
+    open,
+    isManualMode,
+  ]);
 
   useEffect(() => {
     if (bindingTools.length > 128) {
@@ -229,19 +279,9 @@ export function ToolSelectDropdown({
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <div>
-          <Tooltip>
-            <TooltipTrigger asChild>{triggerButton}</TooltipTrigger>
-          </Tooltip>
-        </div>
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger asChild>{triggerButton}</DropdownMenuTrigger>
       <DropdownMenuContent className="md:w-72" align={align} side={side}>
-        <WorkflowToolSelector onSelectWorkflow={onSelectWorkflow} />
-        <div className="py-1">
-          <DropdownMenuSeparator />
-        </div>
-        <AgentSelector onSelectAgent={onSelectAgent} />
+        <ToolModeSelector />
         <div className="py-1">
           <DropdownMenuSeparator />
         </div>
@@ -254,6 +294,10 @@ export function ToolSelectDropdown({
         </div>
         <div className="py-2">
           <ToolPresets />
+          <div className="py-1">
+            <DropdownMenuSeparator />
+          </div>
+          <WorkflowToolSelector onSelectWorkflow={onSelectWorkflow} />
           <div className="py-1">
             <DropdownMenuSeparator />
           </div>
@@ -933,153 +977,6 @@ function AppDefaultToolKitSelector() {
   );
 }
 
-function AgentSelector({
-  onSelectAgent,
-}: {
-  onSelectAgent?: (agent: AgentSummary) => void;
-}) {
-  const t = useTranslations();
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const { data: session } = authClient.useSession();
-  const { myAgents, bookmarkedAgents } = useAgents({
-    filters: ["mine", "bookmarked"],
-  });
-
-  const emptyAgent = useMemo(() => {
-    if (myAgents.length + bookmarkedAgents.length > 0) return null;
-    return (
-      <div
-        onClick={() => setShowCreateDialog(true)}
-        className="py-8 px-4 hover:bg-input/100 rounded-lg cursor-pointer flex justify-between items-center text-xs overflow-hidden"
-      >
-        <div className="gap-1 z-10">
-          <div className="flex items-center mb-4 gap-1">
-            <p className="font-semibold">{t("Layout.createAgent")}</p>
-            <ArrowUpRightIcon className="size-3" />
-          </div>
-          <p className="text-muted-foreground">
-            {bookmarkedAgents.length > 0
-              ? t("Layout.createYourOwnAgentOrSelectShared")
-              : t("Layout.createYourOwnAgent")}
-          </p>
-        </div>
-      </div>
-    );
-  }, [myAgents.length, bookmarkedAgents.length, t]);
-
-  return (
-    <>
-      <DropdownMenuGroup>
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger className="text-xs flex items-center gap-2 font-semibold cursor-pointer">
-            <MessageCircle className="size-3.5" />
-            {t("Agent.title")}
-          </DropdownMenuSubTrigger>
-          <DropdownMenuPortal>
-            <DropdownMenuSubContent className="w-80 relative">
-              {emptyAgent}
-
-              {/* My Agents */}
-              {myAgents.map((agent) => (
-                <DropdownMenuItem
-                  key={agent.id}
-                  className="cursor-pointer"
-                  onClick={() => onSelectAgent?.(agent)}
-                >
-                  {agent.icon && agent.icon.type === "emoji" ? (
-                    <div
-                      style={{
-                        backgroundColor: agent.icon?.style?.backgroundColor,
-                      }}
-                      className="p-1 rounded flex items-center justify-center ring ring-background border"
-                    >
-                      <Avatar className="size-3">
-                        <AvatarImage
-                          src={
-                            agent.icon?.value
-                              ? getEmojiUrl(agent.icon.value, "apple", 64)
-                              : undefined
-                          }
-                        />
-                        <AvatarFallback>
-                          {agent.name.slice(0, 1)}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                  ) : null}
-                  <span className="truncate min-w-0">{agent.name}</span>
-                </DropdownMenuItem>
-              ))}
-
-              {myAgents.length > 0 && bookmarkedAgents.length > 0 && (
-                <DropdownMenuSeparator />
-              )}
-
-              {bookmarkedAgents.map((agent) => (
-                <DropdownMenuItem
-                  key={agent.id}
-                  className="cursor-pointer"
-                  onClick={() => onSelectAgent?.(agent)}
-                >
-                  {agent.icon && agent.icon.type === "emoji" ? (
-                    <div
-                      style={{
-                        backgroundColor: agent.icon?.style?.backgroundColor,
-                      }}
-                      className="p-1 rounded flex items-center justify-center ring ring-background border"
-                    >
-                      <Avatar className="size-3">
-                        <AvatarImage
-                          src={
-                            agent.icon?.value
-                              ? getEmojiUrl(agent.icon.value, "apple", 64)
-                              : undefined
-                          }
-                        />
-                        <AvatarFallback>
-                          {agent.name.slice(0, 1)}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                  ) : null}
-                  <div className="flex items-center justify-between flex-1 min-w-0">
-                    <span className="truncate min-w-0">{agent.name}</span>
-                    {agent.userName && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Avatar className="size-4 ml-2 shrink-0">
-                            <AvatarImage src={agent.userAvatar} />
-                            <AvatarFallback className="text-xs text-muted-foreground font-medium">
-                              {agent.userName[0]?.toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {t("Common.sharedBy", { userName: agent.userName })}
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
-                  </div>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuSubContent>
-          </DropdownMenuPortal>
-        </DropdownMenuSub>
-      </DropdownMenuGroup>
-
-      {/* Create Agent Dialog */}
-      {session?.user?.id && (
-        <EditAgentDialog
-          open={showCreateDialog}
-          onOpenChange={setShowCreateDialog}
-          agentId={null}
-          userId={session.user.id}
-        />
-      )}
-    </>
-  );
-}
-
 function ImageGeneratorSelector({
   onGenerateImage,
   modelInfo,
@@ -1113,6 +1010,97 @@ function ImageGeneratorSelector({
             >
               <OpenAIIcon className="mr-2 size-4" />
               OpenAI
+            </DropdownMenuItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuPortal>
+      </DropdownMenuSub>
+    </DropdownMenuGroup>
+  );
+}
+
+function ToolModeSelector() {
+  const t = useTranslations("Chat.Tool");
+  const [toolChoice, appStoreMutate] = appStore(
+    useShallow((state) => [state.toolChoice, state.mutate]),
+  );
+
+  const toolModeIcon = useMemo(() => {
+    switch (toolChoice) {
+      case "auto":
+        return <Infinity className="size-3.5" />;
+      case "manual":
+        return <ClipboardCheck className="size-3.5" />;
+      case "none":
+        return <PenOff className="size-3.5" />;
+      default:
+        return <Infinity className="size-3.5" />;
+    }
+  }, [toolChoice]);
+
+  return (
+    <DropdownMenuGroup>
+      <DropdownMenuSub>
+        <DropdownMenuSubTrigger className="text-xs flex items-center gap-2 font-semibold cursor-pointer">
+          {toolModeIcon}
+          <span>{t("selectToolMode")}</span>
+          <span className="ml-auto text-muted-foreground font-normal">
+            ({capitalizeFirstLetter(toolChoice)})
+          </span>
+        </DropdownMenuSubTrigger>
+        <DropdownMenuPortal>
+          <DropdownMenuSubContent className="w-64">
+            <DropdownMenuItem
+              onClick={() => appStoreMutate({ toolChoice: "auto" })}
+              className="cursor-pointer"
+            >
+              <div className="flex flex-col gap-2 w-full">
+                <div className="flex items-center gap-2">
+                  <Infinity className="size-4" />
+                  <span className="font-bold">Auto</span>
+                  {toolChoice === "auto" && (
+                    <Check className="ml-auto size-4" />
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("autoToolModeDescription")}
+                </p>
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => appStoreMutate({ toolChoice: "manual" })}
+              className="cursor-pointer"
+            >
+              <div className="flex flex-col gap-2 w-full">
+                <div className="flex items-center gap-2">
+                  <ClipboardCheck className="size-4" />
+                  <span className="font-bold">Manual</span>
+                  {toolChoice === "manual" && (
+                    <Check className="ml-auto size-4" />
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("manualToolModeDescription")}
+                </p>
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => appStoreMutate({ toolChoice: "none" })}
+              className="cursor-pointer"
+            >
+              <div className="flex flex-col gap-2 w-full">
+                <div className="flex items-center gap-2">
+                  <PenOff className="size-4" />
+                  <span className="font-bold">None</span>
+                  {toolChoice === "none" && (
+                    <Check className="ml-auto size-4" />
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("noneToolModeDescription")}
+                </p>
+              </div>
             </DropdownMenuItem>
           </DropdownMenuSubContent>
         </DropdownMenuPortal>
