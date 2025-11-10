@@ -1,5 +1,7 @@
 services:
   chatpie:
+    container_name: chatpie-app
+    image: chatpie:latest
     build:
       context: ..
       dockerfile: ./docker/Dockerfile
@@ -19,6 +21,7 @@ services:
     restart: unless-stopped
 
   postgres:
+    container_name: chatpie-db
     image: postgres:17
     env_file:
       - .env
