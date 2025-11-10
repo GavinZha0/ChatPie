@@ -67,9 +67,12 @@ export function SidebarHeaderShared({
     <SidebarHeader>
       <SidebarMenu>
         <SidebarMenuItem className="flex items-center gap-0.5 mb-1">
-          <SidebarMenuButton asChild className="hover:bg-transparent">
+          <SidebarMenuButton
+            asChild
+            className="hover:bg-transparent justify-center"
+          >
             <Link href={href} onClick={handleLinkClick}>
-              <h4 className="font-bold">{title}</h4>
+              <h4 className="font-bold w-full text-center text-lg">{title}</h4>
               {showMobileToggle && (
                 <div
                   className="ml-auto block sm:hidden"

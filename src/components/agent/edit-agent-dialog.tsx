@@ -95,13 +95,7 @@ export function AgentEditor({
   }, [isCreating, isOwner, initialAgentProp]);
 
   // Bookmark controls
-  const { isLoading: isBookmarkToggleLoadingFn } = useBookmark({
-    itemType: "agent",
-  });
-  const isBookmarkToggleLoading = useMemo(
-    () => (agent?.id && isBookmarkToggleLoadingFn(agent.id)) || false,
-    [agent?.id, isBookmarkToggleLoadingFn],
-  );
+  // Note: Bookmark loading state is handled in header controls; do not block form interactions.
 
   // Tool loading state
   const { isLoading: isMcpLoading } = useMcpList();
@@ -174,8 +168,8 @@ export function AgentEditor({
   }, [agent?.id, mutateAgents, t, onClose]);
 
   const isLoading = useMemo(() => {
-    return isLoadingTool || isSaving || isBookmarkToggleLoading;
-  }, [isLoadingTool, isSaving, isBookmarkToggleLoading]);
+    return isLoadingTool || isSaving;
+  }, [isLoadingTool, isSaving]);
 
   return (
     <ScrollArea className="h-full w-full relative">
@@ -193,7 +187,7 @@ export function AgentEditor({
                 onChange={(e) => setAgent({ name: e.target.value })}
                 autoFocus
                 disabled={isLoading || !hasEditAccess}
-                className="hover:bg-input bg-secondary/40 transition-colors border-transparent border-none! focus-visible:bg-input! ring-0!"
+                className="hover:bg-input bg-secondary/40 transition-colors border-transparent !border-none !focus-visible:bg-input !ring-0"
                 id="agent-name"
                 data-testid="agent-name-input"
                 placeholder={t("Agent.agentNamePlaceholder")}
@@ -218,7 +212,7 @@ export function AgentEditor({
             data-testid="agent-description-input"
             disabled={isLoading || !hasEditAccess}
             placeholder={t("Agent.agentDescriptionPlaceholder")}
-            className="hover:bg-input placeholder:text-xs bg-secondary/40 transition-colors border-transparent border-none! focus-visible:bg-input! ring-0!"
+            className="hover:bg-input placeholder:text-xs bg-secondary/40 transition-colors border-transparent !border-none !focus-visible:bg-input !ring-0"
             value={agent.description || ""}
             onChange={(e) => setAgent({ description: e.target.value })}
             readOnly={!hasEditAccess}
@@ -235,7 +229,7 @@ export function AgentEditor({
               data-testid="agent-role-input"
               disabled={isLoading || !hasEditAccess}
               placeholder={t("Agent.agentRolePlaceholder")}
-              className="hover:bg-input placeholder:text-xs bg-secondary/40 w-44 transition-colors border-transparent border-none! focus-visible:bg-input! ring-0!"
+              className="hover:bg-input placeholder:text-xs bg-secondary/40 w-44 transition-colors border-transparent !border-none !focus-visible:bg-input !ring-0"
               value={agent.instructions?.role || ""}
               onChange={(e) =>
                 setAgent((prev) => ({
@@ -261,7 +255,7 @@ export function AgentEditor({
               ref={textareaRef}
               disabled={isLoading || !hasEditAccess}
               placeholder={t("Agent.agentInstructionsPlaceholder")}
-              className="p-6 hover:bg-input min-h-48 max-h-96 overflow-y-auto resize-none placeholder:text-xs bg-secondary/40 transition-colors border-transparent border-none! focus-visible:bg-input! ring-0!"
+              className="p-6 hover:bg-input min-h-48 max-h-96 overflow-y-auto resize-none placeholder:text-xs bg-secondary/40 transition-colors border-transparent !border-none !focus-visible:bg-input !ring-0"
               value={agent.instructions?.systemPrompt || ""}
               onChange={(e) =>
                 setAgent((prev) => ({

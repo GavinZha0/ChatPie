@@ -16,7 +16,7 @@ export default async function AuthLayout({
             <div className="absolute inset-0 w-full h-full">
               <BackgroundPaths />
             </div>
-            <h1 className="text-2xl font-semibold flex items-center gap-3 animate-in fade-in duration-1000">
+            <h1 className="text-2xl font-semibold flex items-center justify-center gap-3 animate-in fade-in duration-1000">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logo.png"

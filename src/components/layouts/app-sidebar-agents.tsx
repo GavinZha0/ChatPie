@@ -39,7 +39,6 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
   const {
     bookmarkedAgents,
     myAgents,
-    publicAgents,
     readonlyAgents,
     isLoading,
     sharedAgents,
@@ -48,13 +47,8 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
   }); // Increase limit since we're not artificially limiting display
 
   const agents = useMemo(() => {
-    // Combine my agents, bookmarked agents, and public agents (others')
-    const combined = [
-      ...myAgents,
-      ...bookmarkedAgents,
-      ...publicAgents,
-      ...readonlyAgents,
-    ];
+    // Show only my agents and bookmarked shared agents in the sidebar
+    const combined = [...myAgents, ...bookmarkedAgents];
     // Deduplicate by id while preserving order (first occurrence wins)
     const seen = new Set<string>();
     return combined.filter((a) => {
@@ -62,7 +56,7 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
       seen.add(a.id);
       return true;
     });
-  }, [bookmarkedAgents, myAgents, publicAgents, readonlyAgents]);
+  }, [bookmarkedAgents, myAgents]);
 
   const handleAgentClick = useCallback(
     (id: string) => {
@@ -117,12 +111,16 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
     <SidebarGroup>
       <SidebarGroupContent className="group-data-[collapsible=icon]:hidden group/agents">
         <SidebarMenu className="group/agents" data-testid="agents-sidebar-menu">
-          <SidebarMenuItem>
+          <SidebarMenuItem className="justify-center">
             <SidebarMenuButton
               asChild
-              className="font-semibold border border-border rounded-md px-2 py-1"
+              className="font-semibold border border-border rounded-md px-2 py-1 justify-center"
             >
-              <Link href="/agents" data-testid="agents-link">
+              <Link
+                href="/agents"
+                data-testid="agents-link"
+                className="block w-full text-center"
+              >
                 {t("Layout.agents")}
               </Link>
             </SidebarMenuButton>

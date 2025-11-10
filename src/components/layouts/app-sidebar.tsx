@@ -4,7 +4,7 @@ import { Sidebar, SidebarContent } from "ui/sidebar";
 import { AppSidebarAgents } from "./app-sidebar-agents";
 import { SidebarHeaderShared } from "./sidebar-header";
 import { BasicUser } from "app-types/user";
-import { APP_NAME, APP_SLOGAN } from "lib/const";
+import { APP_SLOGAN } from "lib/const";
 
 export function AppSidebar({
   user,
@@ -20,11 +20,7 @@ export function AppSidebar({
       className="border-r border-sidebar-border/80 md:left-16"
     >
       <SidebarHeaderShared
-        title={
-          <span className="font-semibold">
-            {APP_NAME} - {APP_SLOGAN}
-          </span>
-        }
+        title={<span className="font-semibold">{APP_SLOGAN}</span>}
         href="/"
         enableShortcuts={true}
         onLinkClick={() => {
@@ -33,7 +29,7 @@ export function AppSidebar({
         }}
       />
 
-      <SidebarContent className="mt-2 overflow-hidden relative">
+      <SidebarContent className="overflow-hidden relative">
         <div className="flex flex-col overflow-y-auto">
           <AppSidebarAgents userRole={userRole} />
         </div>
