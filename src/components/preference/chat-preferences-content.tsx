@@ -23,7 +23,7 @@ import { Input } from "ui/input";
 import { Label } from "ui/label";
 import { Skeleton } from "ui/skeleton";
 import { Textarea } from "ui/textarea";
-import { McpServerCustomizationContent } from "./mcp-customization-popup";
+import { McpServerCustomizationContent } from "../mcp/mcp-customization-popup";
 import { MCPServerInfo } from "app-types/mcp";
 import { useMcpList } from "@/hooks/queries/use-mcp-list";
 import { ChatExportSummary } from "app-types/chat-export";

@@ -15,7 +15,7 @@ import { Button } from "ui/button";
 import { Separator } from "ui/separator";
 
 import { useEffect, useMemo } from "react";
-import { ThreadDropdown } from "../thread-dropdown";
+import { ThreadDropdown } from "@/components/history/thread-dropdown";
 import { appStore } from "@/app/store";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useShallow } from "zustand/shallow";

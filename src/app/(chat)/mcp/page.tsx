@@ -1,4 +1,4 @@
-import MCPDashboard from "@/components/mcp-dashboard";
+import MCPDashboard from "@/components/mcp/mcp-dashboard";
 import { IS_VERCEL_ENV } from "lib/const";
 import { getTranslations } from "next-intl/server";
 import { getSession } from "auth/server";

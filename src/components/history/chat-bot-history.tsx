@@ -3,7 +3,7 @@
 import { appStore } from "@/app/store";
 import { useArchives } from "@/hooks/queries/use-archives";
 import { useMounted } from "@/hooks/use-mounted";
-import { ThreadDropdown } from "@/components/thread-dropdown";
+import { ThreadDropdown } from "./thread-dropdown";
 import {
   deleteThreadsAction,
   deleteUnarchivedThreadsAction,

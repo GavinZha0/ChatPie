@@ -25,7 +25,7 @@ import {
   removeMcpClientAction,
   shareMcpServerAction,
 } from "@/app/api/mcp/actions";
-import { ShareableActions, type Visibility } from "./shareable-actions";
+import { ShareableActions, type Visibility } from "../shareable-actions";
 
 import type { MCPServerInfo, MCPToolInfo } from "app-types/mcp";
 

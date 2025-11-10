@@ -7,10 +7,10 @@ import {
 } from "app-types/mcp";
 import { useTranslations } from "next-intl";
 import { useState, useMemo, useEffect } from "react";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { Label } from "./ui/label";
-import { Textarea } from "./ui/textarea";
+import { Input } from "ui/input";
+import { Button } from "ui/button";
+import { Label } from "ui/label";
+import { Textarea } from "ui/textarea";
 import { toast } from "sonner";
 import { safe } from "ts-safe";
 import { createDebounce, fetcher, isNull, safeJSONParse } from "lib/utils";

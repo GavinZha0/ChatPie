@@ -44,7 +44,7 @@ import {
 import { useTranslations } from "next-intl";
 import { addItemToArchiveAction } from "@/app/api/archive/actions";
 import { useShallow } from "zustand/shallow";
-import { ChatExportPopup } from "./export/chat-export-popup";
+import { ChatExportPopup } from "../export/chat-export-popup";
 
 type Props = PropsWithChildren<{
   threadId: string;

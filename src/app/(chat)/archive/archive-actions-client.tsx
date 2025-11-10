@@ -22,7 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "ui/dialog";
-import { ArchiveDialog } from "@/components/archive-dialog";
+import { ArchiveDialog } from "@/components/archive/archive-dialog";
 
 import { toast } from "sonner";
 import type { Archive } from "app-types/archive";

@@ -1,5 +1,5 @@
 "use client";
-import { MCPCard } from "@/components/mcp-card";
+import { MCPCard } from "@/components/mcp/mcp-card";
 import { canCreateMCP } from "lib/auth/client-permissions";
 
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import {
   MCPOverview,
   RECOMMENDED_MCPS,
   RECOMMENDED_MARKETS,
-} from "@/components/mcp-overview";
+} from "@/components/mcp/mcp-overview";
 
 import { Skeleton } from "ui/skeleton";
 
