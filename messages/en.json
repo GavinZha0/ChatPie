@@ -425,6 +425,7 @@
   "Agent": {
     "title": "Agent",
     "newAgent": "Create Agent",
+    "editAgent": "Edit Agent",
     "generatingAgent": "Generating Agent...",
     "agentNameAndIconLabel": "Name",
     "agentDescriptionLabel": "Description",

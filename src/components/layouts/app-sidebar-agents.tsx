@@ -16,6 +16,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useAgents } from "@/hooks/queries/use-agents";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
 import { AgentDropdown } from "../agent/agent-dropdown";
+import { EditAgentDialog } from "../agent/edit-agent-dialog";
 
 import { appStore } from "@/app/store";
 import { useRouter } from "next/navigation";
@@ -24,6 +25,7 @@ import { BACKGROUND_COLORS, EMOJI_DATA } from "lib/const";
 import { getEmojiUrl } from "lib/emoji";
 import { cn } from "lib/utils";
 import { canCreateAgent } from "lib/auth/client-permissions";
+import { authClient } from "auth/client";
 
 const DISPLAY_LIMIT = 5; // Number of agents to show when collapsed
 
@@ -32,6 +34,8 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
   const t = useTranslations();
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const { data: session } = authClient.useSession();
   const {
     bookmarkedAgents,
     myAgents,
@@ -58,7 +62,7 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
       seen.add(a.id);
       return true;
     });
-  }, [bookmarkedAgents, myAgents, publicAgents]);
+  }, [bookmarkedAgents, myAgents, publicAgents, readonlyAgents]);
 
   const handleAgentClick = useCallback(
     (id: string) => {
@@ -125,7 +129,7 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
             {canCreateAgent(userRole) && (
               <SidebarMenuAction
                 className="opacity-100"
-                onClick={() => router.push("/agent/new")}
+                onClick={() => setShowCreateDialog(true)}
                 data-testid="sidebar-create-agent-button"
               >
                 <Tooltip>
@@ -151,7 +155,7 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
               <div className="bg-input/40 py-8 px-4 rounded-lg text-xs overflow-hidden">
                 <div className="gap-1 z-10">
                   <p className="font-semibold mb-2">
-                    {sharedAgents.length + sharedAgents.length > 0
+                    {sharedAgents.length + readonlyAgents.length > 0
                       ? t("Layout.availableAgents")
                       : t("Layout.noAgentsAvailable")}
                   </p>
@@ -280,6 +284,17 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
           )}
         </SidebarMenu>
       </SidebarGroupContent>
+
+      {/* Create Agent Dialog */}
+      {session?.user?.id && (
+        <EditAgentDialog
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+          agentId={null}
+          userId={session.user.id}
+          userRole={userRole}
+        />
+      )}
     </SidebarGroup>
   );
 }

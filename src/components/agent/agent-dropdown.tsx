@@ -8,8 +8,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "ui/popover";
 import { useTranslations } from "next-intl";
 import { generateUUID } from "lib/utils";
 import { AgentSummary } from "app-types/agent";
-import Link from "next/link";
 import { authClient } from "auth/client";
+import { EditAgentDialog } from "./edit-agent-dialog";
 
 type Props = PropsWithChildren<{
   agent: AgentSummary;
@@ -20,60 +20,78 @@ type Props = PropsWithChildren<{
 export function AgentDropdown({ agent, children, side, align }: Props) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const { data: session } = authClient.useSession();
   const isOwner = session?.user?.id === agent.userId;
   const canEdit = isOwner || agent.visibility === "public";
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>{children}</PopoverTrigger>
-      <PopoverContent className="p-0 w-[220px]" side={side} align={align}>
-        <Command>
-          <CommandList>
-            <CommandGroup>
-              <CommandItem className="cursor-pointer p-0">
-                <div
-                  className="flex items-center gap-2 w-full px-2 py-1 rounded"
-                  onClick={() => {
-                    appStore.setState((state) => ({
-                      voiceChat: {
-                        ...state.voiceChat,
-                        isOpen: true,
-                        threadId: generateUUID(),
-                        agentId: agent.id,
-                      },
-                    }));
-                  }}
-                >
-                  <AudioWaveformIcon className="text-foreground" />
-                  <span>{t("Chat.VoiceChat.title")}</span>
-                </div>
-              </CommandItem>
-              {canEdit && (
+    <>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>{children}</PopoverTrigger>
+        <PopoverContent className="p-0 w-[220px]" side={side} align={align}>
+          <Command>
+            <CommandList>
+              <CommandGroup>
                 <CommandItem className="cursor-pointer p-0">
-                  <Link
-                    href={`/agent/${agent.id}`}
+                  <div
                     className="flex items-center gap-2 w-full px-2 py-1 rounded"
+                    onClick={() => {
+                      appStore.setState((state) => ({
+                        voiceChat: {
+                          ...state.voiceChat,
+                          isOpen: true,
+                          threadId: generateUUID(),
+                          agentId: agent.id,
+                        },
+                      }));
+                      setOpen(false);
+                    }}
                   >
-                    <PencilLine className="text-foreground" />
-                    {t("Common.edit")}
-                  </Link>
+                    <AudioWaveformIcon className="text-foreground" />
+                    <span>{t("Chat.VoiceChat.title")}</span>
+                  </div>
                 </CommandItem>
+                {canEdit && (
+                  <CommandItem className="cursor-pointer p-0">
+                    <div
+                      className="flex items-center gap-2 w-full px-2 py-1 rounded"
+                      onClick={() => {
+                        setShowEditDialog(true);
+                        setOpen(false);
+                      }}
+                    >
+                      <PencilLine className="text-foreground" />
+                      {t("Common.edit")}
+                    </div>
+                  </CommandItem>
+                )}
+              </CommandGroup>
+              {!isOwner && agent.userName && (
+                <>
+                  <Separator className="my-1" />
+                  <div className="px-2 py-1.5">
+                    <p className="text-xs text-muted-foreground">
+                      {t("Common.sharedBy", { userName: agent.userName })}
+                    </p>
+                  </div>
+                </>
               )}
-            </CommandGroup>
-            {!isOwner && agent.userName && (
-              <>
-                <Separator className="my-1" />
-                <div className="px-2 py-1.5">
-                  <p className="text-xs text-muted-foreground">
-                    {t("Common.sharedBy", { userName: agent.userName })}
-                  </p>
-                </div>
-              </>
-            )}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+
+      {/* Edit Agent Dialog */}
+      {session?.user?.id && (
+        <EditAgentDialog
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
+          agentId={agent.id}
+          initialData={agent}
+          userId={session.user.id}
+        />
+      )}
+    </>
   );
 }

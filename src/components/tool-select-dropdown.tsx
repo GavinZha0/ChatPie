@@ -71,6 +71,7 @@ import { Separator } from "ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { AgentSummary } from "app-types/agent";
 import { authClient } from "auth/client";
+import { EditAgentDialog } from "./agent/edit-agent-dialog";
 
 import { Alert, AlertDescription, AlertTitle } from "ui/alert";
 import { safe } from "ts-safe";
@@ -938,6 +939,8 @@ function AgentSelector({
   onSelectAgent?: (agent: AgentSummary) => void;
 }) {
   const t = useTranslations();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const { data: session } = authClient.useSession();
   const { myAgents, bookmarkedAgents } = useAgents({
     filters: ["mine", "bookmarked"],
   });
@@ -945,8 +948,8 @@ function AgentSelector({
   const emptyAgent = useMemo(() => {
     if (myAgents.length + bookmarkedAgents.length > 0) return null;
     return (
-      <Link
-        href={"/agent/new"}
+      <div
+        onClick={() => setShowCreateDialog(true)}
         className="py-8 px-4 hover:bg-input/100 rounded-lg cursor-pointer flex justify-between items-center text-xs overflow-hidden"
       >
         <div className="gap-1 z-10">
@@ -960,104 +963,120 @@ function AgentSelector({
               : t("Layout.createYourOwnAgent")}
           </p>
         </div>
-      </Link>
+      </div>
     );
   }, [myAgents.length, bookmarkedAgents.length, t]);
 
   return (
-    <DropdownMenuGroup>
-      <DropdownMenuSub>
-        <DropdownMenuSubTrigger className="text-xs flex items-center gap-2 font-semibold cursor-pointer">
-          <MessageCircle className="size-3.5" />
-          {t("Agent.title")}
-        </DropdownMenuSubTrigger>
-        <DropdownMenuPortal>
-          <DropdownMenuSubContent className="w-80 relative">
-            {emptyAgent}
+    <>
+      <DropdownMenuGroup>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger className="text-xs flex items-center gap-2 font-semibold cursor-pointer">
+            <MessageCircle className="size-3.5" />
+            {t("Agent.title")}
+          </DropdownMenuSubTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent className="w-80 relative">
+              {emptyAgent}
 
-            {/* My Agents */}
-            {myAgents.map((agent) => (
-              <DropdownMenuItem
-                key={agent.id}
-                className="cursor-pointer"
-                onClick={() => onSelectAgent?.(agent)}
-              >
-                {agent.icon && agent.icon.type === "emoji" ? (
-                  <div
-                    style={{
-                      backgroundColor: agent.icon?.style?.backgroundColor,
-                    }}
-                    className="p-1 rounded flex items-center justify-center ring ring-background border"
-                  >
-                    <Avatar className="size-3">
-                      <AvatarImage
-                        src={
-                          agent.icon?.value
-                            ? getEmojiUrl(agent.icon.value, "apple", 64)
-                            : undefined
-                        }
-                      />
-                      <AvatarFallback>{agent.name.slice(0, 1)}</AvatarFallback>
-                    </Avatar>
-                  </div>
-                ) : null}
-                <span className="truncate min-w-0">{agent.name}</span>
-              </DropdownMenuItem>
-            ))}
-
-            {myAgents.length > 0 && bookmarkedAgents.length > 0 && (
-              <DropdownMenuSeparator />
-            )}
-
-            {bookmarkedAgents.map((agent) => (
-              <DropdownMenuItem
-                key={agent.id}
-                className="cursor-pointer"
-                onClick={() => onSelectAgent?.(agent)}
-              >
-                {agent.icon && agent.icon.type === "emoji" ? (
-                  <div
-                    style={{
-                      backgroundColor: agent.icon?.style?.backgroundColor,
-                    }}
-                    className="p-1 rounded flex items-center justify-center ring ring-background border"
-                  >
-                    <Avatar className="size-3">
-                      <AvatarImage
-                        src={
-                          agent.icon?.value
-                            ? getEmojiUrl(agent.icon.value, "apple", 64)
-                            : undefined
-                        }
-                      />
-                      <AvatarFallback>{agent.name.slice(0, 1)}</AvatarFallback>
-                    </Avatar>
-                  </div>
-                ) : null}
-                <div className="flex items-center justify-between flex-1 min-w-0">
+              {/* My Agents */}
+              {myAgents.map((agent) => (
+                <DropdownMenuItem
+                  key={agent.id}
+                  className="cursor-pointer"
+                  onClick={() => onSelectAgent?.(agent)}
+                >
+                  {agent.icon && agent.icon.type === "emoji" ? (
+                    <div
+                      style={{
+                        backgroundColor: agent.icon?.style?.backgroundColor,
+                      }}
+                      className="p-1 rounded flex items-center justify-center ring ring-background border"
+                    >
+                      <Avatar className="size-3">
+                        <AvatarImage
+                          src={
+                            agent.icon?.value
+                              ? getEmojiUrl(agent.icon.value, "apple", 64)
+                              : undefined
+                          }
+                        />
+                        <AvatarFallback>
+                          {agent.name.slice(0, 1)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                  ) : null}
                   <span className="truncate min-w-0">{agent.name}</span>
-                  {agent.userName && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Avatar className="size-4 ml-2 shrink-0">
-                          <AvatarImage src={agent.userAvatar} />
-                          <AvatarFallback className="text-xs text-muted-foreground font-medium">
-                            {agent.userName[0]?.toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {t("Common.sharedBy", { userName: agent.userName })}
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-                </div>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuSubContent>
-        </DropdownMenuPortal>
-      </DropdownMenuSub>
-    </DropdownMenuGroup>
+                </DropdownMenuItem>
+              ))}
+
+              {myAgents.length > 0 && bookmarkedAgents.length > 0 && (
+                <DropdownMenuSeparator />
+              )}
+
+              {bookmarkedAgents.map((agent) => (
+                <DropdownMenuItem
+                  key={agent.id}
+                  className="cursor-pointer"
+                  onClick={() => onSelectAgent?.(agent)}
+                >
+                  {agent.icon && agent.icon.type === "emoji" ? (
+                    <div
+                      style={{
+                        backgroundColor: agent.icon?.style?.backgroundColor,
+                      }}
+                      className="p-1 rounded flex items-center justify-center ring ring-background border"
+                    >
+                      <Avatar className="size-3">
+                        <AvatarImage
+                          src={
+                            agent.icon?.value
+                              ? getEmojiUrl(agent.icon.value, "apple", 64)
+                              : undefined
+                          }
+                        />
+                        <AvatarFallback>
+                          {agent.name.slice(0, 1)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                  ) : null}
+                  <div className="flex items-center justify-between flex-1 min-w-0">
+                    <span className="truncate min-w-0">{agent.name}</span>
+                    {agent.userName && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Avatar className="size-4 ml-2 shrink-0">
+                            <AvatarImage src={agent.userAvatar} />
+                            <AvatarFallback className="text-xs text-muted-foreground font-medium">
+                              {agent.userName[0]?.toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {t("Common.sharedBy", { userName: agent.userName })}
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
+      </DropdownMenuGroup>
+
+      {/* Create Agent Dialog */}
+      {session?.user?.id && (
+        <EditAgentDialog
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+          agentId={null}
+          userId={session.user.id}
+        />
+      )}
+    </>
   );
 }
 
