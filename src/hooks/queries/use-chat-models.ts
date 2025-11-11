@@ -1,5 +1,6 @@
 import { appStore } from "@/app/store";
 import { fetcher } from "lib/utils";
+import { LlmType } from "app-types/provider";
 import useSWR, { SWRConfiguration } from "swr";
 
 export const useChatModels = (options?: SWRConfiguration) => {
@@ -11,6 +12,7 @@ export const useChatModels = (options?: SWRConfiguration) => {
       hasAPIKey: boolean;
       models: {
         name: string;
+        type: LlmType; // Add LLM type field
         isToolCallUnsupported: boolean;
         isImageInputUnsupported: boolean;
         supportedFileMimeTypes: string[];

@@ -33,12 +33,40 @@ interface SelectModelProps {
   currentModel?: ChatModel;
   showProvider?: boolean;
   buttonClassName?: string;
+  disabled?: boolean; // Disabled prop for agent scenarios
+  showAgentModels?: boolean; // Whether to show agent-type models (default: false)
 }
 
 export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
   const [open, setOpen] = useState(false);
-  const { data: providers } = useChatModels();
+  const { data: allProviders } = useChatModels();
+
+  // Filter providers based on showAgentModels prop
+  const providers = useMemo(() => {
+    if (!allProviders) return allProviders;
+
+    // If showAgentModels is true, return all providers without filtering
+    if (props.showAgentModels) {
+      return allProviders;
+    }
+
+    // Otherwise, filter out agent-type models
+    return allProviders
+      .map((provider) => ({
+        ...provider,
+        // Filter out agent-type models from each provider
+        models: provider.models.filter((model) => {
+          // Filter out models with type "agent"
+          return model.type !== "agent";
+        }),
+      }))
+      .filter((provider) => provider.models.length > 0); // Remove providers with no non-agent models
+  }, [allProviders, props.showAgentModels]);
+
   const [model, setModel] = useState(props.currentModel);
+
+  // Use the disabled prop directly
+  const isDisabled = props.disabled;
 
   useEffect(() => {
     const modelToUse = props.currentModel ?? appStore.getState().chatModel;
@@ -58,7 +86,9 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
             className={cn(
               "data-[state=open]:bg-input! hover:bg-input!",
               props.buttonClassName,
+              isDisabled && "opacity-60 cursor-not-allowed",
             )}
+            disabled={isDisabled}
             data-testid="model-selector-button"
           >
             <div className="mr-auto flex items-center gap-1">
@@ -151,6 +181,7 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
                         key={`${alias}-${providerName}-${item.name}`}
                         className="cursor-pointer"
                         onSelect={() => {
+                          if (isDisabled) return;
                           setModel({
                             provider: providerName,
                             model: item.name,

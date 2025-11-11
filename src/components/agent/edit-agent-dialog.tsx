@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { useMutateAgents } from "@/hooks/queries/use-agents";
+import { useChatModels } from "@/hooks/queries/use-chat-models";
 import { useMcpList } from "@/hooks/queries/use-mcp-list";
 import { useWorkflowToolList } from "@/hooks/queries/use-workflow-tool-list";
 import { useObjectState } from "@/hooks/use-object-state";
@@ -104,6 +105,40 @@ export function AgentEditor({
     () => isMcpLoading || isWorkflowLoading,
     [isMcpLoading, isWorkflowLoading],
   );
+
+  // Get model providers to check if selected model is agent type
+  const { data: allProviders } = useChatModels();
+
+  // Check if the current selected model is of agent type
+  const isSelectedModelAgentType = useMemo(() => {
+    if (!agent.instructions?.chatModel || !allProviders) return false;
+
+    for (const provider of allProviders) {
+      const selectedModel = provider.models.find(
+        (m) =>
+          m.name === agent.instructions?.chatModel?.model &&
+          provider.provider === agent.instructions?.chatModel?.provider,
+      );
+      if (selectedModel && selectedModel.type === "agent") {
+        return true;
+      }
+    }
+    return false;
+  }, [agent.instructions?.chatModel, allProviders]);
+
+  // Clear role, systemPrompt, and mentions when agent-type model is selected
+  useEffect(() => {
+    if (isSelectedModelAgentType) {
+      setAgent((prev) => ({
+        instructions: {
+          ...prev.instructions,
+          role: "",
+          systemPrompt: "",
+          mentions: [],
+        },
+      }));
+    }
+  }, [isSelectedModelAgentType, setAgent]);
 
   const saveAgent = useCallback(() => {
     if (agent.id) {
@@ -227,8 +262,12 @@ export function AgentEditor({
             <Input
               id="agent-role"
               data-testid="agent-role-input"
-              disabled={isLoading || !hasEditAccess}
-              placeholder={t("Agent.agentRolePlaceholder")}
+              disabled={isLoading || !hasEditAccess || isSelectedModelAgentType}
+              placeholder={
+                isSelectedModelAgentType
+                  ? "Built-in agent model configuration"
+                  : t("Agent.agentRolePlaceholder")
+              }
               className="hover:bg-input placeholder:text-xs bg-secondary/40 w-44 transition-colors border-transparent !border-none !focus-visible:bg-input !ring-0"
               value={agent.instructions?.role || ""}
               onChange={(e) =>
@@ -239,7 +278,7 @@ export function AgentEditor({
                   },
                 }))
               }
-              readOnly={!hasEditAccess}
+              readOnly={!hasEditAccess || isSelectedModelAgentType}
             />
             <span>{t("Agent.expertIn")}</span>
           </div>
@@ -253,8 +292,12 @@ export function AgentEditor({
               id="agent-prompt"
               data-testid="agent-prompt-textarea"
               ref={textareaRef}
-              disabled={isLoading || !hasEditAccess}
-              placeholder={t("Agent.agentInstructionsPlaceholder")}
+              disabled={isLoading || !hasEditAccess || isSelectedModelAgentType}
+              placeholder={
+                isSelectedModelAgentType
+                  ? "Built-in agent model configuration"
+                  : t("Agent.agentInstructionsPlaceholder")
+              }
               className="p-6 hover:bg-input min-h-48 max-h-96 overflow-y-auto resize-none placeholder:text-xs bg-secondary/40 transition-colors border-transparent !border-none !focus-visible:bg-input !ring-0"
               value={agent.instructions?.systemPrompt || ""}
               onChange={(e) =>
@@ -265,7 +308,7 @@ export function AgentEditor({
                   },
                 }))
               }
-              readOnly={!hasEditAccess}
+              readOnly={!hasEditAccess || isSelectedModelAgentType}
             />
           </div>
 
@@ -277,8 +320,8 @@ export function AgentEditor({
             <AgentToolSelector
               mentions={agent.instructions?.mentions || []}
               isLoading={isLoadingTool}
-              disabled={isLoading}
-              hasEditAccess={hasEditAccess}
+              disabled={isLoading || isSelectedModelAgentType}
+              hasEditAccess={hasEditAccess && !isSelectedModelAgentType}
               onChange={(mentions) =>
                 setAgent((prev) => ({
                   instructions: {
@@ -304,6 +347,7 @@ export function AgentEditor({
                 <SelectModel
                   currentModel={agent.instructions?.chatModel}
                   buttonClassName="w-full justify-between"
+                  showAgentModels={true}
                   onSelect={(model) => {
                     if (isLoading || !hasEditAccess) {
                       return;

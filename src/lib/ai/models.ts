@@ -300,6 +300,7 @@ export const customModelProvider = {
           const supportsImageInput = capabilities?.supportsImageInput ?? false;
           return {
             name: llm.id, // model name
+            type: llm.type, // Add LLM type (chat, vision, audio, agent)
             isToolCallUnsupported: !supportsFunctionCall,
             isImageInputUnsupported: !supportsImageInput,
             supportedFileMimeTypes: model

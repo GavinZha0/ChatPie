@@ -141,9 +141,13 @@ export default function PromptInput({
   }, [threadMentions, threadId]);
 
   // Determine selected agent and its predefined chat model (if any)
+  // Use the LAST agent mentioned (most recently added) as the active one
   const selectedAgentId = useMemo(() => {
-    const agentMention = mentions.find((m) => m.type === "agent");
-    return agentMention?.agentId;
+    const agentMentions = mentions.filter((m) => m.type === "agent");
+    // Return the last agent's ID (most recently added)
+    return agentMentions.length > 0
+      ? agentMentions[agentMentions.length - 1]?.agentId
+      : undefined;
   }, [mentions]);
 
   const selectedAgent = useMemo(() => {
@@ -208,6 +212,24 @@ export default function PromptInput({
     // Priority: agent predefined model > local model prop > global model
     return agentPreferredModel ?? model ?? globalModel;
   }, [agentPreferredModel, model, globalModel]);
+
+  // Calculate if model selector should be disabled (when agent model type is 'agent')
+  const { data: allProviders } = useChatModels();
+  const isModelSelectorDisabled = useMemo(() => {
+    if (!agentPreferredModel || !allProviders) return false;
+    // Find the agent's model in the provider list to check its type
+    for (const provider of allProviders) {
+      const agentModel = provider.models.find(
+        (m) =>
+          m.name === agentPreferredModel.model &&
+          provider.provider === agentPreferredModel.provider,
+      );
+      if (agentModel && agentModel.type === "agent") {
+        return true;
+      }
+    }
+    return false;
+  }, [agentPreferredModel, allProviders]);
 
   const editorRef = useRef<Editor | null>(null);
 
@@ -379,12 +401,29 @@ export default function PromptInput({
         }
 
         // Add new agent to existing mentions
-        return {
+        const newMentions = [...currentMentions, newAgent];
+        const next: any = {
           threadMentions: {
             ...prev.threadMentions,
-            [threadId!]: [...currentMentions, newAgent],
+            [threadId!]: newMentions,
           },
         };
+
+        // Trigger model switch to the newly added agent's preferred model
+        if (agent.chatModel) {
+          // Capture previous model before switching (if not already captured)
+          const prevByThread = (prev as any)._previousModelByThread || {};
+          const previousCaptured = prevByThread[threadId!] !== undefined;
+
+          next.chatModel = agent.chatModel;
+          next._previousModelByThread = { ...prevByThread };
+
+          if (!previousCaptured) {
+            next._previousModelByThread[threadId!] = prev.chatModel;
+          }
+        }
+
+        return next;
       });
     },
     [threadId],
@@ -779,6 +818,7 @@ export default function PromptInput({
                   <SelectModel
                     onSelect={handleSelectModel}
                     currentModel={chatModel}
+                    disabled={isModelSelectorDisabled}
                   ></SelectModel>
                   {!isLoading && !input.length && !voiceDisabled ? (
                     <Tooltip>
