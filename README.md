@@ -15,11 +15,7 @@ npm install -g pnpm
 # 1. Install dependencies
 pnpm i
 
-# 2. Enter only the LLM PROVIDER API key(s) you want to use in the .env file at the project root.
-# Example: The app works with just OPENAI_API_KEY filled in.
-# (The .env file is automatically created when you run pnpm i.)
-
-# 3. Build and start all services (including PostgreSQL) with Docker Compose
+# 2. Build and start all services (including PostgreSQL) with Docker Compose
 pnpm docker-compose:up
 
 ```
@@ -36,7 +32,6 @@ pnpm docker:pg
 
 # Enter required information in the .env file
 # The .env file is created automatically. Just fill in the required values.
-# For the fastest setup, provide at least one LLM provider's API key (e.g., OPENAI_API_KEY, CLAUDE_API_KEY, GEMINI_API_KEY, etc.) and the PostgreSQL URL you want to use.
 
 pnpm build:local && pnpm start
 
@@ -64,19 +59,7 @@ Open [http://localhost:8300](http://localhost:8300) in your browser to get start
 
 ### Environment Variables
 
-The `pnpm i` command generates a `.env` file. Add your API keys there.
-
-```dotenv
-# === LLM Provider API Keys ===
-# You only need to enter the keys for the providers you plan to use
-GOOGLE_GENERATIVE_AI_API_KEY=****
-OPENAI_API_KEY=****
-XAI_API_KEY=****
-ANTHROPIC_API_KEY=****
-OPENROUTER_API_KEY=****
-OLLAMA_BASE_URL=http://localhost:11434/api
-
-
+The `pnpm i` command generates a `.env` file. Fill in the required values.
 
 # Secret for Better Auth (generate with: npx @better-auth/cli@latest secret)
 BETTER_AUTH_SECRET=****
@@ -166,8 +149,6 @@ We welcome all contributions! Bug reports, feature ideas, code improvements — 
 > **⚠️ Please read our [Contributing Guide](./CONTRIBUTING.md) before submitting any Pull Requests or Issues.** This helps us work together more effectively and saves time for everyone.
 
 **For detailed contribution guidelines**, please see our [Contributing Guide](./CONTRIBUTING.md).
-
-**Language Translations:** Help us make the chatbot accessible to more users by adding new language translations. See [language.md](./messages/language.md) for instructions on how to contribute translations.
 
 Let's build it together 🚀
 
