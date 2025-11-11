@@ -43,7 +43,7 @@ function ToolbarItem({
           data-testid={`toolbar-link-${label.toLowerCase()}`}
           aria-label={label}
         >
-          <Icon className="size-5" />
+          <Icon className="size-6" />
         </Link>
       </TooltipTrigger>
       <TooltipContent side="right">{label}</TooltipContent>
