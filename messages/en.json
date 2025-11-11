@@ -216,8 +216,8 @@
       "whatAreYouThinking": "What are you thinking? {name}"
     },
     "TemporaryChat": {
-      "toggleTemporaryChat": "Toggle Temporary Chat",
-      "temporaryChat": "Temporary Chat",
+      "toggleTemporaryChat": "Temporary chat",
+      "temporaryChat": "Temporary chat",
       "resetChat": "Reset Chat",
       "thisChatWontBeSaved": "This chat won't be saved.",
       "feelFreeToAskAnythingTemporarily": "Feel free to ask anything temporarily",
@@ -478,7 +478,7 @@
   "KeyboardShortcuts": {
     "title": "Keyboard Shortcuts",
     "newChat": "New Chat",
-    "toggleTemporaryChat": "Toggle Temporary Chat",
+    "toggleTemporaryChat": "Temporary chat",
     "toggleSidebar": "Toggle Sidebar",
     "toolMode": "Tool Mode",
     "lastMessageCopy": "Copy Last Message",

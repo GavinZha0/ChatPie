@@ -24,7 +24,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
 import { getEmojiUrl } from "lib/emoji";
 import { Editor } from "@tiptap/react";
 import { DefaultToolName } from "lib/ai/tools";
-import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { DefaultToolIcon } from "./default-tool-icon";
 import equal from "lib/equal";
 import { EMOJI_DATA } from "lib/const";
@@ -108,27 +107,17 @@ export function ChatMentionInputMentionItem({
   className?: string;
 }) {
   const item = useMemo(() => JSON.parse(id) as ChatMention, [id]);
-  const label = useMemo(() => {
-    return (
-      <div
-        className={cn(
-          "flex items-center text-sm px-2 py-0.5 rounded-sm font-semibold transition-colors",
-          "text-primary font-bold bg-primary/5",
-          className,
-        )}
-      >
-        {toAny(item).label || item.name}
-      </div>
-    );
-  }, [item]);
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>{label}</TooltipTrigger>
-      <TooltipContent className="p-4 whitespace-pre-wrap max-w-xs">
-        {item.description || "mention"}
-      </TooltipContent>
-    </Tooltip>
+    <div
+      className={cn(
+        "flex items-center text-sm px-2 py-0.5 rounded-sm font-semibold transition-colors",
+        "text-primary font-bold bg-primary/5",
+        className,
+      )}
+    >
+      {toAny(item).label || item.name}
+    </div>
   );
 }
 
