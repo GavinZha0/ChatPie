@@ -4,7 +4,7 @@ import { isToolUIPart, type UIMessage } from "ai";
 import { memo, useMemo, useState } from "react";
 import equal from "lib/equal";
 
-import { cn, truncateString } from "lib/utils";
+import { cn } from "lib/utils";
 import type { ChatWidthMode } from "@/app/store";
 import type { UseChatHelpers } from "@ai-sdk/react";
 import {
@@ -15,10 +15,10 @@ import {
   FileMessagePart,
   SourceUrlMessagePart,
 } from "./message-parts";
-import { ChevronDown, ChevronUp, TriangleAlertIcon } from "lucide-react";
-import { Button } from "ui/button";
+import { ChevronDownIcon, TriangleAlertIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ChatMetadata } from "app-types/chat";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface Props {
   message: UIMessage;
@@ -211,55 +211,84 @@ export const PreviewMessage = memo(
   },
 );
 
+// Animation variants for collapsible content
+const errorVariants = {
+  collapsed: {
+    height: 0,
+    opacity: 0,
+    marginTop: 0,
+    marginBottom: 0,
+  },
+  expanded: {
+    height: "auto",
+    opacity: 1,
+    marginTop: "1rem",
+    marginBottom: "0.5rem",
+  },
+};
+
 export const ErrorMessage = ({
   error,
+  widthMode = "centered",
 }: {
   error: Error;
   message?: UIMessage;
+  widthMode?: ChatWidthMode;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const maxLength = 200;
   const t = useTranslations();
+
   return (
-    <div className="w-full mx-auto max-w-3xl px-6 animate-in fade-in mt-4">
+    <div
+      className={cn(
+        "w-full mx-auto animate-in fade-in mt-4",
+        widthMode === "wide" ? "max-w-none px-10" : "max-w-4xl px-6",
+      )}
+    >
       <div className="flex flex-col gap-2">
         <div className="flex flex-col gap-4 px-2 opacity-70">
-          <div className="flex items-start gap-3">
-            <div className="p-1.5 bg-muted rounded-sm">
-              <TriangleAlertIcon className="h-3.5 w-3.5 text-destructive" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-sm mb-2">{t("Chat.Error")}</p>
-              <div className="text-sm text-muted-foreground">
-                <div className="whitespace-pre-wrap">
-                  {isExpanded
-                    ? error.message
-                    : truncateString(error.message, maxLength)}
-                </div>
-                {error.message.length > maxLength && (
-                  <Button
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    variant={"ghost"}
-                    className="h-auto p-1 text-xs mt-2"
-                    size={"sm"}
-                  >
-                    {isExpanded ? (
-                      <>
-                        <ChevronUp className="h-3 w-3 mr-1" />
-                        {t("Common.showLess")}
-                      </>
-                    ) : (
-                      <>
-                        <ChevronDown className="h-3 w-3 mr-1" />
-                        {t("Common.showMore")}
-                      </>
-                    )}
-                  </Button>
-                )}
-                <p className="text-xs text-muted-foreground mt-3 italic">
-                  {t("Chat.thisMessageWasNotSavedPleaseTryTheChatAgain")}
-                </p>
+          <div
+            className="flex flex-col cursor-pointer"
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            <div className="flex flex-row gap-2 items-center text-destructive hover:text-destructive/80 transition-colors">
+              <div className="p-1.5 bg-muted rounded-sm">
+                <TriangleAlertIcon className="size-3.5" />
               </div>
+              <div className="font-medium text-sm">{t("Chat.Error")}</div>
+              <button type="button" className="cursor-pointer">
+                <ChevronDownIcon
+                  size={16}
+                  className={cn(
+                    "transition-transform duration-200",
+                    isExpanded && "rotate-180",
+                  )}
+                />
+              </button>
+            </div>
+
+            <div className="pl-4">
+              <AnimatePresence initial={false}>
+                {isExpanded && (
+                  <motion.div
+                    key="error-content"
+                    initial="collapsed"
+                    animate="expanded"
+                    exit="collapsed"
+                    variants={errorVariants}
+                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                    style={{ overflow: "hidden" }}
+                    className="pl-6 text-muted-foreground border-l border-destructive/30 flex flex-col gap-4"
+                  >
+                    <div className="text-sm whitespace-pre-wrap">
+                      {error.message}
+                    </div>
+                    <p className="text-xs text-muted-foreground italic">
+                      {t("Chat.thisMessageWasNotSavedPleaseTryTheChatAgain")}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>

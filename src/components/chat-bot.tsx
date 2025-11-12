@@ -49,6 +49,7 @@ import { getStorageManager } from "lib/browser-stroage";
 import { AnimatePresence, motion } from "framer-motion";
 import { useThreadFileUploader } from "@/hooks/use-thread-file-uploader";
 import { useFileDragOverlay } from "@/hooks/use-file-drag-overlay";
+import { useAgents } from "@/hooks/queries/use-agents";
 
 type Props = {
   threadId: string;
@@ -74,6 +75,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const { uploadFiles } = useThreadFileUploader(threadId);
+  const { agents } = useAgents({ limit: 50 });
   const router = useRouter();
   const handleFileDrop = useCallback(
     async (files: File[]) => {
@@ -209,11 +211,46 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           (p) => (p as any)?.type === "file",
         );
 
+        // Extract agent mentions from current mentions
+        const agentMentions = (latestRef.current.mentions || []).filter(
+          (m) => m.type === "agent",
+        );
+
         const requestBody: ChatApiSchemaRequestBody = {
           ...body,
           id,
-          chatModel:
-            (body as { model: ChatModel })?.model ?? latestRef.current.model,
+
+          // Use new chatModels array if agents are selected
+          ...(agentMentions.length > 0
+            ? {
+                chatModels: agentMentions.map((mention) => {
+                  // Find the agent to get its preferred model
+                  const agent = latestRef.current.agents?.find(
+                    (a) => a.id === mention.agentId,
+                  );
+                  const agentModel = agent?.chatModel;
+
+                  return {
+                    provider:
+                      agentModel?.provider ||
+                      latestRef.current.model?.provider ||
+                      "openai",
+                    model:
+                      agentModel?.model ||
+                      latestRef.current.model?.model ||
+                      "gpt-4",
+                    agentId: mention.agentId,
+                    agentName: mention.name,
+                  };
+                }),
+              }
+            : {
+                // Single model mode (no agents selected)
+                chatModel:
+                  (body as { model: ChatModel })?.model ??
+                  latestRef.current.model,
+              }),
+
           toolChoice: latestRef.current.toolChoice,
           allowedAppDefaultToolkit:
             latestRef.current.mentions?.length || hasFilePart
@@ -259,6 +296,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     threadId,
     mentions: threadMentions[threadId],
     threadImageToolModel,
+    agents,
   });
 
   const isLoading = useMemo(
@@ -488,7 +526,9 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
                 </>
               )}
 
-              {error && <ErrorMessage error={error} />}
+              {error && (
+                <ErrorMessage error={error} widthMode={chatWidthMode} />
+              )}
               <div className="min-w-0 min-h-52" />
             </div>
           </>

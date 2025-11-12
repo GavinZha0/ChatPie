@@ -10,6 +10,7 @@ export type ChatMetadata = {
   toolChoice?: "auto" | "none" | "manual";
   toolCount?: number;
   agentId?: string;
+  agentName?: string; // New: agent name for frontend display
 };
 
 export type ChatModel = {
@@ -96,12 +97,27 @@ export type ChatMention = z.infer<typeof ChatMentionSchema>;
 export const chatApiSchemaRequestBodySchema = z.object({
   id: z.string(),
   message: z.any() as z.ZodType<UIMessage>,
+
+  // New: Multi-agent configuration array (takes priority)
+  chatModels: z
+    .array(
+      z.object({
+        provider: z.string(),
+        model: z.string(),
+        agentId: z.string(),
+        agentName: z.string(),
+      }),
+    )
+    .optional(),
+
+  // Keep: Single model configuration (backward compatibility)
   chatModel: z
     .object({
       provider: z.string(),
       model: z.string(),
     })
     .optional(),
+
   toolChoice: z.enum(["auto", "none", "manual"]),
   mentions: z.array(ChatMentionSchema).optional(),
   imageTool: z.object({ model: z.string().optional() }).optional(),

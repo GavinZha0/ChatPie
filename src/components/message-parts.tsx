@@ -991,11 +991,14 @@ export const ToolMessagePart = memo(
                   </span>
                 </>
               )}
-              <div className="ml-auto group-hover/title:bg-input p-1.5 rounded transition-colors duration-300">
+              <button
+                type="button"
+                className="cursor-pointer group-hover/title:bg-input p-1.5 rounded transition-colors duration-300"
+              >
                 <ChevronDownIcon
                   className={cn(isExpanded && "rotate-180", "size-3.5")}
                 />
-              </div>
+              </button>
             </div>
             <div className="flex gap-2 py-2">
               <div className="w-7 flex justify-center">

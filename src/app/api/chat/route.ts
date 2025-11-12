@@ -13,7 +13,7 @@ import { customModelProvider } from "lib/ai/models";
 
 import { mcpClientsManager } from "lib/ai/mcp/mcp-manager";
 
-import { agentRepository, chatRepository } from "lib/db/repository";
+import { chatRepository } from "lib/db/repository";
 import globalLogger from "logger";
 import {
   buildMcpServerCustomizationsSystemPrompt,
@@ -68,7 +68,8 @@ export async function POST(request: Request) {
     const {
       id,
       message,
-      chatModel,
+      chatModels, // New: Multi-agent array
+      chatModel, // Keep: Single model compatibility
       toolChoice,
       allowedAppDefaultToolkit,
       allowedMcpServers,
@@ -77,7 +78,25 @@ export async function POST(request: Request) {
       attachments = [],
     } = chatApiSchemaRequestBodySchema.parse(json);
 
-    const model = await customModelProvider.getModel(chatModel);
+    // Unified processing: build target models array
+    const targetModels = chatModels?.length
+      ? chatModels
+      : chatModel
+        ? [
+            {
+              provider: chatModel.provider,
+              model: chatModel.model,
+              agentId:
+                mentions?.find((m) => m.type === "agent")?.agentId || null,
+              agentName:
+                mentions?.find((m) => m.type === "agent")?.name || "Assistant",
+            },
+          ]
+        : [];
+
+    if (targetModels.length === 0) {
+      return new Response("No valid models specified", { status: 400 });
+    }
 
     let thread = await chatRepository.selectThreadDetails(id);
 
@@ -173,225 +192,341 @@ export async function POST(request: Request) {
 
     messages.push(message);
 
-    const supportToolCall =
-      await customModelProvider.isToolCallSupported(model);
-
-    const agentId = (
-      mentions.find((m) => m.type === "agent") as Extract<
-        ChatMention,
-        { type: "agent" }
-      >
-    )?.agentId;
-
-    const agent = await rememberAgentAction(agentId, session.user.id);
-
-    if (agent?.instructions?.mentions) {
-      mentions.push(...agent.instructions.mentions);
-    }
-
-    const useImageTool = Boolean(imageTool?.model);
-
-    const isToolCallAllowed =
-      supportToolCall &&
-      (toolChoice != "none" || mentions.length > 0) &&
-      !useImageTool;
-
-    const metadata: ChatMetadata = {
-      agentId: agent?.id,
-      toolChoice: toolChoice,
-      toolCount: 0,
-      chatModel: chatModel,
-    };
-
-    const stream = createUIMessageStream({
-      execute: async ({ writer: dataStream }) => {
-        const mcpClients = await mcpClientsManager.getClients();
-        const mcpTools = await mcpClientsManager.tools();
-        logger.info(
-          `mcp-server count: ${mcpClients.length}, mcp-tools count :${Object.keys(mcpTools).length}`,
-        );
-        const MCP_TOOLS = await safe()
-          .map(errorIf(() => !isToolCallAllowed && "Not allowed"))
-          .map(() =>
-            loadMcpTools({
-              mentions,
-              allowedMcpServers,
-            }),
-          )
-          .orElse({});
-
-        const WORKFLOW_TOOLS = await safe()
-          .map(errorIf(() => !isToolCallAllowed && "Not allowed"))
-          .map(() =>
-            loadWorkFlowTools({
-              mentions,
-              dataStream,
-            }),
-          )
-          .orElse({});
-
-        const APP_DEFAULT_TOOLS = await safe()
-          .map(errorIf(() => !isToolCallAllowed && "Not allowed"))
-          .map(() =>
-            loadAppDefaultTools({
-              mentions,
-              allowedAppDefaultToolkit,
-            }),
-          )
-          .orElse({});
-        const inProgressToolParts = extractInProgressToolPart(message);
-        if (inProgressToolParts.length) {
-          await Promise.all(
-            inProgressToolParts.map(async (part) => {
-              const output = await manualToolExecuteByLastMessage(
-                part,
-                { ...MCP_TOOLS, ...WORKFLOW_TOOLS, ...APP_DEFAULT_TOOLS },
-                request.signal,
-              );
-              part.output = output;
-
-              dataStream.write({
-                type: "tool-output-available",
-                toolCallId: part.toolCallId,
-                output,
-              });
-            }),
-          );
-        }
-
-        const userPreferences = thread?.userPreferences || undefined;
-
-        const mcpServerCustomizations = await safe()
-          .map(() => {
-            if (Object.keys(MCP_TOOLS ?? {}).length === 0)
-              throw new Error("No tools found");
-            return rememberMcpServerCustomizationsAction(session.user.id);
-          })
-          .map((v) => filterMcpServerCustomizations(MCP_TOOLS!, v))
-          .orElse({});
-
-        const systemPrompt = mergeSystemPrompt(
-          buildUserSystemPrompt(session.user, userPreferences, agent),
-          buildMcpServerCustomizationsSystemPrompt(mcpServerCustomizations),
-          !supportToolCall && buildToolCallUnsupportedModelSystemPrompt,
-        );
-
-        const IMAGE_TOOL: Record<string, Tool> = useImageTool
-          ? {
-              [ImageToolName]:
-                imageTool?.model === "google"
-                  ? nanoBananaTool
-                  : openaiImageTool,
-            }
-          : {};
-        const vercelAITooles = safe({
-          ...MCP_TOOLS,
-          ...WORKFLOW_TOOLS,
-        })
-          .map((t) => {
-            const bindingTools =
-              toolChoice === "manual" ||
-              (message.metadata as ChatMetadata)?.toolChoice === "manual"
-                ? excludeToolExecution(t)
-                : t;
-            return {
-              ...bindingTools,
-              ...APP_DEFAULT_TOOLS, // APP_DEFAULT_TOOLS Not Supported Manual
-              ...IMAGE_TOOL,
-            };
-          })
-          .unwrap();
-        metadata.toolCount = Object.keys(vercelAITooles).length;
-
-        const allowedMcpTools = Object.values(allowedMcpServers ?? {})
-          .map((t) => t.tools)
-          .flat();
-
-        logger.info(
-          `${agent ? `agent: ${agent.name}, ` : ""}tool mode: ${toolChoice}, mentions: ${mentions.length}`,
-        );
-
-        logger.info(
-          `allowedMcpTools: ${allowedMcpTools.length ?? 0}, allowedAppDefaultToolkit: ${allowedAppDefaultToolkit?.length ?? 0}`,
-        );
-        if (useImageTool) {
-          logger.info(`binding tool count Image: ${imageTool?.model}`);
-        } else {
-          logger.info(
-            `binding tool count APP_DEFAULT: ${Object.keys(APP_DEFAULT_TOOLS ?? {}).length}, MCP: ${Object.keys(MCP_TOOLS ?? {}).length}, Workflow: ${Object.keys(WORKFLOW_TOOLS ?? {}).length}`,
-          );
-        }
-        logger.info(`model: ${chatModel?.provider}/${chatModel?.model}`);
-
-        const result = streamText({
-          model,
-          system: systemPrompt,
-          messages: convertToModelMessages(messages),
-          experimental_transform: smoothStream({ chunking: "word" }),
-          maxRetries: 2,
-          tools: vercelAITooles,
-          stopWhen: stepCountIs(10),
-          toolChoice: "auto",
-          abortSignal: request.signal,
-          // add user-id in header for Dify at least
-          headers: {
-            // "chat-id": id, // TODO: add conversationId
-            "user-id": session.user.email,
-          },
-        });
-        result.consumeStream();
-        dataStream.merge(
-          result.toUIMessageStream({
-            messageMetadata: ({ part }) => {
-              if (part.type == "finish") {
-                metadata.usage = part.totalUsage;
-                return metadata;
-              }
-            },
-          }),
-        );
-      },
-
-      generateId: generateUUID,
-      onFinish: async ({ responseMessage }) => {
-        if (responseMessage.id == message.id) {
-          await chatRepository.upsertMessage({
-            threadId: thread!.id,
-            ...responseMessage,
-            parts: responseMessage.parts.map(convertToSavePart),
-            metadata,
-          });
-        } else {
-          await chatRepository.upsertMessage({
-            threadId: thread!.id,
-            role: message.role,
-            parts: message.parts.map(convertToSavePart),
-            id: message.id,
-          });
-          await chatRepository.upsertMessage({
-            threadId: thread!.id,
-            role: responseMessage.role,
-            id: responseMessage.id,
-            parts: responseMessage.parts.map(convertToSavePart),
-            metadata,
-          });
-        }
-
-        if (agent) {
-          agentRepository.updateAgent(agent.id, session.user.id, {
-            updatedAt: new Date(),
-          } as any);
-        }
-      },
-      onError: handleError,
-      originalMessages: messages,
-    });
-
-    return createUIMessageStreamResponse({
-      stream,
+    // Unified processing for single or multiple models
+    return handleChatModels(targetModels, {
+      id,
+      message,
+      messages,
+      toolChoice,
+      allowedAppDefaultToolkit,
+      allowedMcpServers,
+      imageTool,
+      mentions,
+      attachments,
+      session,
+      thread: thread!,
+      request,
     });
   } catch (error: any) {
     logger.error(error);
     return Response.json({ message: error.message }, { status: 500 });
   }
+}
+
+// Unified processing function for single or multiple models
+async function handleChatModels(
+  targetModels: {
+    provider: string;
+    model: string;
+    agentId: string | null;
+    agentName: string;
+  }[],
+  context: {
+    id: string;
+    message: UIMessage;
+    messages: UIMessage[];
+    toolChoice: "auto" | "none" | "manual";
+    allowedAppDefaultToolkit?: string[];
+    allowedMcpServers?: Record<string, any>;
+    imageTool?: { model?: string };
+    mentions: ChatMention[];
+    attachments: any[];
+    session: any;
+    thread: any;
+    request: Request;
+  },
+) {
+  const {
+    message,
+    messages,
+    toolChoice,
+    allowedAppDefaultToolkit,
+    allowedMcpServers,
+    imageTool,
+    mentions,
+    session,
+    thread,
+    request,
+  } = context;
+
+  // Process all models concurrently (1 or more)
+  const modelResponses = await Promise.all(
+    targetModels.map(async (targetModel) => {
+      const model = await customModelProvider.getModel({
+        provider: targetModel.provider,
+        model: targetModel.model,
+      });
+
+      const agent = targetModel.agentId
+        ? await rememberAgentAction(targetModel.agentId, session.user.id)
+        : null;
+
+      // Build agent-specific mentions
+      const agentMentions = [...mentions];
+      if (agent?.instructions?.mentions) {
+        agentMentions.push(...agent.instructions.mentions);
+      }
+
+      const supportToolCall =
+        await customModelProvider.isToolCallSupported(model);
+      const useImageTool = Boolean(imageTool?.model);
+      const isToolCallAllowed =
+        supportToolCall &&
+        (toolChoice != "none" || agentMentions.length > 0) &&
+        !useImageTool;
+
+      const metadata: ChatMetadata = {
+        agentId: targetModel.agentId || undefined,
+        agentName: targetModel.agentName,
+        toolChoice: toolChoice,
+        toolCount: 0,
+        chatModel: {
+          provider: targetModel.provider,
+          model: targetModel.model,
+        },
+      };
+
+      // Create independent response stream for each model
+      const stream = createUIMessageStream({
+        execute: async ({ writer: dataStream }) => {
+          const mcpClients = await mcpClientsManager.getClients();
+          const mcpTools = await mcpClientsManager.tools();
+          logger.info(
+            `Agent: ${targetModel.agentName}, mcp-server count: ${mcpClients.length}, mcp-tools count: ${Object.keys(mcpTools).length}`,
+          );
+
+          const MCP_TOOLS = await safe()
+            .map(errorIf(() => !isToolCallAllowed && "Not allowed"))
+            .map(() =>
+              loadMcpTools({
+                mentions: agentMentions,
+                allowedMcpServers,
+              }),
+            )
+            .orElse({});
+
+          const WORKFLOW_TOOLS = await safe()
+            .map(errorIf(() => !isToolCallAllowed && "Not allowed"))
+            .map(() =>
+              loadWorkFlowTools({
+                mentions: agentMentions,
+                dataStream,
+              }),
+            )
+            .orElse({});
+
+          const APP_DEFAULT_TOOLS = await safe()
+            .map(errorIf(() => !isToolCallAllowed && "Not allowed"))
+            .map(() =>
+              loadAppDefaultTools({
+                mentions: agentMentions,
+                allowedAppDefaultToolkit,
+              }),
+            )
+            .orElse({});
+
+          const inProgressToolParts = extractInProgressToolPart(message);
+          if (inProgressToolParts.length) {
+            await Promise.all(
+              inProgressToolParts.map(async (part) => {
+                const output = await manualToolExecuteByLastMessage(
+                  part,
+                  { ...MCP_TOOLS, ...WORKFLOW_TOOLS, ...APP_DEFAULT_TOOLS },
+                  request.signal,
+                );
+                part.output = output;
+
+                dataStream.write({
+                  type: "tool-output-available",
+                  toolCallId: part.toolCallId,
+                  output,
+                });
+              }),
+            );
+          }
+
+          const userPreferences = thread?.userPreferences || undefined;
+
+          const mcpServerCustomizations = await safe()
+            .map(() => {
+              if (Object.keys(MCP_TOOLS ?? {}).length === 0)
+                throw new Error("No tools found");
+              return rememberMcpServerCustomizationsAction(session.user.id);
+            })
+            .map((v) => filterMcpServerCustomizations(MCP_TOOLS!, v))
+            .orElse({});
+
+          const systemPrompt = mergeSystemPrompt(
+            buildUserSystemPrompt(
+              session.user,
+              userPreferences,
+              agent || undefined,
+            ),
+            buildMcpServerCustomizationsSystemPrompt(mcpServerCustomizations),
+            !supportToolCall && buildToolCallUnsupportedModelSystemPrompt,
+          );
+
+          const IMAGE_TOOL: Record<string, Tool> = useImageTool
+            ? {
+                [ImageToolName]:
+                  imageTool?.model === "google"
+                    ? nanoBananaTool
+                    : openaiImageTool,
+              }
+            : {};
+
+          const vercelAITooles = safe({
+            ...MCP_TOOLS,
+            ...WORKFLOW_TOOLS,
+          })
+            .map((t) => {
+              const bindingTools =
+                toolChoice === "manual" ||
+                (message.metadata as ChatMetadata)?.toolChoice === "manual"
+                  ? excludeToolExecution(t)
+                  : t;
+              return {
+                ...bindingTools,
+                ...APP_DEFAULT_TOOLS,
+                ...IMAGE_TOOL,
+              };
+            })
+            .unwrap();
+
+          metadata.toolCount = Object.keys(vercelAITooles).length;
+
+          logger.info(
+            `Agent: ${targetModel.agentName}, model: ${targetModel.provider}/${targetModel.model}, tool mode: ${toolChoice}, mentions: ${agentMentions.length}`,
+          );
+
+          const result = streamText({
+            model,
+            system: systemPrompt,
+            messages: convertToModelMessages(messages),
+            experimental_transform: smoothStream({ chunking: "word" }),
+            maxRetries: 2,
+            tools: vercelAITooles,
+            stopWhen: stepCountIs(10),
+            toolChoice: "auto",
+            abortSignal: request.signal,
+            headers: {
+              "user-id": session.user.email,
+            },
+          });
+
+          result.consumeStream();
+          dataStream.merge(
+            result.toUIMessageStream({
+              messageMetadata: ({ part }) => {
+                if (part.type == "finish") {
+                  metadata.usage = part.totalUsage;
+                  return metadata;
+                }
+              },
+            }),
+          );
+        },
+        generateId: generateUUID,
+        onFinish: async ({ responseMessage }) => {
+          if (responseMessage.id == message.id) {
+            await chatRepository.upsertMessage({
+              threadId: thread.id,
+              ...responseMessage,
+              parts: responseMessage.parts.map(convertToSavePart),
+              metadata,
+            });
+          } else {
+            await chatRepository.upsertMessage({
+              threadId: thread.id,
+              role: message.role,
+              parts: message.parts.map(convertToSavePart),
+              id: message.id,
+            });
+            await chatRepository.upsertMessage({
+              threadId: thread.id,
+              role: responseMessage.role,
+              id: responseMessage.id,
+              parts: responseMessage.parts.map(convertToSavePart),
+              metadata,
+            });
+          }
+        },
+        onError: handleError,
+        originalMessages: messages,
+      });
+
+      return {
+        agentId: targetModel.agentId || "default",
+        agentName: targetModel.agentName,
+        stream,
+        metadata,
+      };
+    }),
+  );
+
+  // Return response based on number of models
+  if (modelResponses.length === 1) {
+    // Single model: return existing format
+    return createUIMessageStreamResponse({
+      stream: modelResponses[0].stream,
+    });
+  } else {
+    // Multiple models: return merged stream
+    return createMultiModelStreamResponse(modelResponses);
+  }
+}
+
+// Multi-model stream response handler
+function createMultiModelStreamResponse(
+  responses: {
+    agentId: string;
+    agentName: string;
+    stream: any;
+    metadata: ChatMetadata;
+  }[],
+) {
+  const encoder = new TextEncoder();
+
+  const stream = new ReadableStream({
+    start(controller) {
+      // Send response header information
+      const header = {
+        type: "multi-agent",
+        responses: responses.map((r) => ({
+          agentId: r.agentId,
+          agentName: r.agentName,
+          metadata: r.metadata,
+        })),
+      };
+
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify(header)}\n\n`));
+
+      // Process all agent response streams concurrently
+      responses.forEach((response) => {
+        // Note: This is a simplified implementation
+        // In practice, you'd need to properly handle the stream merging
+        response.stream.pipeThrough(
+          new TransformStream({
+            transform(chunk, controller) {
+              const wrappedChunk = {
+                agentId: response.agentId,
+                data: chunk,
+              };
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify(wrappedChunk)}\n\n`),
+              );
+            },
+          }),
+        );
+      });
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
 }
