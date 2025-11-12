@@ -9,6 +9,8 @@ import {
   MessageCircleDashed,
   PanelLeft,
   StretchHorizontal,
+  PanelRightOpen,
+  PanelRightClose,
 } from "lucide-react";
 import { Button } from "ui/button";
 import { Separator } from "ui/separator";
@@ -26,8 +28,12 @@ import { BackButton } from "@/components/layouts/back-button";
 
 export function AppHeader() {
   const t = useTranslations();
-  const [appStoreMutate, chatWidthMode] = appStore(
-    useShallow((state) => [state.mutate, state.chatWidthMode]),
+  const [appStoreMutate, chatWidthMode, rightPanel] = appStore(
+    useShallow((state) => [
+      state.mutate,
+      state.chatWidthMode,
+      state.rightPanel,
+    ]),
   );
   const { toggleSidebar, open } = useSidebar();
   const currentPaths = usePathname();
@@ -100,6 +106,37 @@ export function AppHeader() {
       <div className="flex-1" />
       {showActionButtons && (
         <div className="flex items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size={"icon"}
+                variant={"ghost"}
+                className="hidden md:flex bg-secondary/40"
+                onClick={() => {
+                  appStoreMutate((state) => ({
+                    rightPanel: {
+                      ...state.rightPanel,
+                      isOpen: !state.rightPanel.isOpen,
+                    },
+                  }));
+                }}
+                data-testid="right-panel-toggle"
+                aria-label={t("Chat.toggleRightPanel")}
+              >
+                {rightPanel.isOpen ? (
+                  <PanelRightClose className="size-4" />
+                ) : (
+                  <PanelRightOpen className="size-4" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent align="end" side="bottom">
+              <div className="text-xs flex items-center gap-2">
+                {t("Chat.toggleRightPanel")}
+              </div>
+            </TooltipContent>
+          </Tooltip>
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Button

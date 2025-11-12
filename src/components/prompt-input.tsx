@@ -11,6 +11,13 @@ import {
   PlusIcon,
   Square,
   XIcon,
+  Users,
+  UserX,
+  Repeat1,
+  Target,
+  Check,
+  RadioTower,
+  Scale,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "ui/button";
@@ -100,6 +107,10 @@ export default function PromptInput({
   const t = useTranslations("Chat");
   const layoutT = useTranslations("");
   const [isUploadDropdownOpen, setIsUploadDropdownOpen] = useState(false);
+  const [isGroupChatModeOpen, setIsGroupChatModeOpen] = useState(false);
+  const [selectedGroupChatMode, setSelectedGroupChatMode] = useState<
+    string | null
+  >(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadFiles } = useThreadFileUploader(threadId);
   const { data: providers } = useChatModels();
@@ -139,6 +150,32 @@ export default function PromptInput({
     if (!threadId) return [];
     return threadMentions[threadId!] ?? [];
   }, [threadMentions, threadId]);
+
+  // Check if there are multiple agents for group chat mode
+  const agentMentions = useMemo(() => {
+    return mentions.filter((m) => m.type === "agent");
+  }, [mentions]);
+
+  const hasMultipleAgents = agentMentions.length > 1;
+  const isGroupChatModeEnabled = hasMultipleAgents;
+
+  // Dynamic icon based on selected group chat mode
+  const groupChatModeIcon = useMemo(() => {
+    switch (selectedGroupChatMode) {
+      case "one-to-many":
+        return <RadioTower className="size-4" />;
+      case "discussion":
+        return <Users className="size-4" />;
+      case "relay":
+        return <Repeat1 className="size-4" />;
+      case "task":
+        return <Target className="size-4" />;
+      case "debate":
+        return <Scale className="size-4" />;
+      default:
+        return <Users className="size-4" />; // Default icon when no mode selected
+    }
+  }, [selectedGroupChatMode]);
 
   // Determine selected agent and its predefined chat model (if any)
   // Use the LAST agent mentioned (most recently added) as the active one
@@ -812,6 +849,170 @@ export default function PromptInput({
                         mentions={mentions}
                       />
                     ))}
+
+                  {/* Group Chat Mode Selector */}
+                  <DropdownMenu
+                    open={isGroupChatModeOpen}
+                    onOpenChange={setIsGroupChatModeOpen}
+                  >
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="rounded-full hover:bg-input! p-2! data-[state=open]:bg-input! mx-1"
+                            disabled={!isGroupChatModeEnabled}
+                          >
+                            {groupChatModeIcon}
+                          </Button>
+                        </DropdownMenuTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" align="center">
+                        <span className="text-sm">
+                          {t("GroupChat.groupMode")}
+                        </span>
+                      </TooltipContent>
+                    </Tooltip>
+                    <DropdownMenuContent
+                      align="start"
+                      side="top"
+                      className="w-64"
+                    >
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={() => {
+                          setSelectedGroupChatMode(null);
+                          setIsGroupChatModeOpen(false);
+                        }}
+                      >
+                        <div className="flex flex-col gap-2 w-full">
+                          <div className="flex items-center gap-2">
+                            <UserX className="size-4" />
+                            <span className="font-bold">
+                              {t("GroupChat.none")}
+                            </span>
+                            {selectedGroupChatMode === null && (
+                              <Check className="ml-auto size-4" />
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {t("GroupChat.noneDescription")}
+                          </p>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={() => {
+                          setSelectedGroupChatMode("one-to-many");
+                          setIsGroupChatModeOpen(false);
+                        }}
+                      >
+                        <div className="flex flex-col gap-2 w-full">
+                          <div className="flex items-center gap-2">
+                            <RadioTower className="size-4" />
+                            <span className="font-bold">
+                              {t("GroupChat.broadcast")}
+                            </span>
+                            {selectedGroupChatMode === "one-to-many" && (
+                              <Check className="ml-auto size-4" />
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {t("GroupChat.broadcastDescription")}
+                          </p>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={() => {
+                          setSelectedGroupChatMode("discussion");
+                          setIsGroupChatModeOpen(false);
+                        }}
+                      >
+                        <div className="flex flex-col gap-2 w-full">
+                          <div className="flex items-center gap-2">
+                            <Users className="size-4" />
+                            <span className="font-bold">
+                              {t("GroupChat.discussion")}
+                            </span>
+                            {selectedGroupChatMode === "discussion" && (
+                              <Check className="ml-auto size-4" />
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {t("GroupChat.discussionDescription")}
+                          </p>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={() => {
+                          setSelectedGroupChatMode("relay");
+                          setIsGroupChatModeOpen(false);
+                        }}
+                      >
+                        <div className="flex flex-col gap-2 w-full">
+                          <div className="flex items-center gap-2">
+                            <Repeat1 className="size-4" />
+                            <span className="font-bold">
+                              {t("GroupChat.relay")}
+                            </span>
+                            {selectedGroupChatMode === "relay" && (
+                              <Check className="ml-auto size-4" />
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {t("GroupChat.relayDescription")}
+                          </p>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={() => {
+                          setSelectedGroupChatMode("task");
+                          setIsGroupChatModeOpen(false);
+                        }}
+                      >
+                        <div className="flex flex-col gap-2 w-full">
+                          <div className="flex items-center gap-2">
+                            <Target className="size-4" />
+                            <span className="font-bold">
+                              {t("GroupChat.task")}
+                            </span>
+                            {selectedGroupChatMode === "task" && (
+                              <Check className="ml-auto size-4" />
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {t("GroupChat.taskDescription")}
+                          </p>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={() => {
+                          setSelectedGroupChatMode("debate");
+                          setIsGroupChatModeOpen(false);
+                        }}
+                      >
+                        <div className="flex flex-col gap-2 w-full">
+                          <div className="flex items-center gap-2">
+                            <Scale className="size-4" />
+                            <span className="font-bold">
+                              {t("GroupChat.debate")}
+                            </span>
+                            {selectedGroupChatMode === "debate" && (
+                              <Check className="ml-auto size-4" />
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {t("GroupChat.debateDescription")}
+                          </p>
+                        </div>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
                   <div className="flex-1" />
 

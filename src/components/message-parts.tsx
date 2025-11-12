@@ -15,7 +15,6 @@ import {
   FileIcon,
   HammerIcon,
   Loader,
-  Pencil,
   RefreshCw,
   Trash2,
   TriangleAlert,
@@ -55,6 +54,7 @@ import {
   isShortcutEvent,
 } from "lib/keyboard-shortcuts";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
+import { getUserAvatar } from "lib/user/utils";
 import { TextShimmer } from "ui/text-shimmer";
 
 import { appStore } from "@/app/store";
@@ -155,13 +155,10 @@ export const UserMessagePart = memo(
     message,
     setMessages,
     sendMessage,
-    readonly,
     isError,
   }: UserMessagePartProps) {
-    const { copied, copy } = useCopy();
     const t = useTranslations();
     const [mode, setMode] = useState<"view" | "edit">("view");
-    const [isDeleting, setIsDeleting] = useState(false);
     const [expanded, setExpanded] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
     const scrolledRef = useRef(false);
@@ -171,29 +168,6 @@ export const UserMessagePart = memo(
       expanded || !isLongText
         ? part.text
         : truncateString(part.text, MAX_TEXT_LENGTH);
-
-    const deleteMessage = useCallback(async () => {
-      if (!setMessages) return;
-      const ok = await notify.confirm({
-        title: "Delete Message",
-        description: "Are you sure you want to delete this message?",
-      });
-      if (!ok) return;
-      safe(() => setIsDeleting(true))
-        .ifOk(() => deleteMessageAction(message.id))
-        .ifOk(() =>
-          setMessages((messages) => {
-            const index = messages.findIndex((m) => m.id === message.id);
-            if (index !== -1) {
-              return messages.filter((_, i) => i !== index);
-            }
-            return messages;
-          }),
-        )
-        .ifFail((error) => toast.error(error.message))
-        .watch(() => setIsDeleting(false))
-        .unwrap();
-    }, [message.id]);
 
     useEffect(() => {
       if (status === "submitted" && isLast && !scrolledRef.current) {
@@ -216,100 +190,51 @@ export const UserMessagePart = memo(
     }
 
     return (
-      <div className="flex flex-col gap-2 items-end my-2">
-        <div
-          data-testid="message-content"
-          className={cn(
-            "flex flex-col gap-4 max-w-full ring ring-input relative overflow-hidden",
-            {
-              "bg-accent text-accent-foreground px-4 py-3 rounded-2xl": isLast,
-              "opacity-50": isError,
-            },
-            isError && "border-destructive border",
-          )}
-        >
-          {isLongText && !expanded && (
-            <div className="absolute pointer-events-none bg-gradient-to-t from-accent to-transparent w-full h-40 bottom-0 left-0" />
-          )}
-          <p className={cn("whitespace-pre-wrap text-sm break-words")}>
-            {displayText}
-          </p>
-          {isLongText && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setExpanded(!expanded)}
-              className="h-auto p-1 text-xs z-10 text-muted-foreground hover:text-foreground self-start"
-            >
-              <span className="flex items-center gap-1">
-                {t(expanded ? "Common.showLess" : "Common.showMore")}
-                {expanded ? (
-                  <ChevronUp className="size-3" />
-                ) : (
-                  <ChevronDownIcon className="size-3" />
-                )}
-              </span>
-            </Button>
-          )}
-        </div>
-        {isLast && (
-          <div className="flex w-full justify-end opacity-0 group-hover/message:opacity-100 transition-opacity duration-300">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  data-testid="message-edit-button"
-                  variant="ghost"
-                  size="icon"
-                  className={cn("size-3! p-4!")}
-                  onClick={() => copy(part.text)}
-                >
-                  {copied ? <Check /> : <Copy />}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Copy</TooltipContent>
-            </Tooltip>
-            {!readonly && (
-              <>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      data-testid="message-edit-button"
-                      variant="ghost"
-                      size="icon"
-                      className="size-3! p-4!"
-                      onClick={() => setMode("edit")}
-                    >
-                      <Pencil />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">Edit</TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      disabled={isDeleting}
-                      onClick={deleteMessage}
-                      variant="ghost"
-                      size="icon"
-                      className="size-3! p-4! hover:text-destructive"
-                    >
-                      {isDeleting ? (
-                        <Loader className="animate-spin" />
-                      ) : (
-                        <Trash2 />
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="text-destructive" side="bottom">
-                    Delete Message
-                  </TooltipContent>
-                </Tooltip>
-              </>
+      <div className="flex flex-row gap-2 items-start mt-2 mb-1">
+        <Avatar className="size-7 mt-2 ring ring-border rounded-none flex-shrink-0">
+          <AvatarImage src={getUserAvatar({})} />
+          <AvatarFallback>U</AvatarFallback>
+        </Avatar>
+        <div className="flex flex-col gap-2 w-full">
+          <div
+            data-testid="message-content"
+            className={cn(
+              "inline-flex flex-col gap-4 w-fit max-w-[80%] relative overflow-hidden px-4 py-2 rounded-2xl",
+              "bg-green-200 dark:bg-green-800",
+              "text-green-900 dark:text-green-50",
+              "border border-green-300 dark:border-green-700",
+              {
+                "opacity-50": isError,
+              },
+              isError && "border-destructive border",
+            )}
+          >
+            {isLongText && !expanded && (
+              <div className="absolute pointer-events-none bg-gradient-to-t from-green-200 dark:from-green-800 to-transparent w-full h-40 bottom-0 left-0" />
+            )}
+            <p className={cn("whitespace-pre-wrap text-base break-words")}>
+              {displayText}
+            </p>
+            {isLongText && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setExpanded(!expanded)}
+                className="h-auto p-1 text-xs z-10 text-muted-foreground hover:text-foreground self-start"
+              >
+                <span className="flex items-center gap-1">
+                  {t(expanded ? "Common.showLess" : "Common.showMore")}
+                  {expanded ? (
+                    <ChevronUp className="size-3" />
+                  ) : (
+                    <ChevronDownIcon className="size-3" />
+                  )}
+                </span>
+              </Button>
             )}
           </div>
-        )}
-        <div ref={ref} className="min-w-0" />
+          <div ref={ref} className="min-w-0" />
+        </div>
       </div>
     );
   },

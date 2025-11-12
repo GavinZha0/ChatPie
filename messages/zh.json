@@ -103,8 +103,24 @@
       "temporaryChatInstructionsPlaceholder": "在此输入您的说明",
       "temporaryChatInstructionsDescription": "您可以为临时聊天设置说明。这将用作临时聊天的系统提示。"
     },
+    "GroupChat": {
+      "groupMode": "群聊模式",
+      "none": "无模式",
+      "noneDescription": "未选择群聊模式",
+      "broadcast": "1对多模式",
+      "broadcastDescription": "同时将问题发给多个agent各自回答",
+      "discussion": "讨论模式",
+      "discussionDescription": "多个agent基于问题和其他agent的回答发表意见",
+      "relay": "接龙模式",
+      "relayDescription": "多个agent按成语接龙规则依次回答",
+      "task": "任务模式",
+      "taskDescription": "一个agent规划分配任务给其他agent",
+      "debate": "辩论模式",
+      "debateDescription": "群里分为正反两方进行辩论"
+    },
     "placeholder": "问我任何事或使用 @ 提及",
     "toggleWidthMode": "宽度模式",
+    "toggleRightPanel": "切换右侧面板",
     "widthModeCentered": "居中布局",
     "widthModeWide": "全宽布局",
     "Tool": {

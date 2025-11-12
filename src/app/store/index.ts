@@ -23,6 +23,14 @@ export interface UploadedFile {
 
 export type ChatWidthMode = "centered" | "wide";
 
+export interface RightPanelTab {
+  id: string;
+  type: "http" | "chart" | "code" | "band";
+  title: string;
+  content: any;
+  threadId?: string;
+}
+
 export interface AppState {
   threadList: ChatThread[];
   mcpList: (MCPServerInfo & { id: string })[];
@@ -72,6 +80,12 @@ export interface AppState {
   pendingThreadMentions?: ChatMention[];
   chatWidthMode: ChatWidthMode;
   newChatHandler?: () => void;
+  rightPanel: {
+    isOpen: boolean;
+    tabs: RightPanelTab[];
+    activeTabId?: string;
+    panelSizes: [number, number]; // [left%, right%]
+  };
 }
 
 export interface AppDispatch {
@@ -120,6 +134,12 @@ const initialState: AppState = {
   pendingThreadMentions: undefined,
   chatWidthMode: "centered",
   newChatHandler: undefined,
+  rightPanel: {
+    isOpen: false,
+    tabs: [],
+    activeTabId: undefined,
+    panelSizes: [60, 40],
+  },
 };
 
 export const appStore = create<AppState & AppDispatch>()(
@@ -156,6 +176,11 @@ export const appStore = create<AppState & AppDispatch>()(
           isOpen: false,
         },
         chatWidthMode: state.chatWidthMode ?? initialState.chatWidthMode,
+        rightPanel: {
+          ...initialState.rightPanel,
+          ...state.rightPanel,
+          isOpen: false, // 不持久化打开状态
+        },
       }),
     },
   ),

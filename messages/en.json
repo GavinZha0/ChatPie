@@ -225,8 +225,24 @@
       "temporaryChatInstructionsPlaceholder": "Enter your instructions here",
       "temporaryChatInstructionsDescription": "You can set instructions for the temporary chat. This will be used as a system prompt for the temporary chat."
     },
+    "GroupChat": {
+      "groupMode": "Group Mode",
+      "none": "None",
+      "noneDescription": "No group chat mode selected",
+      "broadcast": "Broadcast",
+      "broadcastDescription": "Send question to all agents",
+      "discussion": "Discussion",
+      "discussionDescription": "Agents discuss based on each other's answers",
+      "relay": "Relay",
+      "relayDescription": "Agents reply in sequence",
+      "task": "Task",
+      "taskDescription": "One agent assigns tasks to others",
+      "debate": "Debate",
+      "debateDescription": "Agents split into pro & con sides to debate"
+    },
     "chatPlaceholder": "Ask anything, @agent or $tool",
     "toggleWidthMode": "Width mode",
+    "toggleRightPanel": "Toggle right panel",
     "widthModeCentered": "Centered",
     "widthModeWide": "Full width",
     "Tool": {
