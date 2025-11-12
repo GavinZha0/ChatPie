@@ -76,9 +76,9 @@ type ModelsCache = {
 let modelsCache: ModelsCache = null;
 
 /**
- * Cache TTL (5 minutes)
+ * Cache TTL (1 hour - balance between performance and real-time updates)
  */
-const CACHE_TTL = 5 * 60 * 1000;
+const CACHE_TTL = 60 * 60 * 1000;
 
 // ============================================
 // Core Functionality
@@ -267,6 +267,110 @@ export async function loadDynamicModels() {
  */
 export function invalidateModelsCache() {
   modelsCache = null;
+}
+
+/**
+ * Update specific provider in cache without full rebuild
+ * @param providerName Name of the provider to update
+ */
+export async function updateProviderInCache(providerName: string) {
+  if (!modelsCache) {
+    // If no cache exists, just invalidate and let next call rebuild
+    invalidateModelsCache();
+    return;
+  }
+
+  try {
+    // Get updated provider from database
+    const updatedProviders = await providerRepository.selectAll();
+    const updatedProvider = updatedProviders.find(
+      (p) => p.name === providerName,
+    );
+
+    if (!updatedProvider) {
+      // Provider was deleted, remove from cache
+      delete modelsCache.models[providerName];
+      modelsCache.providers = updatedProviders;
+      return;
+    }
+
+    // Skip providers without API key (except ollama)
+    if (
+      (!updatedProvider.baseUrl || !updatedProvider.apiKey) &&
+      updatedProvider.name !== "ollama"
+    ) {
+      delete modelsCache.models[providerName];
+      modelsCache.providers = updatedProviders;
+      return;
+    }
+
+    // Create new models for this provider
+    const createModel = createProviderSDK(
+      updatedProvider.name,
+      updatedProvider,
+    );
+    if (!createModel) {
+      logger.warn(
+        `Create ${updatedProvider.name} SDK failed during update, removing from cache`,
+      );
+      delete modelsCache.models[providerName];
+      modelsCache.providers = updatedProviders;
+      return;
+    }
+
+    const providerModels: Record<string, LanguageModel> = {};
+    const llmConfigs = updatedProvider.llm || [];
+
+    for (const llmConfig of llmConfigs) {
+      if (!llmConfig.enabled) {
+        continue;
+      }
+
+      try {
+        const model = createModel(
+          llmConfig.id,
+          updatedProvider.name === "dify"
+            ? { apiKey: updatedProvider.apiKey || undefined }
+            : undefined,
+        );
+        providerModels[llmConfig.id] = model;
+
+        const supportsFunctionCall = llmConfig.functionCall ?? true;
+        const supportsImageInput = llmConfig.imageInput ?? true;
+
+        modelsCache.modelCapabilities.set(model, {
+          supportsFunctionCall,
+          supportsImageInput,
+        });
+
+        const fileMimeTypes =
+          providerFileSupportMap[updatedProvider.name] ||
+          DEFAULT_FILE_PART_MIME_TYPES;
+        modelsCache.filePartSupportByModel.set(model, fileMimeTypes);
+      } catch (error) {
+        logger.error(
+          `Failed to create model ${llmConfig.id} for provider ${updatedProvider.name} during update:`,
+          error,
+        );
+      }
+    }
+
+    // Update cache with new models
+    if (Object.keys(providerModels).length > 0) {
+      modelsCache.models[providerName] = providerModels;
+    } else {
+      delete modelsCache.models[providerName];
+    }
+
+    // Update providers list
+    modelsCache.providers = updatedProviders;
+
+    logger.info(`Updated provider ${providerName} in cache`);
+  } catch (error) {
+    logger.error(`Failed to update provider ${providerName} in cache:`, error);
+    // Fallback to full cache invalidation
+    invalidateModelsCache();
+  }
 }
 
 // ============================================

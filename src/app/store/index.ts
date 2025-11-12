@@ -69,7 +69,7 @@ export interface AppState {
       providerOptions?: Record<string, any>;
     };
   };
-  pendingThreadMention?: ChatMention;
+  pendingThreadMentions?: ChatMention[];
   chatWidthMode: ChatWidthMode;
   newChatHandler?: () => void;
 }
@@ -117,7 +117,7 @@ const initialState: AppState = {
       },
     },
   },
-  pendingThreadMention: undefined,
+  pendingThreadMentions: undefined,
   chatWidthMode: "centered",
   newChatHandler: undefined,
 };

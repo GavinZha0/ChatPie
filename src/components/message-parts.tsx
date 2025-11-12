@@ -1,74 +1,113 @@
 "use client";
 
-import { FileUIPart, getToolName, ToolUIPart, UIMessage } from "ai";
+import { useCopy } from "@/hooks/use-copy";
+import type { UseChatHelpers } from "@ai-sdk/react";
+import { FileUIPart, ToolUIPart, UIMessage, getToolName } from "ai";
+import { cn, safeJSONParse, truncateString } from "lib/utils";
 import {
+  Brain,
   Check,
+  ChevronDownIcon,
+  ChevronRight,
+  ChevronUp,
   Copy,
+  Download,
+  FileIcon,
+  HammerIcon,
   Loader,
   Pencil,
-  ChevronDownIcon,
-  ChevronUp,
   RefreshCw,
-  X,
   Trash2,
-  ChevronRight,
   TriangleAlert,
-  HammerIcon,
-  EllipsisIcon,
-  FileIcon,
-  Download,
+  X,
 } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
-import { Button } from "ui/button";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "ui/badge";
-import { Markdown } from "./markdown";
-import { cn, safeJSONParse, truncateString } from "lib/utils";
+import { Button } from "ui/button";
 import JsonView from "ui/json-view";
-import { useMemo, useState, memo, useEffect, useRef, useCallback } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
+import { Markdown } from "./markdown";
 import { MessageEditor } from "./message-editor";
-import type { UseChatHelpers } from "@ai-sdk/react";
-import { useCopy } from "@/hooks/use-copy";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { SelectModel } from "./select-model";
 import {
   deleteMessageAction,
   deleteMessagesByChatIdAfterTimestampAction,
 } from "@/app/api/chat/actions";
+import { AnimatePresence, motion } from "framer-motion";
 
+import { ChatMetadata, ManualToolConfirmTag } from "app-types/chat";
 import { toast } from "sonner";
 import { safe } from "ts-safe";
-import { ChatMetadata, ChatModel, ManualToolConfirmTag } from "app-types/chat";
 
-import { useTranslations } from "next-intl";
 import { extractMCPToolId } from "lib/ai/mcp/mcp-tool-id";
+import { useTranslations } from "next-intl";
 import { Separator } from "ui/separator";
 
-import { TextShimmer } from "ui/text-shimmer";
-import equal from "lib/equal";
 import {
   VercelAIWorkflowToolStreamingResult,
   VercelAIWorkflowToolStreamingResultTag,
 } from "app-types/workflow";
-import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
 import { DefaultToolName, ImageToolName } from "lib/ai/tools";
+import equal from "lib/equal";
 import {
   Shortcut,
   getShortcutKeyList,
   isShortcutEvent,
 } from "lib/keyboard-shortcuts";
+import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
+import { TextShimmer } from "ui/text-shimmer";
 
-import { WorkflowInvocation } from "./tool-invocation/workflow-invocation";
-import dynamic from "next/dynamic";
-import { notify } from "lib/notify";
-import { ModelProviderIcon } from "ui/model-provider-icon";
 import { appStore } from "@/app/store";
-import { BACKGROUND_COLORS, EMOJI_DATA } from "lib/const";
 import { getEmojiUrl } from "lib/emoji";
+import { notify } from "lib/notify";
+import dynamic from "next/dynamic";
+import { WorkflowInvocation } from "./tool-invocation/workflow-invocation";
 
 type MessagePart = UIMessage["parts"][number];
 type TextMessagePart = Extract<MessagePart, { type: "text" }>;
 type AssistMessagePart = Extract<MessagePart, { type: "text" }>;
+
+// Parse text to extract think sections
+interface ParsedTextSection {
+  type: "text" | "think";
+  content: string;
+}
+
+function parseThinkTags(text: string): ParsedTextSection[] {
+  const sections: ParsedTextSection[] = [];
+  const thinkRegex = /<think>([\s\S]*?)<\/think>/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = thinkRegex.exec(text)) !== null) {
+    // Add text before the think tag
+    if (match.index > lastIndex) {
+      const beforeText = text.slice(lastIndex, match.index).trim();
+      if (beforeText) {
+        sections.push({ type: "text", content: beforeText });
+      }
+    }
+
+    // Add the think section
+    sections.push({ type: "think", content: match[1].trim() });
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Add remaining text after the last think tag
+  if (lastIndex < text.length) {
+    const remainingText = text.slice(lastIndex).trim();
+    if (remainingText) {
+      sections.push({ type: "text", content: remainingText });
+    }
+  }
+
+  // If no think tags found, return the original text
+  if (sections.length === 0) {
+    sections.push({ type: "text", content: text });
+  }
+
+  return sections;
+}
 
 interface UserMessagePartProps {
   part: TextMessagePart;
@@ -299,14 +338,9 @@ export const AssistMessagePart = memo(function AssistMessagePart({
 }: AssistMessagePartProps) {
   const { copied, copy } = useCopy();
   const [isLoading, setIsLoading] = useState(false);
-  const agentList = appStore((state) => state.agentList);
   const [isDeleting, setIsDeleting] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const metadata = message.metadata as ChatMetadata | undefined;
-
-  const agent = useMemo(() => {
-    return agentList.find((a) => a.id === metadata?.agentId);
-  }, [metadata, agentList]);
 
   const deleteMessage = useCallback(async () => {
     if (!setMessages) return;
@@ -331,8 +365,9 @@ export const AssistMessagePart = memo(function AssistMessagePart({
       .unwrap();
   }, [message.id]);
 
-  const handleModelChange = (model: ChatModel) => {
+  const handleRegenerate = () => {
     if (!setMessages || !sendMessage || !prevMessage) return;
+    const currentModel = appStore.getState().chatModel;
     safe(() => setIsLoading(true))
       .ifOk(() =>
         threadId
@@ -351,7 +386,7 @@ export const AssistMessagePart = memo(function AssistMessagePart({
       .ifOk(() =>
         sendMessage(prevMessage, {
           body: {
-            model,
+            model: currentModel,
           },
         }),
       )
@@ -373,7 +408,23 @@ export const AssistMessagePart = memo(function AssistMessagePart({
           "opacity-50 border border-destructive bg-card rounded-lg": isError,
         })}
       >
-        <Markdown>{part.text}</Markdown>
+        {(() => {
+          const sections = parseThinkTags(part.text);
+          return sections.map((section, index) => {
+            const key = `section-${index}`;
+            if (section.type === "think") {
+              return (
+                <ThinkPart
+                  key={key}
+                  thinkText={section.content}
+                  readonly={readonly}
+                />
+              );
+            } else {
+              return <Markdown key={key}>{section.content}</Markdown>;
+            }
+          });
+        })()}
       </div>
       {showActions && (
         <div className="flex w-full">
@@ -395,20 +446,18 @@ export const AssistMessagePart = memo(function AssistMessagePart({
             <>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div>
-                    <SelectModel onSelect={handleModelChange}>
-                      <Button
-                        data-testid="message-edit-button data-[state=open]:bg-secondary!"
-                        variant="ghost"
-                        size="icon"
-                        className="size-3! p-4!"
-                      >
-                        {<RefreshCw />}
-                      </Button>
-                    </SelectModel>
-                  </div>
+                  <Button
+                    data-testid="message-regenerate-button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-3! p-4!"
+                    onClick={handleRegenerate}
+                    disabled={isLoading}
+                  >
+                    <RefreshCw className={cn(isLoading && "animate-spin")} />
+                  </Button>
                 </TooltipTrigger>
-                <TooltipContent>Change Model</TooltipContent>
+                <TooltipContent>Regenerate</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -433,138 +482,18 @@ export const AssistMessagePart = memo(function AssistMessagePart({
             </>
           )}
 
-          {metadata && (
+          {metadata?.usage?.totalTokens !== undefined && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
-                  size="icon"
-                  className="size-3! p-4! opacity-0 group-hover/message:opacity-100 transition-opacity duration-300"
+                  size="sm"
+                  className="h-auto px-2 py-1 text-xs font-mono"
                 >
-                  <EllipsisIcon />
+                  {metadata.usage.totalTokens.toLocaleString()}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent className="p-4 w-72 bg-card border shadow-lg">
-                <div className="space-y-4">
-                  {agent && (
-                    <>
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-semibold text-foreground">
-                          Agent
-                        </h4>
-                        <div className="flex gap-3 items-center">
-                          <div
-                            className="p-1.5 rounded-full ring-2 ring-border/50 bg-background shadow-sm"
-                            style={{
-                              backgroundColor:
-                                agent.icon?.style?.backgroundColor ||
-                                BACKGROUND_COLORS[0],
-                            }}
-                          >
-                            <Avatar className="size-3">
-                              <AvatarImage
-                                src={
-                                  agent.icon?.value
-                                    ? getEmojiUrl(agent.icon.value, "apple", 64)
-                                    : getEmojiUrl(EMOJI_DATA[0], "apple", 64)
-                                }
-                              />
-                              <AvatarFallback className="bg-transparent text-xs">
-                                {agent.name[0]}
-                              </AvatarFallback>
-                            </Avatar>
-                          </div>
-                          <span className="font-medium text-sm">
-                            {agent.name}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="border-t border-border/50" />
-                    </>
-                  )}
-
-                  {metadata.chatModel && (
-                    <>
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-semibold text-foreground">
-                          Model
-                        </h4>
-                        <div className="flex gap-3 items-center">
-                          <ModelProviderIcon
-                            provider={metadata.chatModel.provider}
-                            className="size-5 flex-shrink-0"
-                          />
-                          <div className="space-y-0.5 flex-1">
-                            <div className="text-sm font-medium text-foreground">
-                              {metadata.chatModel.provider}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {metadata.chatModel.model}
-                              {metadata.toolCount !== undefined &&
-                                metadata.toolCount > 0 && (
-                                  <span className="ml-2">
-                                    • {metadata.toolCount} tools
-                                  </span>
-                                )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="border-t border-border/50" />
-                    </>
-                  )}
-
-                  {metadata.usage && (
-                    <>
-                      <div className="flex flex-col gap-2">
-                        <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                          Token Usage
-                          <span className="text-xs text-muted-foreground font-normal">
-                            {
-                              message.parts.filter(
-                                (v) => v.type != "step-start",
-                              ).length
-                            }{" "}
-                            Steps
-                          </span>
-                        </h4>
-                        <div className="space-y-2">
-                          {metadata.usage.inputTokens !== undefined && (
-                            <div className="flex items-center justify-between py-1 px-2 rounded-md bg-muted/30">
-                              <span className="text-xs text-muted-foreground">
-                                Input
-                              </span>
-                              <span className="text-xs font-mono font-medium">
-                                {metadata.usage.inputTokens.toLocaleString()}
-                              </span>
-                            </div>
-                          )}
-                          {metadata.usage.outputTokens !== undefined && (
-                            <div className="flex items-center justify-between py-1 px-2 rounded-md bg-muted/30">
-                              <span className="text-xs text-muted-foreground">
-                                Output
-                              </span>
-                              <span className="text-xs font-mono font-medium">
-                                {metadata.usage.outputTokens.toLocaleString()}
-                              </span>
-                            </div>
-                          )}
-                          {metadata.usage.totalTokens !== undefined && (
-                            <div className="flex items-center justify-between py-1.5 px-2 rounded-md bg-primary/10 border border-primary/20">
-                              <span className="text-xs font-medium text-primary">
-                                Total
-                              </span>
-                              <span className="text-xs font-mono font-bold text-primary">
-                                {metadata.usage.totalTokens.toLocaleString()}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </TooltipContent>
+              <TooltipContent>Token</TooltipContent>
             </Tooltip>
           )}
         </div>
@@ -652,6 +581,67 @@ export const ReasoningPart = memo(function ReasoningPart({
   );
 });
 ReasoningPart.displayName = "ReasoningPart";
+
+// ThinkPart component for collapsible think sections
+export const ThinkPart = memo(function ThinkPart({
+  thinkText,
+  readonly,
+}: {
+  thinkText: string;
+  readonly?: boolean;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <div
+      className="flex flex-col cursor-pointer"
+      onClick={() => {
+        if (!readonly) {
+          setIsExpanded(!isExpanded);
+        }
+      }}
+    >
+      <div className="flex flex-row gap-2 items-center text-muted-foreground hover:text-primary transition-colors">
+        <Brain className="size-4 text-blue-500" />
+        <div className="font-medium text-sm">Thought</div>
+        <button
+          data-testid="message-think-toggle"
+          type="button"
+          className="cursor-pointer"
+        >
+          <ChevronDownIcon
+            size={16}
+            className={cn(
+              "transition-transform duration-200",
+              isExpanded && "rotate-180",
+            )}
+          />
+        </button>
+      </div>
+
+      <div className="pl-4">
+        <AnimatePresence initial={false}>
+          {isExpanded && (
+            <motion.div
+              data-testid="message-think"
+              key="content"
+              initial="collapsed"
+              animate="expanded"
+              exit="collapsed"
+              variants={variants}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              style={{ overflow: "hidden" }}
+              className="pl-6 text-muted-foreground border-l border-blue-200 flex flex-col gap-4"
+            >
+              <Markdown>{thinkText}</Markdown>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+});
+ThinkPart.displayName = "ThinkPart";
 
 const loading = memo(function Loading() {
   return (

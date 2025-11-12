@@ -1,7 +1,7 @@
 "use server";
 
 import { providerRepository } from "lib/db/repository";
-import { invalidateModelsCache } from "lib/ai/models";
+import { updateProviderInCache } from "lib/ai/models";
 import type { LLMConfig } from "app-types/provider";
 import { requireAdminPermission } from "auth/permissions";
 
@@ -13,8 +13,11 @@ export async function updateProviderApiKeyAction(
   apiKey: string | null,
 ) {
   await requireAdminPermission();
-  await providerRepository.updateApiKey(id, apiKey);
-  invalidateModelsCache();
+  const provider = await providerRepository.selectById(id);
+  if (provider) {
+    await providerRepository.updateApiKey(id, apiKey);
+    await updateProviderInCache(provider.name);
+  }
 }
 
 /**
@@ -25,8 +28,11 @@ export async function updateProviderLLMModelsAction(
   llm: LLMConfig[],
 ) {
   await requireAdminPermission();
-  await providerRepository.updateLLMModels(id, llm);
-  invalidateModelsCache();
+  const provider = await providerRepository.selectById(id);
+  if (provider) {
+    await providerRepository.updateLLMModels(id, llm);
+    await updateProviderInCache(provider.name);
+  }
 }
 
 /**
@@ -42,7 +48,7 @@ export async function saveProviderAction(provider: {
 }) {
   await requireAdminPermission();
   const result = await providerRepository.save(provider);
-  invalidateModelsCache();
+  await updateProviderInCache(provider.name);
   return result;
 }
 
@@ -51,8 +57,11 @@ export async function saveProviderAction(provider: {
  */
 export async function deleteProviderAction(id: number) {
   await requireAdminPermission();
-  await providerRepository.deleteById(id);
-  invalidateModelsCache();
+  const provider = await providerRepository.selectById(id);
+  if (provider) {
+    await providerRepository.deleteById(id);
+    await updateProviderInCache(provider.name);
+  }
 }
 
 /**

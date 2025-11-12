@@ -58,6 +58,10 @@ export async function generateTitleFromUserMessageAction({
     model,
     system: CREATE_THREAD_TITLE_PROMPT,
     prompt,
+    // add user-id in header for Dify at least
+    headers: {
+      "user-id": session.user.id,
+    },
   });
 
   return title.trim();

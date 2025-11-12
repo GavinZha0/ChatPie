@@ -94,7 +94,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     allowedMcpServers,
     threadList,
     threadMentions,
-    pendingThreadMention,
     threadImageToolModel,
     chatWidthMode,
   ] = appStore(
@@ -106,7 +105,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
       state.allowedMcpServers,
       state.threadList,
       state.threadMentions,
-      state.pendingThreadMention,
       state.threadImageToolModel,
       state.chatWidthMode,
     ]),
@@ -369,18 +367,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
   }, [threadId]);
 
   useEffect(() => {
-    if (pendingThreadMention && threadId) {
-      appStoreMutate((prev) => ({
-        threadMentions: {
-          ...prev.threadMentions,
-          [threadId]: [pendingThreadMention],
-        },
-        pendingThreadMention: undefined,
-      }));
-    }
-  }, [pendingThreadMention, threadId, appStoreMutate]);
-
-  useEffect(() => {
     if (isInitialThreadEntry)
       containerRef.current?.scrollTo({
         top: containerRef.current?.scrollHeight,
@@ -536,8 +522,34 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             onFocus={isFirstTime ? undefined : handleFocus}
             widthMode={chatWidthMode}
             onNewChat={() => {
-              router.push("/");
-              router.refresh();
+              // Generate new thread ID
+              const newThreadId = generateUUID();
+
+              // Clear chat messages and reset state
+              setMessages([]);
+              setInput("");
+
+              // Clear thread-specific states but preserve agent mentions and model
+              appStoreMutate((prev) => {
+                const currentMentions = prev.threadMentions[threadId] || [];
+                return {
+                  threadFiles: {
+                    ...prev.threadFiles,
+                    [newThreadId]: [], // Clear files for new thread
+                  },
+                  threadImageToolModel: {
+                    ...prev.threadImageToolModel,
+                    [newThreadId]: undefined, // Clear image tool for new thread
+                  },
+                  threadMentions: {
+                    ...prev.threadMentions,
+                    [newThreadId]: currentMentions, // Preserve current mentions
+                  },
+                };
+              });
+
+              // Update URL without page refresh
+              router.replace(`/chat/${newThreadId}`);
             }}
           />
         </div>

@@ -333,6 +333,11 @@ export async function POST(request: Request) {
           stopWhen: stepCountIs(10),
           toolChoice: "auto",
           abortSignal: request.signal,
+          // add user-id in header for Dify at least
+          headers: {
+            // "chat-id": id, // TODO: add conversationId
+            "user-id": session.user.email,
+          },
         });
         result.consumeStream();
         dataStream.merge(

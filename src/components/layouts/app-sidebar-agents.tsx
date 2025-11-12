@@ -19,6 +19,7 @@ import { AgentDropdown } from "../agent/agent-dropdown";
 import { EditAgentDialog } from "../agent/edit-agent-dialog";
 
 import { appStore } from "@/app/store";
+import { useStore } from "zustand";
 import { useRouter } from "next/navigation";
 import { ChatMention } from "app-types/chat";
 import { BACKGROUND_COLORS, EMOJI_DATA } from "lib/const";
@@ -36,6 +37,10 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
   const [expanded, setExpanded] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const { data: session } = authClient.useSession();
+
+  // Get current thread mentions and thread ID from store
+  const currentThreadId = useStore(appStore, (state) => state.currentThreadId);
+  const threadMentions = useStore(appStore, (state) => state.threadMentions);
   const {
     bookmarkedAgents,
     myAgents,
@@ -57,6 +62,18 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
       return true;
     });
   }, [bookmarkedAgents, myAgents]);
+
+  // Function to check if an agent is currently selected
+  const isAgentSelected = useCallback(
+    (agentId: string) => {
+      if (!currentThreadId) return false;
+      const currentMentions = threadMentions[currentThreadId] || [];
+      return currentMentions.some(
+        (mention) => mention.type === "agent" && mention.agentId === agentId,
+      );
+    },
+    [currentThreadId, threadMentions],
+  );
 
   const handleAgentClick = useCallback(
     (id: string) => {
@@ -100,7 +117,7 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
         router.push("/");
 
         appStore.setState(() => ({
-          pendingThreadMention: newMention,
+          pendingThreadMentions: [newMention],
         }));
       }
     },
@@ -174,6 +191,7 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
                 >
                   {(expanded ? agents : agents.slice(0, DISPLAY_LIMIT))?.map(
                     (agent, i) => {
+                      const isSelected = isAgentSelected(agent.id);
                       return (
                         <SidebarMenu
                           key={agent.id}
@@ -185,7 +203,11 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
                           >
                             <SidebarMenuButton
                               asChild
-                              className="data-[state=open]:bg-input! w-full"
+                              className={cn(
+                                "data-[state=open]:bg-input! w-full",
+                                isSelected &&
+                                  "bg-accent text-accent-foreground",
+                              )}
                             >
                               <div className="flex gap-1 w-full min-w-0">
                                 <div
