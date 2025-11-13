@@ -24,7 +24,6 @@ import { mutate } from "swr";
 import {
   ChatApiSchemaRequestBody,
   ChatAttachment,
-  ChatMetadata,
   ChatModel,
   MyUIMessage,
 } from "app-types/chat";
@@ -479,13 +478,8 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
         );
 
         msg.parts.forEach((part) => {
-          // Skip tag parts themselves but update context
           if (part.type === "data-agent-tag") {
-            // Extract agentId from tag to set current context
             const tagAgentId = (part as any).data?.agentId || "default";
-            console.log(
-              `[ChatBot]   Found agent tag: agentId=${tagAgentId}, blockId=${(part as any).data?.blockId}, toolCallId=${(part as any).data?.toolCallId}`,
-            );
             currentAgentId = tagAgentId;
             return;
           }
@@ -494,19 +488,25 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             return;
           }
 
-          // Find which agent this part belongs to
           const blockId = (part as any).id || (part as any).toolCallId;
-          const agentInfo = blockId ? blockAgentMap.get(blockId) : null;
-          const agentId = agentInfo?.agentId || currentAgentId; // Use current agent if no explicit tag
+          if (blockId) {
+            const agentInfo = blockAgentMap.get(blockId);
+            if (!agentInfo) {
+              return;
+            }
+            const agentId = agentInfo.agentId;
 
-          console.log(
-            `[ChatBot]   Part type=${part.type}, blockId=${blockId}, mapped to agentId=${agentId} (from ${agentInfo ? "blockAgentMap" : "currentAgentId"})`,
-          );
-
-          if (!agentParts[agentId]) {
-            agentParts[agentId] = [];
+            if (!agentParts[agentId]) {
+              agentParts[agentId] = [];
+            }
+            agentParts[agentId].push(part);
+          } else {
+            const agentId = currentAgentId;
+            if (!agentParts[agentId]) {
+              agentParts[agentId] = [];
+            }
+            agentParts[agentId].push(part);
           }
-          agentParts[agentId].push(part);
         });
 
         // Debug: log agent parts distribution
@@ -685,13 +685,11 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
 
       const agentInfos = panelAgentIds.map((agentId, index) => {
         const agentMessages = groupedMessagesByAgent[agentId] || [];
-        const firstAgentMsg = agentMessages.find((m) => m.role === "assistant");
-        const metadata = firstAgentMsg?.metadata as ChatMetadata | undefined;
         const agent = agents.find((a) => a.id === agentId);
 
         const agentInfo = {
           agentId,
-          agentName: metadata?.agentName || agent?.name || `Agent ${agentId}`,
+          agentName: agent?.name || `Agent ${agentId}`,
           agentIcon: agent?.icon,
           messages: agentMessages,
         };
@@ -700,7 +698,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           agentId,
           agentName: agentInfo.agentName,
           messageCount: agentMessages.length,
-          hasMetadata: !!metadata,
           foundInAgentList: !!agent,
         });
 
@@ -731,15 +728,17 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
 
           // Recalculate panel width based on current agent count
           const agentCount = agentInfos.length;
-          const rightPanelWidth = Math.min(agentCount * 20, 80); // Max 80%
+          const rightPanelWidth =
+            agentCount > 0
+              ? Math.min(agentCount * 20, 80)
+              : (prev.rightPanel.panelSizes?.[1] ?? 20);
           const leftPanelWidth = 100 - rightPanelWidth;
 
           return {
             rightPanel: {
               ...prev.rightPanel,
               tabs: newTabs,
-              panelSizes: [leftPanelWidth, rightPanelWidth], // Update width dynamically
-              // Keep panel open if it was already open
+              panelSizes: [leftPanelWidth, rightPanelWidth],
               isOpen: prev.rightPanel.isOpen,
             },
           };

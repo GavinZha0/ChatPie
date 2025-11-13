@@ -3,7 +3,6 @@ import {
   createUIMessageStream,
   createUIMessageStreamResponse,
   smoothStream,
-  stepCountIs,
   streamText,
   Tool,
   UIMessage,
@@ -407,8 +406,7 @@ async function handleChatModels(
             experimental_transform: smoothStream({ chunking: "word" }),
             maxRetries: 2,
             tools: vercelAITooles,
-            stopWhen: stepCountIs(10),
-            toolChoice: "auto",
+            toolChoice: toolChoice === "none" ? "none" : "auto",
             abortSignal: request.signal,
             headers: {
               "user-id": session.user.email,
@@ -504,26 +502,21 @@ function createTaggedMergedStream(
           try {
             // Get reader from the stream directly
             const reader = stream.getReader();
+            let currentBlockId: string | undefined = undefined;
+            let currentToolCallId: string | undefined = undefined;
 
             while (true) {
               const { done, value } = await reader.read();
               if (done) break;
 
-              // 1. Forward original chunk
-              writer.write(value);
+              const rawBlockId = extractBlockId(value);
+              const rawToolCallId = extractToolCallId(value);
+              const blockId = rawBlockId || currentBlockId;
+              const toolCallId = rawToolCallId || currentToolCallId;
 
-              // 2. Inject agent tag at block boundaries
               if (shouldTagChunk(value)) {
-                const blockId = extractBlockId(value);
-                const toolCallId = extractToolCallId(value);
-                console.log(`[Backend] Tagging chunk for agent ${agentId}:`, {
-                  type: value.type,
-                  blockId,
-                  toolCallId,
-                  hasId: !!value.id,
-                  hasToolCallId: !!value.toolCallId,
-                });
-
+                if (blockId) currentBlockId = blockId;
+                if (toolCallId) currentToolCallId = toolCallId;
                 writer.write({
                   type: "data-agent-tag",
                   id: `tag-${agentId}-${extractChunkId(value)}`,
@@ -536,6 +529,8 @@ function createTaggedMergedStream(
                   },
                 });
               }
+
+              writer.write(value);
             }
 
             // 3. Send agent finish marker

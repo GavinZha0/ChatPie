@@ -158,6 +158,7 @@ export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
                           >
                             <span className="mr-2">{tab.title}</span>
                             <Button
+                              asChild
                               variant="ghost"
                               size="icon"
                               className="size-4 p-0 hover:bg-muted rounded-full"
@@ -166,7 +167,9 @@ export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
                                 closeTab(tab.id);
                               }}
                             >
-                              <X className="size-3" />
+                              <span>
+                                <X className="size-3" />
+                              </span>
                             </Button>
                           </TabsTrigger>
                         ))}

@@ -30,7 +30,7 @@ export function AppSidebar({
       />
 
       <SidebarContent className="overflow-hidden relative">
-        <div className="flex flex-col overflow-y-auto">
+        <div className="flex flex-col min-h-0">
           <AppSidebarAgents userRole={userRole} />
         </div>
       </SidebarContent>
