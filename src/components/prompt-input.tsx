@@ -108,9 +108,6 @@ export default function PromptInput({
   const layoutT = useTranslations("");
   const [isUploadDropdownOpen, setIsUploadDropdownOpen] = useState(false);
   const [isGroupChatModeOpen, setIsGroupChatModeOpen] = useState(false);
-  const [selectedGroupChatMode, setSelectedGroupChatMode] = useState<
-    string | null
-  >(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadFiles } = useThreadFileUploader(threadId);
   const { data: providers } = useChatModels();
@@ -121,6 +118,7 @@ export default function PromptInput({
     threadMentions,
     threadFiles,
     threadImageToolModel,
+    groupChatMode,
     appStoreMutate,
   ] = appStore(
     useShallow((state) => [
@@ -128,6 +126,7 @@ export default function PromptInput({
       state.threadMentions,
       state.threadFiles,
       state.threadImageToolModel,
+      state.groupChatMode,
       state.mutate,
     ]),
   );
@@ -161,7 +160,7 @@ export default function PromptInput({
 
   // Dynamic icon based on selected group chat mode
   const groupChatModeIcon = useMemo(() => {
-    switch (selectedGroupChatMode) {
+    switch (groupChatMode) {
       case "one-to-many":
         return <RadioTower className="size-4" />;
       case "discussion":
@@ -175,7 +174,7 @@ export default function PromptInput({
       default:
         return <Users className="size-4" />; // Default icon when no mode selected
     }
-  }, [selectedGroupChatMode]);
+  }, [groupChatMode]);
 
   // Determine selected agent and its predefined chat model (if any)
   // Use the LAST agent mentioned (most recently added) as the active one
@@ -882,7 +881,7 @@ export default function PromptInput({
                       <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() => {
-                          setSelectedGroupChatMode(null);
+                          appStoreMutate({ groupChatMode: null });
                           setIsGroupChatModeOpen(false);
                         }}
                       >
@@ -892,7 +891,7 @@ export default function PromptInput({
                             <span className="font-bold">
                               {t("GroupChat.none")}
                             </span>
-                            {selectedGroupChatMode === null && (
+                            {groupChatMode === null && (
                               <Check className="ml-auto size-4" />
                             )}
                           </div>
@@ -904,7 +903,7 @@ export default function PromptInput({
                       <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() => {
-                          setSelectedGroupChatMode("one-to-many");
+                          appStoreMutate({ groupChatMode: "one-to-many" });
                           setIsGroupChatModeOpen(false);
                         }}
                       >
@@ -914,7 +913,7 @@ export default function PromptInput({
                             <span className="font-bold">
                               {t("GroupChat.broadcast")}
                             </span>
-                            {selectedGroupChatMode === "one-to-many" && (
+                            {groupChatMode === "one-to-many" && (
                               <Check className="ml-auto size-4" />
                             )}
                           </div>
@@ -926,7 +925,7 @@ export default function PromptInput({
                       <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() => {
-                          setSelectedGroupChatMode("discussion");
+                          appStoreMutate({ groupChatMode: "discussion" });
                           setIsGroupChatModeOpen(false);
                         }}
                       >
@@ -936,7 +935,7 @@ export default function PromptInput({
                             <span className="font-bold">
                               {t("GroupChat.discussion")}
                             </span>
-                            {selectedGroupChatMode === "discussion" && (
+                            {groupChatMode === "discussion" && (
                               <Check className="ml-auto size-4" />
                             )}
                           </div>
@@ -948,7 +947,7 @@ export default function PromptInput({
                       <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() => {
-                          setSelectedGroupChatMode("relay");
+                          appStoreMutate({ groupChatMode: "relay" });
                           setIsGroupChatModeOpen(false);
                         }}
                       >
@@ -958,7 +957,7 @@ export default function PromptInput({
                             <span className="font-bold">
                               {t("GroupChat.relay")}
                             </span>
-                            {selectedGroupChatMode === "relay" && (
+                            {groupChatMode === "relay" && (
                               <Check className="ml-auto size-4" />
                             )}
                           </div>
@@ -970,7 +969,7 @@ export default function PromptInput({
                       <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() => {
-                          setSelectedGroupChatMode("task");
+                          appStoreMutate({ groupChatMode: "task" });
                           setIsGroupChatModeOpen(false);
                         }}
                       >
@@ -980,7 +979,7 @@ export default function PromptInput({
                             <span className="font-bold">
                               {t("GroupChat.task")}
                             </span>
-                            {selectedGroupChatMode === "task" && (
+                            {groupChatMode === "task" && (
                               <Check className="ml-auto size-4" />
                             )}
                           </div>
@@ -992,7 +991,7 @@ export default function PromptInput({
                       <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() => {
-                          setSelectedGroupChatMode("debate");
+                          appStoreMutate({ groupChatMode: "debate" });
                           setIsGroupChatModeOpen(false);
                         }}
                       >
@@ -1002,7 +1001,7 @@ export default function PromptInput({
                             <span className="font-bold">
                               {t("GroupChat.debate")}
                             </span>
-                            {selectedGroupChatMode === "debate" && (
+                            {groupChatMode === "debate" && (
                               <Check className="ml-auto size-4" />
                             )}
                           </div>

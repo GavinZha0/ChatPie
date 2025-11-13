@@ -80,6 +80,7 @@ export interface AppState {
   pendingThreadMentions?: ChatMention[];
   chatWidthMode: ChatWidthMode;
   newChatHandler?: () => void;
+  groupChatMode: string | null; // 'one-to-many', 'discussion', 'relay', 'task', 'debate', or null
   rightPanel: {
     isOpen: boolean;
     tabs: RightPanelTab[];
@@ -134,6 +135,7 @@ const initialState: AppState = {
   pendingThreadMentions: undefined,
   chatWidthMode: "centered",
   newChatHandler: undefined,
+  groupChatMode: null,
   rightPanel: {
     isOpen: false,
     tabs: [],
@@ -176,6 +178,7 @@ export const appStore = create<AppState & AppDispatch>()(
           isOpen: false,
         },
         chatWidthMode: state.chatWidthMode ?? initialState.chatWidthMode,
+        groupChatMode: state.groupChatMode ?? initialState.groupChatMode,
         rightPanel: {
           ...initialState.rightPanel,
           ...state.rightPanel,

@@ -24,7 +24,9 @@ import { mutate } from "swr";
 import {
   ChatApiSchemaRequestBody,
   ChatAttachment,
+  ChatMetadata,
   ChatModel,
+  MyUIMessage,
 } from "app-types/chat";
 import { useToRef } from "@/hooks/use-latest";
 import { isShortcutEvent, Shortcuts } from "lib/keyboard-shortcuts";
@@ -53,7 +55,7 @@ import { useAgents } from "@/hooks/queries/use-agents";
 
 type Props = {
   threadId: string;
-  initialMessages: Array<UIMessage>;
+  initialMessages: Array<MyUIMessage>;
   selectedChatModel?: string;
 };
 
@@ -98,6 +100,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     threadMentions,
     threadImageToolModel,
     chatWidthMode,
+    groupChatMode,
   ] = appStore(
     useShallow((state) => [
       state.mutate,
@@ -109,6 +112,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
       state.threadMentions,
       state.threadImageToolModel,
       state.chatWidthMode,
+      state.groupChatMode,
     ]),
   );
 
@@ -170,7 +174,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     error,
     sendMessage,
     stop,
-  } = useChat({
+  } = useChat<MyUIMessage>({
     id: threadId,
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
     transport: new DefaultChatTransport({
@@ -215,6 +219,91 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
         const agentMentions = (latestRef.current.mentions || []).filter(
           (m) => m.type === "agent",
         );
+
+        // Check if we should open right panel for broadcast mode
+        const isBroadcast = groupChatMode === "one-to-many";
+        const hasMultipleAgents = agentMentions.length >= 2;
+
+        if (isBroadcast && hasMultipleAgents) {
+          console.log(
+            "[ChatBot] Broadcast mode detected with",
+            agentMentions.length,
+            "agents",
+          );
+
+          // Open right panel immediately when user sends message
+          // Skip the first agent (shown in main chat) and show agents 2-5 (max 4)
+          const agentInfos = agentMentions.slice(1, 5).map((mention) => {
+            const agent = latestRef.current.agents?.find(
+              (a) => a.id === mention.agentId,
+            );
+
+            return {
+              agentId: mention.agentId,
+              agentName: mention.name,
+              agentIcon: agent?.icon,
+              messages: [lastMessage], // Show the user's message immediately
+            };
+          });
+
+          // Calculate panel width: each agent needs 20% width
+          const agentCount = agentInfos.length;
+          const rightPanelWidth = Math.min(agentCount * 20, 80); // Max 80%
+          const leftPanelWidth = 100 - rightPanelWidth;
+
+          console.log(
+            "[ChatBot] Opening/updating band panel for agents:",
+            agentInfos.map((a) => a.agentName),
+          );
+
+          appStoreMutate((prev) => {
+            const bandTabIndex = prev.rightPanel.tabs.findIndex(
+              (t) => t.type === "band",
+            );
+
+            if (bandTabIndex >= 0) {
+              // Band tab exists - update it and force panel open
+              console.log(
+                "[ChatBot] Band tab exists, updating and opening panel",
+              );
+              const newTabs = [...prev.rightPanel.tabs];
+              newTabs[bandTabIndex] = {
+                ...newTabs[bandTabIndex],
+                content: { agents: agentInfos },
+              };
+
+              return {
+                rightPanel: {
+                  ...prev.rightPanel,
+                  isOpen: true, // Force open even if was closed
+                  tabs: newTabs,
+                  activeTabId: "band-tab",
+                  panelSizes: [leftPanelWidth, rightPanelWidth],
+                },
+              };
+            } else {
+              // No band tab - create new one
+              console.log("[ChatBot] Creating new band tab and opening panel");
+              return {
+                rightPanel: {
+                  ...prev.rightPanel,
+                  isOpen: true,
+                  tabs: [
+                    ...prev.rightPanel.tabs,
+                    {
+                      id: "band-tab",
+                      type: "band",
+                      title: "Group Chat",
+                      content: { agents: agentInfos },
+                    },
+                  ],
+                  activeTabId: "band-tab",
+                  panelSizes: [leftPanelWidth, rightPanelWidth],
+                },
+              };
+            }
+          });
+        }
 
         const requestBody: ChatApiSchemaRequestBody = {
           ...body,
@@ -269,7 +358,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
         return { body: requestBody };
       },
     }),
-    messages: initialMessages,
+    messages: initialMessages as MyUIMessage[],
     generateId: generateUUID,
     experimental_throttle: 100,
     onFinish,
@@ -299,37 +388,250 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     agents,
   });
 
+  // Build blockId/toolCallId -> agentInfo mapping from agent tags
+  const blockAgentMap = useMemo(() => {
+    const map = new Map<string, { agentId: string; agentName: string }>();
+
+    messages.forEach((msg) => {
+      msg.parts
+        .filter(
+          (p): p is Extract<typeof p, { type: "data-agent-tag" }> =>
+            p.type === "data-agent-tag",
+        )
+        .forEach((tag) => {
+          const { agentId, agentName, blockId, toolCallId } = tag.data;
+          if (blockId) {
+            map.set(blockId, { agentId, agentName });
+          }
+          if (toolCallId) {
+            map.set(toolCallId, { agentId, agentName });
+          }
+        });
+    });
+
+    return map;
+  }, [messages]);
+
+  // Get ordered agent IDs based on user's selection order (from threadMentions)
+  const orderedAgentIds = useMemo(() => {
+    const agentMentions = threadMentions[threadId] || [];
+    const mentionedAgentIds = agentMentions
+      .filter((m) => m.type === "agent")
+      .map((m) => m.agentId);
+
+    console.log("[ChatBot] User selected agent order:", mentionedAgentIds);
+    return mentionedAgentIds;
+  }, [threadMentions, threadId]);
+
+  // Group messages by agentId for multi-agent display
+  const groupedMessagesByAgent = useMemo(() => {
+    const groups: Record<string, UIMessage[]> = {};
+
+    // Debug: log blockAgentMap size and actual mappings
+    console.log(
+      "[ChatBot] blockAgentMap size:",
+      blockAgentMap.size,
+      "entries:",
+      Array.from(blockAgentMap.entries()),
+    );
+    if (blockAgentMap.size > 0) {
+      console.log("[ChatBot] blockAgentMap details:");
+      blockAgentMap.forEach((value, key) => {
+        console.log(
+          `  blockId/toolCallId: ${key} -> agentId: ${value.agentId}, agentName: ${value.agentName}`,
+        );
+      });
+    }
+
+    // Initialize groups for all selected agents (from user's selection, not from message stream)
+    // This is the correct approach: we know which agents are selected before messages arrive
+    orderedAgentIds.forEach((agentId) => {
+      groups[agentId] = [];
+    });
+
+    console.log(
+      "[ChatBot] Initialized groups for selected agents:",
+      Object.keys(groups),
+    );
+
+    // Process messages and group parts by agent
+    messages.forEach((msg) => {
+      if (msg.role === "user") {
+        // User messages will be added later to all agent groups
+        return;
+      }
+
+      if (msg.role === "assistant") {
+        // Group assistant message parts by agent based on tags
+        const agentParts: Record<string, any[]> = {};
+        let currentAgentId = "default"; // Track current agent for consecutive parts
+
+        console.log(
+          `[ChatBot] Processing assistant message ${msg.id}, total parts: ${msg.parts.length}`,
+        );
+        console.log(
+          "[ChatBot] All parts:",
+          msg.parts.map((p) => ({
+            type: p.type,
+            id: (p as any).id,
+            toolCallId: (p as any).toolCallId,
+          })),
+        );
+
+        msg.parts.forEach((part) => {
+          // Skip tag parts themselves but update context
+          if (part.type === "data-agent-tag") {
+            // Extract agentId from tag to set current context
+            const tagAgentId = (part as any).data?.agentId || "default";
+            console.log(
+              `[ChatBot]   Found agent tag: agentId=${tagAgentId}, blockId=${(part as any).data?.blockId}, toolCallId=${(part as any).data?.toolCallId}`,
+            );
+            currentAgentId = tagAgentId;
+            return;
+          }
+
+          if (part.type === "data-agent-finish") {
+            return;
+          }
+
+          // Find which agent this part belongs to
+          const blockId = (part as any).id || (part as any).toolCallId;
+          const agentInfo = blockId ? blockAgentMap.get(blockId) : null;
+          const agentId = agentInfo?.agentId || currentAgentId; // Use current agent if no explicit tag
+
+          console.log(
+            `[ChatBot]   Part type=${part.type}, blockId=${blockId}, mapped to agentId=${agentId} (from ${agentInfo ? "blockAgentMap" : "currentAgentId"})`,
+          );
+
+          if (!agentParts[agentId]) {
+            agentParts[agentId] = [];
+          }
+          agentParts[agentId].push(part);
+        });
+
+        // Debug: log agent parts distribution
+        console.log(
+          "[ChatBot] Message",
+          msg.id,
+          "distributed to agents:",
+          Object.keys(agentParts),
+        );
+
+        // Create separate messages for each agent
+        Object.entries(agentParts).forEach(([agentId, parts]) => {
+          if (!groups[agentId]) {
+            groups[agentId] = [];
+          }
+
+          groups[agentId].push({
+            ...msg,
+            parts,
+          });
+        });
+      }
+    });
+
+    // Add user messages to all agent groups (including those with no content yet)
+    const userMessages = messages.filter((m) => m.role === "user");
+    Object.keys(groups).forEach((agentId) => {
+      // Interleave user messages with agent messages
+      const agentMessages = groups[agentId];
+      const combined: UIMessage[] = [];
+
+      userMessages.forEach((userMsg, index) => {
+        combined.push(userMsg);
+        if (agentMessages[index]) {
+          combined.push(agentMessages[index]);
+        }
+      });
+
+      groups[agentId] = combined;
+    });
+
+    // Debug: log final groups
+    console.log(
+      "[ChatBot] Final grouped agents:",
+      Object.keys(groups),
+      "counts:",
+      Object.fromEntries(Object.entries(groups).map(([k, v]) => [k, v.length])),
+    );
+
+    return groups;
+  }, [messages, blockAgentMap, status, orderedAgentIds]); // Use orderedAgentIds instead of extracting from stream
+
+  const selectedGroupChatMode = useMemo(() => {
+    return groupChatMode;
+  }, [groupChatMode]);
+
+  // For broadcast mode with multiple agents: show only first agent in main chat area
+  const messagesForMainChat = useMemo(() => {
+    const agentIds = Object.keys(groupedMessagesByAgent).filter(
+      (id) => id !== "default",
+    );
+    const hasMultipleAgents = agentIds.length >= 2;
+    const isBroadcast = selectedGroupChatMode === "one-to-many";
+
+    console.log(
+      "[ChatBot] messagesForMainChat - available agentIds:",
+      agentIds,
+    );
+
+    if (!isBroadcast || !hasMultipleAgents) {
+      // Single agent or non-broadcast mode: show all messages
+      return messages;
+    }
+
+    // Use user's selection order to determine first agent
+    const firstAgentId =
+      orderedAgentIds.find((id) => agentIds.includes(id)) || agentIds[0];
+    const mainChatMessages = groupedMessagesByAgent[firstAgentId] || [];
+
+    console.log(
+      "[ChatBot] Main chat using agent:",
+      firstAgentId,
+      "message count:",
+      mainChatMessages.length,
+    );
+
+    return mainChatMessages;
+  }, [
+    messages,
+    groupedMessagesByAgent,
+    selectedGroupChatMode,
+    orderedAgentIds,
+  ]);
+
   const isLoading = useMemo(
     () => status === "streaming" || status === "submitted",
     [status],
   );
 
   const emptyMessage = useMemo(
-    () => messages.length === 0 && !error,
-    [messages.length, error],
+    () => messagesForMainChat.length === 0 && !error,
+    [messagesForMainChat.length, error],
   );
 
   const isInitialThreadEntry = useMemo(
     () =>
       initialMessages.length > 0 &&
-      initialMessages.at(-1)?.id === messages.at(-1)?.id,
-    [messages],
+      initialMessages.at(-1)?.id === messagesForMainChat.at(-1)?.id,
+    [messagesForMainChat],
   );
 
   const isPendingToolCall = useMemo(() => {
     if (status != "ready") return false;
-    const lastMessage = messages.at(-1);
+    const lastMessage = messagesForMainChat.at(-1);
     if (lastMessage?.role != "assistant") return false;
     const lastPart = lastMessage.parts.at(-1);
     if (!lastPart) return false;
     if (!isToolUIPart(lastPart)) return false;
     if (lastPart.state.startsWith("output")) return false;
     return true;
-  }, [status, messages]);
+  }, [status, messagesForMainChat]);
 
   const space = useMemo(() => {
     if (!isLoading || error) return false;
-    const lastMessage = messages.at(-1);
+    const lastMessage = messagesForMainChat.at(-1);
     if (lastMessage?.role == "user") return "think";
     const lastPart = lastMessage?.parts.at(-1);
     if (!lastPart) return "think";
@@ -340,7 +642,119 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
       return lastMessage?.parts.length == 1 ? "think" : "space";
     }
     return false;
-  }, [isLoading, messages.at(-1)]);
+  }, [isLoading, messagesForMainChat]);
+
+  // Automatically update right panel content for broadcast mode
+  useEffect(() => {
+    const agentIds = Object.keys(groupedMessagesByAgent).filter(
+      (id) => id !== "default",
+    );
+    const hasMultipleAgents = agentIds.length >= 2;
+    const isBroadcast = selectedGroupChatMode === "one-to-many";
+
+    console.log(
+      "[ChatBot] Panel update check - available agentIds:",
+      agentIds,
+      "hasMultiple:",
+      hasMultipleAgents,
+      "isBroadcast:",
+      isBroadcast,
+    );
+
+    if (isBroadcast && hasMultipleAgents) {
+      // Sort agentIds based on user's selection order
+      const sortedAgentIds = orderedAgentIds.filter((id) =>
+        agentIds.includes(id),
+      );
+      // Add any agents not in the original selection (shouldn't happen normally)
+      agentIds.forEach((id) => {
+        if (!sortedAgentIds.includes(id)) {
+          sortedAgentIds.push(id);
+        }
+      });
+
+      console.log(
+        "[ChatBot] Panel update - sorted agent order:",
+        sortedAgentIds,
+      );
+
+      // Update right panel content with agent messages
+      // Skip the first agent (shown in main chat area) and show agents 2-5 in right panel (max 4)
+      const panelAgentIds = sortedAgentIds.slice(1, 5);
+      console.log("[ChatBot] Panel agent IDs (skipping first):", panelAgentIds);
+
+      const agentInfos = panelAgentIds.map((agentId, index) => {
+        const agentMessages = groupedMessagesByAgent[agentId] || [];
+        const firstAgentMsg = agentMessages.find((m) => m.role === "assistant");
+        const metadata = firstAgentMsg?.metadata as ChatMetadata | undefined;
+        const agent = agents.find((a) => a.id === agentId);
+
+        const agentInfo = {
+          agentId,
+          agentName: metadata?.agentName || agent?.name || `Agent ${agentId}`,
+          agentIcon: agent?.icon,
+          messages: agentMessages,
+        };
+
+        console.log(`[ChatBot] Panel agent ${index + 1}:`, {
+          agentId,
+          agentName: agentInfo.agentName,
+          messageCount: agentMessages.length,
+          hasMetadata: !!metadata,
+          foundInAgentList: !!agent,
+        });
+
+        return agentInfo;
+      });
+
+      console.log(
+        "[ChatBot] Updating panel with agents:",
+        agentInfos.map((a) => ({
+          id: a.agentId,
+          name: a.agentName,
+          msgCount: a.messages.length,
+        })),
+      );
+
+      appStoreMutate((prev) => {
+        const bandTabIndex = prev.rightPanel.tabs.findIndex(
+          (t) => t.type === "band",
+        );
+
+        // Update band tab content if it exists
+        if (bandTabIndex >= 0) {
+          const newTabs = [...prev.rightPanel.tabs];
+          newTabs[bandTabIndex] = {
+            ...newTabs[bandTabIndex],
+            content: { agents: agentInfos },
+          };
+
+          // Recalculate panel width based on current agent count
+          const agentCount = agentInfos.length;
+          const rightPanelWidth = Math.min(agentCount * 20, 80); // Max 80%
+          const leftPanelWidth = 100 - rightPanelWidth;
+
+          return {
+            rightPanel: {
+              ...prev.rightPanel,
+              tabs: newTabs,
+              panelSizes: [leftPanelWidth, rightPanelWidth], // Update width dynamically
+              // Keep panel open if it was already open
+              isOpen: prev.rightPanel.isOpen,
+            },
+          };
+        }
+        return prev;
+      });
+    }
+    // Don't automatically close panel - let user control it
+  }, [
+    groupedMessagesByAgent,
+    selectedGroupChatMode,
+    agents,
+    appStoreMutate,
+    orderedAgentIds,
+  ]);
 
   const particle = useMemo(() => {
     return (
@@ -481,21 +895,21 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
               ref={containerRef}
               onScroll={handleScroll}
             >
-              {messages.map((message, index) => {
-                const isLastMessage = messages.length - 1 === index;
+              {messagesForMainChat.map((message, index) => {
+                const isLastMessage = messagesForMainChat.length - 1 === index;
                 return (
                   <PreviewMessage
                     threadId={threadId}
                     messageIndex={index}
-                    prevMessage={messages[index - 1]}
+                    prevMessage={messagesForMainChat[index - 1]}
                     key={message.id}
-                    message={message}
+                    message={message as UIMessage}
                     status={status}
                     addToolResult={addToolResult}
                     isLoading={isLoading || isPendingToolCall}
                     isLastMessage={isLastMessage}
-                    setMessages={setMessages}
-                    sendMessage={sendMessage}
+                    setMessages={setMessages as any}
+                    sendMessage={sendMessage as any}
                     widthMode={chatWidthMode}
                     className={
                       isLastMessage &&
@@ -536,7 +950,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
 
         <div
           className={clsx(
-            messages.length && "absolute bottom-14",
+            messagesForMainChat.length && "absolute bottom-14",
             "w-full z-10",
           )}
         >
@@ -547,7 +961,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             )}
           >
             <ScrollToBottomButton
-              show={!isAtBottom && messages.length > 0}
+              show={!isAtBottom && messagesForMainChat.length > 0}
               onClick={scrollToBottom}
             />
           </div>
@@ -555,7 +969,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           <PromptInput
             input={input}
             threadId={threadId}
-            sendMessage={sendMessage}
+            sendMessage={sendMessage as any}
             setInput={setInput}
             isLoading={isLoading || isPendingToolCall}
             onStop={stop}

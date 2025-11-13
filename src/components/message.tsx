@@ -56,6 +56,7 @@ const PurePreviewMessage = ({
     () =>
       message.parts.filter(
         (part) => !(part.type === "text" && (part as any).ingestionPreview),
+        // Keep agent-tag parts for mapping, but they won't be rendered below
       ),
     [message.parts],
   );
@@ -150,6 +151,12 @@ const PurePreviewMessage = ({
                 />
               );
             } else if (part.type === "step-start") {
+              return null;
+            } else if (
+              part.type === "data-agent-tag" ||
+              part.type === "data-agent-finish"
+            ) {
+              // Don't render agent tag parts, they are only for internal mapping
               return null;
             } else if (part.type === "file") {
               return (

@@ -4,6 +4,25 @@ import { AllowedMCPServerZodSchema } from "./mcp";
 import { UserPreferences } from "./user";
 import { tag } from "lib/tag";
 
+// Custom UIMessage type with agent tagging data parts
+export type MyUIMessage = UIMessage<
+  ChatMetadata,
+  {
+    "agent-tag": {
+      agentId: string;
+      agentName: string;
+      blockId?: string;
+      toolCallId?: string;
+      kind: string;
+    };
+    "agent-finish": {
+      agentId: string;
+      agentName: string;
+      usage?: LanguageModelUsage;
+    };
+  }
+>;
+
 export type ChatMetadata = {
   usage?: LanguageModelUsage;
   chatModel?: ChatModel;

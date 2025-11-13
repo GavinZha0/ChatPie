@@ -24,6 +24,7 @@ import {
   chatApiSchemaRequestBodySchema,
   ChatMention,
   ChatMetadata,
+  MyUIMessage,
 } from "app-types/chat";
 
 import { errorIf, safe } from "ts-safe";
@@ -471,62 +472,143 @@ async function handleChatModels(
       stream: modelResponses[0].stream,
     });
   } else {
-    // Multiple models: return merged stream
-    return createMultiModelStreamResponse(modelResponses);
+    // Multiple models: return tagged merged stream
+    const mergedStream = createTaggedMergedStream(modelResponses, context);
+    return createUIMessageStreamResponse({
+      stream: mergedStream,
+    });
   }
 }
 
-// Multi-model stream response handler
-function createMultiModelStreamResponse(
+// Tagged stream merger for multiple agents
+function createTaggedMergedStream(
   responses: {
     agentId: string;
     agentName: string;
     stream: any;
     metadata: ChatMetadata;
   }[],
+  context: {
+    id: string;
+    message: UIMessage;
+    messages: UIMessage[];
+    session: any;
+    thread: any;
+  },
 ) {
-  const encoder = new TextEncoder();
+  return createUIMessageStream<MyUIMessage>({
+    execute: async ({ writer }) => {
+      // Process all agent streams concurrently
+      await Promise.all(
+        responses.map(async ({ agentId, agentName, stream, metadata }) => {
+          try {
+            // Get reader from the stream directly
+            const reader = stream.getReader();
 
-  const stream = new ReadableStream({
-    start(controller) {
-      // Send response header information
-      const header = {
-        type: "multi-agent",
-        responses: responses.map((r) => ({
-          agentId: r.agentId,
-          agentName: r.agentName,
-          metadata: r.metadata,
-        })),
-      };
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
 
-      controller.enqueue(encoder.encode(`data: ${JSON.stringify(header)}\n\n`));
+              // 1. Forward original chunk
+              writer.write(value);
 
-      // Process all agent response streams concurrently
-      responses.forEach((response) => {
-        // Note: This is a simplified implementation
-        // In practice, you'd need to properly handle the stream merging
-        response.stream.pipeThrough(
-          new TransformStream({
-            transform(chunk, controller) {
-              const wrappedChunk = {
-                agentId: response.agentId,
-                data: chunk,
-              };
-              controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify(wrappedChunk)}\n\n`),
-              );
-            },
-          }),
-        );
-      });
+              // 2. Inject agent tag at block boundaries
+              if (shouldTagChunk(value)) {
+                const blockId = extractBlockId(value);
+                const toolCallId = extractToolCallId(value);
+                console.log(`[Backend] Tagging chunk for agent ${agentId}:`, {
+                  type: value.type,
+                  blockId,
+                  toolCallId,
+                  hasId: !!value.id,
+                  hasToolCallId: !!value.toolCallId,
+                });
+
+                writer.write({
+                  type: "data-agent-tag",
+                  id: `tag-${agentId}-${extractChunkId(value)}`,
+                  data: {
+                    agentId,
+                    agentName,
+                    blockId,
+                    toolCallId,
+                    kind: value.type,
+                  },
+                });
+              }
+            }
+
+            // 3. Send agent finish marker
+            writer.write({
+              type: "data-agent-finish",
+              id: `finish-${agentId}`,
+              data: {
+                agentId,
+                agentName,
+                usage: metadata.usage,
+              },
+            });
+          } catch (error) {
+            logger.error(`Error processing agent ${agentId}:`, error);
+          }
+        }),
+      );
+    },
+    generateId: generateUUID,
+    onFinish: async ({ responseMessage }) => {
+      // Save user message once
+      if (responseMessage.id === context.message.id) {
+        await chatRepository.upsertMessage({
+          threadId: context.thread.id,
+          ...responseMessage,
+          parts: responseMessage.parts.map(convertToSavePart),
+        });
+      } else {
+        // Save user message
+        await chatRepository.upsertMessage({
+          threadId: context.thread.id,
+          role: context.message.role,
+          parts: context.message.parts.map(convertToSavePart),
+          id: context.message.id,
+        });
+
+        // Save assistant message with all agent parts
+        await chatRepository.upsertMessage({
+          threadId: context.thread.id,
+          role: responseMessage.role,
+          id: responseMessage.id,
+          parts: responseMessage.parts.map(convertToSavePart),
+        });
+      }
     },
   });
+}
 
-  return new Response(stream, {
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-    },
-  });
+// Determine if a chunk should be tagged with agentId
+function shouldTagChunk(chunk: any): boolean {
+  const tagTypes = [
+    "text-start",
+    "text-delta", // Add text-delta
+    "step-start", // Add step-start
+    "reasoning-start",
+    "tool-input-start",
+    "tool-output-available",
+    "error",
+  ];
+  return tagTypes.includes(chunk.type) || chunk.type?.startsWith?.("tool-");
+}
+
+// Extract chunk identifier for tagging
+function extractChunkId(chunk: any): string {
+  return chunk.id || chunk.toolCallId || crypto.randomUUID();
+}
+
+// Extract block ID from chunk
+function extractBlockId(chunk: any): string | undefined {
+  return chunk.id;
+}
+
+// Extract tool call ID from chunk
+function extractToolCallId(chunk: any): string | undefined {
+  return chunk.toolCallId;
 }

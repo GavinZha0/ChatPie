@@ -1,7 +1,7 @@
 import { selectThreadWithMessagesAction } from "@/app/api/chat/actions";
 import ChatBot from "@/components/chat-bot";
 
-import { ChatMessage, ChatThread } from "app-types/chat";
+import { ChatMessage, ChatThread, MyUIMessage } from "app-types/chat";
 import { redirect, RedirectType } from "next/navigation";
 
 const fetchThread = async (
@@ -19,5 +19,12 @@ export default async function Page({
 
   if (!thread) redirect("/", RedirectType.replace);
 
-  return <ChatBot threadId={threadId} initialMessages={thread.messages} />;
+  // Type cast: ChatMessage has UIMessage["parts"] which at runtime contains our custom data types
+  // (agent-tag, agent-finish), but TypeScript doesn't know this. Cast to MyUIMessage for type safety.
+  return (
+    <ChatBot
+      threadId={threadId}
+      initialMessages={thread.messages as MyUIMessage[]}
+    />
+  );
 }

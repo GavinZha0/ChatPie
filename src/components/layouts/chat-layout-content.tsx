@@ -10,6 +10,69 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "ui/tabs";
 import { X } from "lucide-react";
 import { Button } from "ui/button";
+import { PreviewMessage } from "@/components/message";
+import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
+import { getEmojiUrl } from "lib/emoji";
+import { UIMessage } from "ai";
+
+// Band tab content component for multi-agent chat display
+function BandTabContent({
+  agents,
+}: {
+  agents: Array<{
+    agentId: string;
+    agentName: string;
+    agentIcon?: { value: string; style?: any };
+    messages: UIMessage[];
+  }>;
+}) {
+  // Limit to 4 agents maximum
+  const displayAgents = agents.slice(0, 4);
+
+  return (
+    <div className="h-full w-full flex gap-2">
+      {displayAgents.map((agent) => (
+        <div
+          key={agent.agentId}
+          className="flex-1 min-w-0 h-full flex flex-col border-r last:border-r-0 border-border/50"
+        >
+          {/* Agent header */}
+          <div className="flex items-center gap-2 p-3 border-b border-border/50 bg-muted/30">
+            <Avatar className="size-8 ring ring-border rounded-full flex-shrink-0">
+              <AvatarImage
+                src={
+                  agent.agentIcon?.value
+                    ? getEmojiUrl(agent.agentIcon.value, "apple", 64)
+                    : undefined
+                }
+              />
+              <AvatarFallback>
+                {agent.agentName.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm font-semibold truncate">
+              {agent.agentName}
+            </span>
+          </div>
+
+          {/* Messages area */}
+          <div className="flex-1 overflow-y-auto p-2">
+            {agent.messages.map((message, index) => (
+              <PreviewMessage
+                key={message.id}
+                message={message}
+                messageIndex={index}
+                readonly={true}
+                widthMode="wide"
+                className="mb-2"
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
   const [rightPanel, appStoreMutate] = appStore(
@@ -143,12 +206,7 @@ export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
                             </div>
                           )}
                           {tab.type === "band" && (
-                            <div className="h-full">
-                              {/* group chat content */}
-                              <pre className="text-sm bg-muted p-4 rounded-lg overflow-auto">
-                                {tab.content.band}
-                              </pre>
-                            </div>
+                            <BandTabContent agents={tab.content.agents || []} />
                           )}
                         </TabsContent>
                       ))}
