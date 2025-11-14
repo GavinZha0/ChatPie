@@ -54,10 +54,14 @@ const PurePreviewMessage = ({
   const isUserMessage = useMemo(() => message.role === "user", [message.role]);
   const partsForDisplay = useMemo(
     () =>
-      message.parts.filter(
-        (part) => !(part.type === "text" && (part as any).ingestionPreview),
-        // Keep agent-tag parts for mapping, but they won't be rendered below
-      ),
+      message.parts.filter((part) => {
+        if (part.type === "text" && (part as any).ingestionPreview)
+          return false;
+        if (part.type === "data-agent-tag") return false;
+        if (part.type === "data-agent-finish") return false;
+        if (part.type === "step-start") return false;
+        return true;
+      }),
     [message.parts],
   );
 

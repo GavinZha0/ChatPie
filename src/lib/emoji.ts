@@ -7,7 +7,7 @@ export const EMOJI_CDN_BASE =
 export function getEmojiUrl(
   unified: string,
   style: EmojiStyle = "apple",
-  size: 64,
+  size: number = 64,
 ): string {
   // Apple datasource path format: /img/{style}/{size}/{unified}.png
   return `${EMOJI_CDN_BASE}/img/${style}/${size}/${unified}.png`;

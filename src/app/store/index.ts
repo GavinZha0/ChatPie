@@ -25,7 +25,7 @@ export type ChatWidthMode = "centered" | "wide";
 
 export interface RightPanelTab {
   id: string;
-  type: "http" | "chart" | "code" | "band";
+  type: "http" | "chart" | "code" | "multicast";
   title: string;
   content: any;
   threadId?: string;
@@ -80,7 +80,7 @@ export interface AppState {
   pendingThreadMentions?: ChatMention[];
   chatWidthMode: ChatWidthMode;
   newChatHandler?: () => void;
-  groupChatMode: string | null; // 'one-to-many', 'discussion', 'relay', 'task', 'debate', or null
+  groupChatMode: string | null; // 'multicast', 'discussion', 'relay', 'task', 'debate', or null
   rightPanel: {
     isOpen: boolean;
     tabs: RightPanelTab[];

@@ -161,7 +161,7 @@ export default function PromptInput({
   // Dynamic icon based on selected group chat mode
   const groupChatModeIcon = useMemo(() => {
     switch (groupChatMode) {
-      case "one-to-many":
+      case "multicast":
         return <RadioTower className="size-4" />;
       case "discussion":
         return <Users className="size-4" />;
@@ -249,9 +249,11 @@ export default function PromptInput({
     return agentPreferredModel ?? model ?? globalModel;
   }, [agentPreferredModel, model, globalModel]);
 
-  // Calculate if model selector should be disabled (when agent model type is 'agent')
+  // Calculate if model selector should be disabled
   const { data: allProviders } = useChatModels();
   const isModelSelectorDisabled = useMemo(() => {
+    // Disable when multiple agents are selected (group chat)
+    if (hasMultipleAgents) return true;
     if (!agentPreferredModel || !allProviders) return false;
     // Find the agent's model in the provider list to check its type
     for (const provider of allProviders) {
@@ -265,9 +267,30 @@ export default function PromptInput({
       }
     }
     return false;
-  }, [agentPreferredModel, allProviders]);
+  }, [hasMultipleAgents, agentPreferredModel, allProviders]);
 
   const editorRef = useRef<Editor | null>(null);
+  const mentionsContainerRef = useRef<HTMLDivElement | null>(null);
+  const [showMentionText, setShowMentionText] = useState(true);
+
+  useEffect(() => {
+    const recalc = () => {
+      const el = mentionsContainerRef.current;
+      if (!el) {
+        setShowMentionText(true);
+        return;
+      }
+      const containerWidth = el.clientWidth || 0;
+      const gap = 8;
+      const itemMinWidth = 100;
+      const requiredWidth =
+        mentions.length * itemMinWidth + Math.max(0, mentions.length - 1) * gap;
+      setShowMentionText(containerWidth >= requiredWidth);
+    };
+    recalc();
+    window.addEventListener("resize", recalc);
+    return () => window.removeEventListener("resize", recalc);
+  }, [mentions]);
 
   // Allow user to override model when an agent is active (per thread)
   const handleSelectModel = useCallback(
@@ -479,7 +502,29 @@ export default function PromptInput({
       toast.error("Please wait for files to finish uploading before sending.");
       return;
     }
-    const userMessage = input?.trim() || "";
+    const userMessage = (() => {
+      try {
+        const json = editorRef.current?.getJSON() as any;
+        const lines: string[] = [];
+        for (const block of json?.content || []) {
+          let line = "";
+          const content = (block as any)?.content || [];
+          for (const node of content) {
+            if (node?.type === "text") {
+              line += node.text || "";
+            } else if (node?.type === "hardBreak") {
+              lines.push(line);
+              line = "";
+            }
+            // Ignore mention nodes entirely for Scheme A
+          }
+          lines.push(line);
+        }
+        return lines.join("\n").trim();
+      } catch {
+        return input?.trim() || "";
+      }
+    })();
     if (userMessage.length === 0) return;
 
     setInput("");
@@ -601,16 +646,12 @@ export default function PromptInput({
             <div className="shadow-lg overflow-hidden rounded-4xl backdrop-blur-sm transition-all duration-200 bg-muted/60 relative flex w-full flex-col cursor-text z-10 items-stretch focus-within:bg-muted hover:bg-muted focus-within:ring-muted hover:ring-muted">
               {mentions.length > 0 ? (
                 <div className="bg-input rounded-b-sm rounded-t-3xl p-2 mx-2 my-1">
-                  <div className="flex flex-row gap-2 items-center flex-wrap">
+                  <div
+                    ref={mentionsContainerRef}
+                    className="flex w-full flex-row gap-2 items-center flex-nowrap overflow-hidden"
+                  >
                     {mentions.map((mention, i) => {
-                      // Determine if this is the last (active) agent
-                      const isAgent = mention.type === "agent";
-                      const isLastAgent =
-                        isAgent &&
-                        i === mentions.findLastIndex((m) => m.type === "agent");
-
-                      // Dynamic display mode: show text if <=3 items, icon-only if >3
-                      const showText = mentions.length <= 3;
+                      const showText = showMentionText;
 
                       return (
                         <Tooltip key={i}>
@@ -622,8 +663,6 @@ export default function PromptInput({
                                   ? "min-w-[100px] px-3 py-1.5"
                                   : "w-10 h-10 justify-center",
                                 "bg-background hover:bg-accent cursor-default",
-                                isLastAgent &&
-                                  "ring-2 ring-primary ring-offset-1 ring-offset-background",
                               )}
                             >
                               {mention.type === "workflow" ||
@@ -903,7 +942,7 @@ export default function PromptInput({
                       <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() => {
-                          appStoreMutate({ groupChatMode: "one-to-many" });
+                          appStoreMutate({ groupChatMode: "multicast" });
                           setIsGroupChatModeOpen(false);
                         }}
                       >
@@ -911,14 +950,14 @@ export default function PromptInput({
                           <div className="flex items-center gap-2">
                             <RadioTower className="size-4" />
                             <span className="font-bold">
-                              {t("GroupChat.broadcast")}
+                              {t("GroupChat.multicast")}
                             </span>
-                            {groupChatMode === "one-to-many" && (
+                            {groupChatMode === "multicast" && (
                               <Check className="ml-auto size-4" />
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {t("GroupChat.broadcastDescription")}
+                            {t("GroupChat.multicastDescription")}
                           </p>
                         </div>
                       </DropdownMenuItem>

@@ -207,7 +207,7 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
                                     ],
                                 }}
                               >
-                                <Avatar className="size-3.5">
+                                <Avatar className="size-4">
                                   <AvatarImage
                                     src={
                                       agent.icon?.value

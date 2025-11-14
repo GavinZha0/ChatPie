@@ -16,7 +16,7 @@ import { getEmojiUrl } from "lib/emoji";
 import { UIMessage } from "ai";
 
 // Band tab content component for multi-agent chat display
-function BandTabContent({
+function MulticastTabContent({
   agents,
 }: {
   agents: Array<{
@@ -36,9 +36,11 @@ function BandTabContent({
           key={agent.agentId}
           className="flex-1 min-w-0 h-full flex flex-col border-r last:border-r-0 border-border/50"
         >
-          {/* Agent header */}
-          <div className="flex items-center gap-2 p-3 border-b border-border/50 bg-muted/30">
-            <Avatar className="size-8 ring ring-border rounded-full flex-shrink-0">
+          <div className="flex items-center justify-end gap-2 p-3 border-b border-border/50 bg-muted/30">
+            <span className="text-sm font-semibold truncate text-right">
+              {agent.agentName}
+            </span>
+            <Avatar className="size-6 ring ring-border rounded-full flex-shrink-0">
               <AvatarImage
                 src={
                   agent.agentIcon?.value
@@ -50,9 +52,6 @@ function BandTabContent({
                 {agent.agentName.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <span className="text-sm font-semibold truncate">
-              {agent.agentName}
-            </span>
           </div>
 
           {/* Messages area */}
@@ -139,7 +138,7 @@ export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
             <ResizablePanel
               defaultSize={rightPanel.panelSizes[1]}
               minSize={20}
-              className="hidden md:block overflow-hidden"
+              className="hidden md:block overflow-hidden relative z-30"
             >
               <div className="h-full flex flex-col bg-muted/30">
                 {rightPanel.tabs.length > 0 ? (
@@ -157,20 +156,22 @@ export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
                             className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3"
                           >
                             <span className="mr-2">{tab.title}</span>
-                            <Button
-                              asChild
-                              variant="ghost"
-                              size="icon"
-                              className="size-4 p-0 hover:bg-muted rounded-full"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                closeTab(tab.id);
-                              }}
-                            >
-                              <span>
-                                <X className="size-3" />
-                              </span>
-                            </Button>
+                            {tab.type !== "multicast" && (
+                              <Button
+                                asChild
+                                variant="ghost"
+                                size="icon"
+                                className="size-4 p-0 hover:bg-muted rounded-full"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  closeTab(tab.id);
+                                }}
+                              >
+                                <span>
+                                  <X className="size-3" />
+                                </span>
+                              </Button>
+                            )}
                           </TabsTrigger>
                         ))}
                       </TabsList>
@@ -208,8 +209,10 @@ export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
                               </pre>
                             </div>
                           )}
-                          {tab.type === "band" && (
-                            <BandTabContent agents={tab.content.agents || []} />
+                          {tab.type === "multicast" && (
+                            <MulticastTabContent
+                              agents={tab.content.agents || []}
+                            />
                           )}
                         </TabsContent>
                       ))}

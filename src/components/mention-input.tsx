@@ -169,7 +169,38 @@ export default function MentionInput({
       autofocus: true,
       onUpdate: ({ editor }) => {
         const json = editor.getJSON() as TipTapMentionJsonContent;
-        const text = editor.getText();
+        const text = (() => {
+          try {
+            const lines: string[] = [];
+            for (const block of json?.content || []) {
+              let line = "";
+              const content = (block as any)?.content || [];
+              for (const node of content) {
+                if (node?.type === "text") {
+                  line += node.text || "";
+                } else if (node?.type === "mention") {
+                  const attrs = node?.attrs || {};
+                  let prefix = "@";
+                  try {
+                    const parsed = JSON.parse(attrs.id || "{}");
+                    const t = parsed?.type;
+                    prefix = t === "agent" ? "@" : "$";
+                  } catch {
+                    prefix = "@";
+                  }
+                  line += `${prefix}${attrs.label || ""}`;
+                } else if (node?.type === "hardBreak") {
+                  lines.push(line);
+                  line = "";
+                }
+              }
+              lines.push(line);
+            }
+            return lines.join("\n");
+          } catch {
+            return editor.getText();
+          }
+        })();
         const mentions = json?.content
           ?.flatMap(({ content }) => {
             return content

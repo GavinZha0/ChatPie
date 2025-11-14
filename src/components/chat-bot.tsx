@@ -26,6 +26,7 @@ import {
   ChatAttachment,
   ChatModel,
   MyUIMessage,
+  ChatMetadata,
 } from "app-types/chat";
 import { useToRef } from "@/hooks/use-latest";
 import { isShortcutEvent, Shortcuts } from "lib/keyboard-shortcuts";
@@ -219,17 +220,11 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           (m) => m.type === "agent",
         );
 
-        // Check if we should open right panel for broadcast mode
-        const isBroadcast = groupChatMode === "one-to-many";
+        // Check if we should open right panel for multicast mode
+        const isMulticast = groupChatMode === "multicast";
         const hasMultipleAgents = agentMentions.length >= 2;
 
-        if (isBroadcast && hasMultipleAgents) {
-          console.log(
-            "[ChatBot] Broadcast mode detected with",
-            agentMentions.length,
-            "agents",
-          );
-
+        if (isMulticast && hasMultipleAgents) {
           // Open right panel immediately when user sends message
           // Skip the first agent (shown in main chat) and show agents 2-5 (max 4)
           const agentInfos = agentMentions.slice(1, 5).map((mention) => {
@@ -245,29 +240,21 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             };
           });
 
-          // Calculate panel width: each agent needs 20% width
-          const agentCount = agentInfos.length;
-          const rightPanelWidth = Math.min(agentCount * 20, 80); // Max 80%
-          const leftPanelWidth = 100 - rightPanelWidth;
-
-          console.log(
-            "[ChatBot] Opening/updating band panel for agents:",
-            agentInfos.map((a) => a.agentName),
-          );
+          const totalAgents = Math.min(agentMentions.length, 5);
+          const perAgentWidth = 100 / totalAgents;
+          const rightAgentsCount = Math.min(Math.max(totalAgents - 1, 0), 4);
+          const rightPanelWidth = rightAgentsCount * perAgentWidth;
+          const leftPanelWidth = perAgentWidth;
 
           appStoreMutate((prev) => {
-            const bandTabIndex = prev.rightPanel.tabs.findIndex(
-              (t) => t.type === "band",
+            const multicastTabIndex = prev.rightPanel.tabs.findIndex(
+              (t) => t.type === "multicast",
             );
 
-            if (bandTabIndex >= 0) {
-              // Band tab exists - update it and force panel open
-              console.log(
-                "[ChatBot] Band tab exists, updating and opening panel",
-              );
+            if (multicastTabIndex >= 0) {
               const newTabs = [...prev.rightPanel.tabs];
-              newTabs[bandTabIndex] = {
-                ...newTabs[bandTabIndex],
+              newTabs[multicastTabIndex] = {
+                ...newTabs[multicastTabIndex],
                 content: { agents: agentInfos },
               };
 
@@ -276,13 +263,11 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
                   ...prev.rightPanel,
                   isOpen: true, // Force open even if was closed
                   tabs: newTabs,
-                  activeTabId: "band-tab",
+                  activeTabId: "multicast-tab",
                   panelSizes: [leftPanelWidth, rightPanelWidth],
                 },
               };
             } else {
-              // No band tab - create new one
-              console.log("[ChatBot] Creating new band tab and opening panel");
               return {
                 rightPanel: {
                   ...prev.rightPanel,
@@ -290,13 +275,13 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
                   tabs: [
                     ...prev.rightPanel.tabs,
                     {
-                      id: "band-tab",
-                      type: "band",
+                      id: "multicast-tab",
+                      type: "multicast",
                       title: "Group Chat",
                       content: { agents: agentInfos },
                     },
                   ],
-                  activeTabId: "band-tab",
+                  activeTabId: "multicast-tab",
                   panelSizes: [leftPanelWidth, rightPanelWidth],
                 },
               };
@@ -418,7 +403,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
       .filter((m) => m.type === "agent")
       .map((m) => m.agentId);
 
-    console.log("[ChatBot] User selected agent order:", mentionedAgentIds);
     return mentionedAgentIds;
   }, [threadMentions, threadId]);
 
@@ -426,32 +410,11 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
   const groupedMessagesByAgent = useMemo(() => {
     const groups: Record<string, UIMessage[]> = {};
 
-    // Debug: log blockAgentMap size and actual mappings
-    console.log(
-      "[ChatBot] blockAgentMap size:",
-      blockAgentMap.size,
-      "entries:",
-      Array.from(blockAgentMap.entries()),
-    );
-    if (blockAgentMap.size > 0) {
-      console.log("[ChatBot] blockAgentMap details:");
-      blockAgentMap.forEach((value, key) => {
-        console.log(
-          `  blockId/toolCallId: ${key} -> agentId: ${value.agentId}, agentName: ${value.agentName}`,
-        );
-      });
-    }
-
     // Initialize groups for all selected agents (from user's selection, not from message stream)
     // This is the correct approach: we know which agents are selected before messages arrive
     orderedAgentIds.forEach((agentId) => {
       groups[agentId] = [];
     });
-
-    console.log(
-      "[ChatBot] Initialized groups for selected agents:",
-      Object.keys(groups),
-    );
 
     // Process messages and group parts by agent
     messages.forEach((msg) => {
@@ -463,28 +426,29 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
       if (msg.role === "assistant") {
         // Group assistant message parts by agent based on tags
         const agentParts: Record<string, any[]> = {};
+        const agentUsage: Record<string, ChatMetadata["usage"] | undefined> =
+          {};
+        const agentNames: Record<string, string | undefined> = {};
         let currentAgentId = "default"; // Track current agent for consecutive parts
-
-        console.log(
-          `[ChatBot] Processing assistant message ${msg.id}, total parts: ${msg.parts.length}`,
-        );
-        console.log(
-          "[ChatBot] All parts:",
-          msg.parts.map((p) => ({
-            type: p.type,
-            id: (p as any).id,
-            toolCallId: (p as any).toolCallId,
-          })),
-        );
 
         msg.parts.forEach((part) => {
           if (part.type === "data-agent-tag") {
             const tagAgentId = (part as any).data?.agentId || "default";
+            const tagAgentName = (part as any).data?.agentName;
             currentAgentId = tagAgentId;
+            if (tagAgentId) agentNames[tagAgentId] = tagAgentName;
             return;
           }
 
           if (part.type === "data-agent-finish") {
+            const finishAgentId = (part as any).data?.agentId;
+            const finishAgentName = (part as any).data?.agentName;
+            const usage = (part as any).data?.usage;
+            if (finishAgentId) {
+              agentUsage[finishAgentId] = usage;
+              agentNames[finishAgentId] =
+                finishAgentName ?? agentNames[finishAgentId];
+            }
             return;
           }
 
@@ -495,6 +459,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
               return;
             }
             const agentId = agentInfo.agentId;
+            agentNames[agentId] = agentInfo.agentName ?? agentNames[agentId];
 
             if (!agentParts[agentId]) {
               agentParts[agentId] = [];
@@ -509,23 +474,26 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           }
         });
 
-        // Debug: log agent parts distribution
-        console.log(
-          "[ChatBot] Message",
-          msg.id,
-          "distributed to agents:",
-          Object.keys(agentParts),
-        );
-
         // Create separate messages for each agent
         Object.entries(agentParts).forEach(([agentId, parts]) => {
           if (!groups[agentId]) {
             groups[agentId] = [];
           }
 
+          const meta = (msg.metadata as ChatMetadata) || {};
+          const agent = agents.find((a) => a.id === agentId);
+          const usage = agentUsage[agentId] ?? meta.usage;
+          const agentName = agentNames[agentId] ?? agent?.name;
+
           groups[agentId].push({
             ...msg,
             parts,
+            metadata: {
+              ...meta,
+              usage,
+              agentId,
+              agentName,
+            },
           });
         });
       }
@@ -548,14 +516,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
       groups[agentId] = combined;
     });
 
-    // Debug: log final groups
-    console.log(
-      "[ChatBot] Final grouped agents:",
-      Object.keys(groups),
-      "counts:",
-      Object.fromEntries(Object.entries(groups).map(([k, v]) => [k, v.length])),
-    );
-
     return groups;
   }, [messages, blockAgentMap, status, orderedAgentIds]); // Use orderedAgentIds instead of extracting from stream
 
@@ -563,21 +523,16 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     return groupChatMode;
   }, [groupChatMode]);
 
-  // For broadcast mode with multiple agents: show only first agent in main chat area
+  // For multicast mode with multiple agents: show only first agent in main chat area
   const messagesForMainChat = useMemo(() => {
     const agentIds = Object.keys(groupedMessagesByAgent).filter(
       (id) => id !== "default",
     );
     const hasMultipleAgents = agentIds.length >= 2;
-    const isBroadcast = selectedGroupChatMode === "one-to-many";
+    const isMulticast = selectedGroupChatMode === "multicast";
 
-    console.log(
-      "[ChatBot] messagesForMainChat - available agentIds:",
-      agentIds,
-    );
-
-    if (!isBroadcast || !hasMultipleAgents) {
-      // Single agent or non-broadcast mode: show all messages
+    if (!isMulticast || !hasMultipleAgents) {
+      // Single agent or non-multicast mode: show all messages
       return messages;
     }
 
@@ -585,13 +540,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     const firstAgentId =
       orderedAgentIds.find((id) => agentIds.includes(id)) || agentIds[0];
     const mainChatMessages = groupedMessagesByAgent[firstAgentId] || [];
-
-    console.log(
-      "[ChatBot] Main chat using agent:",
-      firstAgentId,
-      "message count:",
-      mainChatMessages.length,
-    );
 
     return mainChatMessages;
   }, [
@@ -644,24 +592,15 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     return false;
   }, [isLoading, messagesForMainChat]);
 
-  // Automatically update right panel content for broadcast mode
+  // Automatically update right panel content for multicast mode
   useEffect(() => {
     const agentIds = Object.keys(groupedMessagesByAgent).filter(
       (id) => id !== "default",
     );
     const hasMultipleAgents = agentIds.length >= 2;
-    const isBroadcast = selectedGroupChatMode === "one-to-many";
+    const isMulticast = selectedGroupChatMode === "multicast";
 
-    console.log(
-      "[ChatBot] Panel update check - available agentIds:",
-      agentIds,
-      "hasMultiple:",
-      hasMultipleAgents,
-      "isBroadcast:",
-      isBroadcast,
-    );
-
-    if (isBroadcast && hasMultipleAgents) {
+    if (isMulticast && hasMultipleAgents) {
       // Sort agentIds based on user's selection order
       const sortedAgentIds = orderedAgentIds.filter((id) =>
         agentIds.includes(id),
@@ -673,17 +612,12 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
         }
       });
 
-      console.log(
-        "[ChatBot] Panel update - sorted agent order:",
-        sortedAgentIds,
-      );
-
       // Update right panel content with agent messages
       // Skip the first agent (shown in main chat area) and show agents 2-5 in right panel (max 4)
       const panelAgentIds = sortedAgentIds.slice(1, 5);
       console.log("[ChatBot] Panel agent IDs (skipping first):", panelAgentIds);
 
-      const agentInfos = panelAgentIds.map((agentId, index) => {
+      const agentInfos = panelAgentIds.map((agentId, _index) => {
         const agentMessages = groupedMessagesByAgent[agentId] || [];
         const agent = agents.find((a) => a.id === agentId);
 
@@ -694,45 +628,29 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           messages: agentMessages,
         };
 
-        console.log(`[ChatBot] Panel agent ${index + 1}:`, {
-          agentId,
-          agentName: agentInfo.agentName,
-          messageCount: agentMessages.length,
-          foundInAgentList: !!agent,
-        });
-
         return agentInfo;
       });
 
-      console.log(
-        "[ChatBot] Updating panel with agents:",
-        agentInfos.map((a) => ({
-          id: a.agentId,
-          name: a.agentName,
-          msgCount: a.messages.length,
-        })),
-      );
-
       appStoreMutate((prev) => {
-        const bandTabIndex = prev.rightPanel.tabs.findIndex(
-          (t) => t.type === "band",
+        const multicastTabIndex = prev.rightPanel.tabs.findIndex(
+          (t) => t.type === "multicast",
         );
 
-        // Update band tab content if it exists
-        if (bandTabIndex >= 0) {
+        if (multicastTabIndex >= 0) {
           const newTabs = [...prev.rightPanel.tabs];
-          newTabs[bandTabIndex] = {
-            ...newTabs[bandTabIndex],
+          newTabs[multicastTabIndex] = {
+            ...newTabs[multicastTabIndex],
             content: { agents: agentInfos },
           };
 
-          // Recalculate panel width based on current agent count
-          const agentCount = agentInfos.length;
+          const totalAgents = Math.min(sortedAgentIds.length, 5);
+          const perAgentWidth = 100 / totalAgents;
+          const rightAgentsCount = Math.min(Math.max(totalAgents - 1, 0), 4);
           const rightPanelWidth =
-            agentCount > 0
-              ? Math.min(agentCount * 20, 80)
-              : (prev.rightPanel.panelSizes?.[1] ?? 20);
-          const leftPanelWidth = 100 - rightPanelWidth;
+            agentInfos.length > 0
+              ? rightAgentsCount * perAgentWidth
+              : (prev.rightPanel.panelSizes?.[1] ?? perAgentWidth);
+          const leftPanelWidth = perAgentWidth;
 
           return {
             rightPanel: {
@@ -764,6 +682,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 5 }}
+            className="pointer-events-none absolute inset-0"
           >
             <div className="absolute top-0 left-0 w-full h-full z-10">
               <LightRays />
@@ -865,7 +784,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
   }, [input]);
 
   return (
-    <>
+    <div className="relative h-full">
       {particle}
       <div
         className={cn(
@@ -998,6 +917,12 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
                     ...prev.threadMentions,
                     [newThreadId]: currentMentions, // Preserve current mentions
                   },
+                  rightPanel: {
+                    ...prev.rightPanel,
+                    tabs: [],
+                    activeTabId: undefined,
+                    isOpen: false,
+                  },
                 };
               });
 
@@ -1012,7 +937,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           open={isDeleteThreadPopupOpen}
         />
       </div>
-    </>
+    </div>
   );
 }
 
