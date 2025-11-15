@@ -167,7 +167,7 @@ export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
                             className="relative rounded-none border-b-2 border-transparent px-4 py-3 bg-transparent hover:bg-transparent text-muted-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:border-primary focus-visible:outline-none focus-visible:ring-0 focus-visible:border-transparent"
                           >
                             <span className="mr-2">{tab.title}</span>
-                            {tab.type !== "multicast" && (
+                            {tab.type !== "comparison" && (
                               <Button
                                 asChild
                                 variant="ghost"
@@ -220,7 +220,7 @@ export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
                               </pre>
                             </div>
                           )}
-                          {tab.type === "multicast" && (
+                          {tab.type === "comparison" && (
                             <MulticastTabContent
                               agents={tab.content.agents || []}
                               status={tab.content.status}

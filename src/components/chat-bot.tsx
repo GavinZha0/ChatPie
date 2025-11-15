@@ -220,8 +220,8 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           (m) => m.type === "agent",
         );
 
-        // Check if we should open right panel for multicast mode
-        const isMulticast = groupChatMode === "multicast";
+        // Check if we should open right panel for comparison mode
+        const isMulticast = groupChatMode === "comparison";
         const hasMultipleAgents = agentMentions.length >= 2;
 
         if (isMulticast && hasMultipleAgents) {
@@ -248,7 +248,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
 
           appStoreMutate((prev) => {
             const multicastTabIndex = prev.rightPanel.tabs.findIndex(
-              (t) => t.type === "multicast",
+              (t) => t.type === "comparison",
             );
 
             if (multicastTabIndex >= 0) {
@@ -263,7 +263,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
                   ...prev.rightPanel,
                   isOpen: true, // Force open even if was closed
                   tabs: newTabs,
-                  activeTabId: "multicast-tab",
+                  activeTabId: "comparison-tab",
                   panelSizes: [leftPanelWidth, rightPanelWidth],
                 },
               };
@@ -275,13 +275,13 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
                   tabs: [
                     ...prev.rightPanel.tabs,
                     {
-                      id: "multicast-tab",
-                      type: "multicast",
+                      id: "comparison-tab",
+                      type: "comparison",
                       title: "Group Chat",
                       content: { agents: agentInfos },
                     },
                   ],
-                  activeTabId: "multicast-tab",
+                  activeTabId: "comparison-tab",
                   panelSizes: [leftPanelWidth, rightPanelWidth],
                 },
               };
@@ -522,13 +522,13 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     return groupChatMode;
   }, [groupChatMode]);
 
-  // For multicast mode with multiple agents: show only first agent in main chat area
+  // For comparison mode with multiple agents: show only first agent in main chat area
   const messagesForMainChat = useMemo(() => {
     const agentIds = Object.keys(groupedMessagesByAgent).filter(
       (id) => id !== "default",
     );
     const hasMultipleAgents = agentIds.length >= 2;
-    const isMulticast = selectedGroupChatMode === "multicast";
+    const isMulticast = selectedGroupChatMode === "comparison";
 
     if (!isMulticast || !hasMultipleAgents) {
       // Single agent or non-multicast mode: show all messages
@@ -591,13 +591,13 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     return false;
   }, [isLoading, messagesForMainChat]);
 
-  // Automatically update right panel content for multicast mode
+  // Automatically update right panel content for comparison mode
   useEffect(() => {
     const agentIds = Object.keys(groupedMessagesByAgent).filter(
       (id) => id !== "default",
     );
     const hasMultipleAgents = agentIds.length >= 2;
-    const isMulticast = selectedGroupChatMode === "multicast";
+    const isMulticast = selectedGroupChatMode === "comparison";
 
     if (isMulticast && hasMultipleAgents) {
       // Sort agentIds based on user's selection order
@@ -632,7 +632,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
 
       appStoreMutate((prev) => {
         const multicastTabIndex = prev.rightPanel.tabs.findIndex(
-          (t) => t.type === "multicast",
+          (t) => t.type === "comparison",
         );
 
         if (multicastTabIndex >= 0) {

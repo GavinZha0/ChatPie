@@ -289,7 +289,7 @@ export function ChatMentionInputSuggestion({
           icon: (
             <Avatar
               style={agent.icon?.style}
-              className="size-3.5 ring-[1px] ring-input rounded-full"
+              className="size-4 ring-[1px] ring-input rounded-full"
             >
               <AvatarImage
                 src={

@@ -121,10 +121,10 @@ export function AppHeader() {
                           (t) => t.id === state.rightPanel.activeTabId,
                         ) ||
                         state.rightPanel.tabs.find(
-                          (t) => t.type === "multicast",
+                          (t) => t.type === "comparison",
                         );
 
-                      if (activeTab?.type === "multicast") {
+                      if (activeTab?.type === "comparison") {
                         const rightAgentsCount =
                           activeTab.content?.agents?.length ?? 0;
                         const totalAgents = Math.min(rightAgentsCount + 1, 5);

@@ -12,12 +12,11 @@ import {
   Square,
   XIcon,
   Users,
-  UserX,
   Repeat1,
   Target,
   Check,
-  RadioTower,
   Scale,
+  MessagesSquare,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "ui/button";
@@ -161,18 +160,18 @@ export default function PromptInput({
   // Dynamic icon based on selected group chat mode
   const groupChatModeIcon = useMemo(() => {
     switch (groupChatMode) {
-      case "multicast":
-        return <RadioTower className="size-4" />;
-      case "discussion":
+      case "comparison":
         return <Users className="size-4" />;
-      case "relay":
+      case "discussion":
+        return <MessagesSquare className="size-4" />;
+      case "chain":
         return <Repeat1 className="size-4" />;
       case "task":
         return <Target className="size-4" />;
       case "debate":
         return <Scale className="size-4" />;
       default:
-        return <Users className="size-4" />; // Default icon when no mode selected
+        return <Users className="size-4" />;
     }
   }, [groupChatMode]);
 
@@ -920,44 +919,22 @@ export default function PromptInput({
                       <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() => {
-                          appStoreMutate({ groupChatMode: null });
+                          appStoreMutate({ groupChatMode: "comparison" });
                           setIsGroupChatModeOpen(false);
                         }}
                       >
                         <div className="flex flex-col gap-2 w-full">
                           <div className="flex items-center gap-2">
-                            <UserX className="size-4" />
+                            <Users className="size-4" />
                             <span className="font-bold">
-                              {t("GroupChat.none")}
+                              {t("GroupChat.comparison")}
                             </span>
-                            {groupChatMode === null && (
+                            {groupChatMode === "comparison" && (
                               <Check className="ml-auto size-4" />
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {t("GroupChat.noneDescription")}
-                          </p>
-                        </div>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="cursor-pointer"
-                        onClick={() => {
-                          appStoreMutate({ groupChatMode: "multicast" });
-                          setIsGroupChatModeOpen(false);
-                        }}
-                      >
-                        <div className="flex flex-col gap-2 w-full">
-                          <div className="flex items-center gap-2">
-                            <RadioTower className="size-4" />
-                            <span className="font-bold">
-                              {t("GroupChat.multicast")}
-                            </span>
-                            {groupChatMode === "multicast" && (
-                              <Check className="ml-auto size-4" />
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {t("GroupChat.multicastDescription")}
+                            {t("GroupChat.comparisonDescription")}
                           </p>
                         </div>
                       </DropdownMenuItem>
@@ -970,7 +947,7 @@ export default function PromptInput({
                       >
                         <div className="flex flex-col gap-2 w-full">
                           <div className="flex items-center gap-2">
-                            <Users className="size-4" />
+                            <MessagesSquare className="size-4" />
                             <span className="font-bold">
                               {t("GroupChat.discussion")}
                             </span>
@@ -986,7 +963,7 @@ export default function PromptInput({
                       <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() => {
-                          appStoreMutate({ groupChatMode: "relay" });
+                          appStoreMutate({ groupChatMode: "chain" });
                           setIsGroupChatModeOpen(false);
                         }}
                       >
@@ -994,14 +971,14 @@ export default function PromptInput({
                           <div className="flex items-center gap-2">
                             <Repeat1 className="size-4" />
                             <span className="font-bold">
-                              {t("GroupChat.relay")}
+                              {t("GroupChat.chain")}
                             </span>
-                            {groupChatMode === "relay" && (
+                            {groupChatMode === "chain" && (
                               <Check className="ml-auto size-4" />
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {t("GroupChat.relayDescription")}
+                            {t("GroupChat.chainDescription")}
                           </p>
                         </div>
                       </DropdownMenuItem>
