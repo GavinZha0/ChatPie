@@ -257,8 +257,8 @@ export function AgentEditor({
         {/* Role, Instructions, Tools, and Model */}
         <div className="flex flex-col gap-6">
           {/* Role */}
-          <div className="flex gap-2 items-center">
-            <span>{t("Agent.thisAgentIs")}</span>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="agent-role">{t("Agent.agentRole")}</Label>
             <Input
               id="agent-role"
               data-testid="agent-role-input"
@@ -268,7 +268,7 @@ export function AgentEditor({
                   ? "Built-in agent model configuration"
                   : t("Agent.agentRolePlaceholder")
               }
-              className="hover:bg-input placeholder:text-xs bg-secondary/40 w-44 transition-colors border-transparent !border-none !focus-visible:bg-input !ring-0"
+              className="hover:bg-input placeholder:text-xs bg-secondary/40 transition-colors border-transparent !border-none !focus-visible:bg-input !ring-0"
               value={agent.instructions?.role || ""}
               onChange={(e) =>
                 setAgent((prev) => ({
@@ -280,7 +280,6 @@ export function AgentEditor({
               }
               readOnly={!hasEditAccess || isSelectedModelAgentType}
             />
-            <span>{t("Agent.expertIn")}</span>
           </div>
 
           {/* Instructions */}
@@ -498,7 +497,7 @@ export function EditAgentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh]">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh]">
         <DialogHeader>
           <div className="flex items-center justify-between gap-3">
             <DialogTitle>
