@@ -645,10 +645,10 @@ export default function PromptInput({
           <fieldset className="flex flex-1 min-w-0 max-w-full flex-col px-4">
             <div className="shadow-lg overflow-hidden rounded-4xl backdrop-blur-sm transition-all duration-200 bg-muted/60 relative flex w-full flex-col cursor-text z-10 items-stretch focus-within:bg-muted hover:bg-muted focus-within:ring-muted hover:ring-muted">
               {mentions.length > 0 ? (
-                <div className="bg-input rounded-b-sm rounded-t-3xl p-2 mx-2 my-1">
+                <div className="bg-input rounded-b-sm rounded-t-3xl p-1 mx-2 my-1">
                   <div
                     ref={mentionsContainerRef}
-                    className="flex w-full flex-row gap-2 items-center flex-nowrap overflow-hidden"
+                    className="flex w-full flex-row gap-1 items-center flex-nowrap overflow-hidden"
                   >
                     {mentions.map((mention, i) => {
                       const showText = showMentionText;
@@ -661,7 +661,7 @@ export default function PromptInput({
                                 "group relative flex items-center gap-2 rounded-full transition-all",
                                 showText
                                   ? "min-w-[100px] px-3 py-1.5"
-                                  : "w-10 h-10 justify-center",
+                                  : "size-9 justify-center",
                                 "bg-background hover:bg-accent cursor-default",
                               )}
                             >
@@ -670,7 +670,7 @@ export default function PromptInput({
                                 <Avatar
                                   className={cn(
                                     "ring ring-border rounded-full flex-shrink-0",
-                                    showText ? "size-6 p-1" : "size-7 p-1",
+                                    "size-6 p-0.5",
                                   )}
                                   style={mention.icon?.style}
                                 >

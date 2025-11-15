@@ -14,10 +14,12 @@ import { PreviewMessage } from "@/components/message";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
 import { getEmojiUrl } from "lib/emoji";
 import { UIMessage } from "ai";
+import type { UseChatHelpers } from "@ai-sdk/react";
 
 // Band tab content component for multi-agent chat display
 function MulticastTabContent({
   agents,
+  status,
 }: {
   agents: Array<{
     agentId: string;
@@ -25,9 +27,11 @@ function MulticastTabContent({
     agentIcon?: { value: string; style?: any };
     messages: UIMessage[];
   }>;
+  status?: UseChatHelpers<UIMessage>["status"];
 }) {
   // Limit to 4 agents maximum
   const displayAgents = agents.slice(0, 4);
+  const isLoading = status === "streaming" || status === "submitted";
 
   return (
     <div className="h-full w-full flex gap-2">
@@ -56,16 +60,22 @@ function MulticastTabContent({
 
           {/* Messages area */}
           <div className="flex-1 overflow-y-auto p-2">
-            {agent.messages.map((message, index) => (
-              <PreviewMessage
-                key={message.id}
-                message={message}
-                messageIndex={index}
-                readonly={true}
-                widthMode="wide"
-                className="mb-2"
-              />
-            ))}
+            {agent.messages.map((message, index) => {
+              const isLastMessage = agent.messages.length - 1 === index;
+              return (
+                <PreviewMessage
+                  key={message.id}
+                  message={message}
+                  messageIndex={index}
+                  readonly={true}
+                  widthMode="wide"
+                  className="mb-2"
+                  isLastMessage={isLastMessage}
+                  isLoading={isLoading}
+                  status={status}
+                />
+              );
+            })}
           </div>
         </div>
       ))}
@@ -148,13 +158,13 @@ export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
                     onValueChange={setActiveTab}
                     className="h-full flex flex-col"
                   >
-                    <div className="border-b bg-background/50 backdrop-blur-sm">
+                    <div className="border-b bg-transparent">
                       <TabsList className="h-12 w-full justify-start rounded-none bg-transparent p-0">
                         {rightPanel.tabs.map((tab) => (
                           <TabsTrigger
                             key={tab.id}
                             value={tab.id}
-                            className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3"
+                            className="relative rounded-none border-b-2 border-transparent px-4 py-3 bg-transparent hover:bg-transparent text-muted-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:border-primary focus-visible:outline-none focus-visible:ring-0 focus-visible:border-transparent"
                           >
                             <span className="mr-2">{tab.title}</span>
                             {tab.type !== "multicast" && (
@@ -213,6 +223,7 @@ export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
                           {tab.type === "multicast" && (
                             <MulticastTabContent
                               agents={tab.content.agents || []}
+                              status={tab.content.status}
                             />
                           )}
                         </TabsContent>

@@ -292,7 +292,15 @@ export function ChatMentionInputSuggestion({
               className="size-3.5 ring-[1px] ring-input rounded-full"
             >
               <AvatarImage
-                src={agent.icon?.value || EMOJI_DATA[i % EMOJI_DATA.length]}
+                src={
+                  agent.icon?.value
+                    ? getEmojiUrl(agent.icon.value, "apple", 64)
+                    : getEmojiUrl(
+                        EMOJI_DATA[i % EMOJI_DATA.length],
+                        "apple",
+                        64,
+                      )
+                }
               />
               <AvatarFallback>{agent.name.slice(0, 1)}</AvatarFallback>
             </Avatar>
@@ -524,9 +532,8 @@ export function ChatMentionInputSuggestion({
         side="top"
         style={{
           ...style,
-          width: style?.width || (isMobile ? "100%" : "auto"),
-          minWidth: isMobile ? undefined : "600px",
-          maxWidth: isMobile ? undefined : "800px",
+          width: isMobile ? "100%" : "auto",
+          maxWidth: style?.width,
         }}
       >
         <div className="flex flex-col">

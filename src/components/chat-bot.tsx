@@ -639,7 +639,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           const newTabs = [...prev.rightPanel.tabs];
           newTabs[multicastTabIndex] = {
             ...newTabs[multicastTabIndex],
-            content: { agents: agentInfos },
+            content: { agents: agentInfos, status },
           };
 
           const totalAgents = Math.min(sortedAgentIds.length, 5);

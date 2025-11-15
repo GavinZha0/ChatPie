@@ -79,109 +79,132 @@ const PurePreviewMessage = ({
     >
       <div className={cn("flex gap-4 w-full", className)}>
         <div className="flex flex-col gap-4 w-full">
-          {partsForDisplay.map((part, index) => {
-            const key = `message-${messageIndex}-part-${part.type}-${index}`;
-            const isLastPart = index === partsForDisplay.length - 1;
+          {(() => {
+            const partsWithIndex = partsForDisplay.map((p, i) => ({
+              part: p,
+              index: i,
+            }));
+            const lastIndex = partsWithIndex.length - 1;
+            const reasoningParts = partsWithIndex.filter(
+              (p) => p.part.type === "reasoning",
+            );
+            const otherParts = partsWithIndex.filter(
+              (p) => p.part.type !== "reasoning",
+            );
 
-            if (part.type === "reasoning") {
-              return (
-                <ReasoningPart
-                  key={key}
-                  readonly={readonly}
-                  reasoningText={part.text}
-                  isThinking={isLastPart && isLastMessage && isLoading}
-                />
-              );
-            }
+            const renderPart = ({
+              part,
+              index,
+            }: { part: any; index: number }) => {
+              const key = `message-${messageIndex}-part-${part.type}-${index}`;
+              const isLastPart = index === lastIndex;
 
-            if (isUserMessage && part.type === "text" && part.text) {
-              return (
-                <UserMessagePart
-                  key={key}
-                  status={status}
-                  part={part}
-                  readonly={readonly}
-                  isLast={isLastPart}
-                  message={message}
-                  setMessages={setMessages}
-                  sendMessage={sendMessage}
-                />
-              );
-            }
+              if (part.type === "reasoning") {
+                return (
+                  <ReasoningPart
+                    key={key}
+                    readonly={readonly}
+                    reasoningText={part.text}
+                    isThinking={isLastPart && isLastMessage && isLoading}
+                  />
+                );
+              }
 
-            if (part.type === "text" && !isUserMessage) {
-              return (
-                <AssistMessagePart
-                  threadId={threadId}
-                  isLast={isLastMessage && isLastPart}
-                  isLoading={isLoading}
-                  key={key}
-                  readonly={readonly}
-                  part={part}
-                  prevMessage={prevMessage}
-                  showActions={
-                    isLastMessage ? isLastPart && !isLoading : isLastPart
-                  }
-                  message={message}
-                  setMessages={setMessages}
-                  sendMessage={sendMessage}
-                />
-              );
-            }
+              if (isUserMessage && part.type === "text" && part.text) {
+                return (
+                  <UserMessagePart
+                    key={key}
+                    status={status}
+                    part={part}
+                    readonly={readonly}
+                    isLast={isLastPart}
+                    message={message}
+                    setMessages={setMessages}
+                    sendMessage={sendMessage}
+                  />
+                );
+              }
 
-            if (isToolUIPart(part)) {
-              const isLast = isLastMessage && isLastPart;
-              const isManualToolInvocation =
-                (message.metadata as ChatMetadata)?.toolChoice == "manual" &&
-                isLastMessage &&
-                isLastPart &&
-                part.state == "input-available" &&
-                isLoading &&
-                !readonly;
-              return (
-                <ToolMessagePart
-                  isLast={isLast}
-                  readonly={readonly}
-                  messageId={message.id}
-                  isManualToolInvocation={isManualToolInvocation}
-                  showActions={
-                    !readonly &&
-                    (isLastMessage ? isLastPart && !isLoading : isLastPart)
-                  }
-                  addToolResult={addToolResult}
-                  key={key}
-                  part={part}
-                  setMessages={setMessages}
-                />
-              );
-            } else if (part.type === "step-start") {
-              return null;
-            } else if (
-              part.type === "data-agent-tag" ||
-              part.type === "data-agent-finish"
-            ) {
-              // Don't render agent tag parts, they are only for internal mapping
-              return null;
-            } else if (part.type === "file") {
-              return (
-                <FileMessagePart
-                  key={key}
-                  part={part}
-                  isUserMessage={isUserMessage}
-                />
-              );
-            } else if ((part as any).type === "source-url") {
-              return (
-                <SourceUrlMessagePart
-                  key={key}
-                  part={part as any}
-                  isUserMessage={isUserMessage}
-                />
-              );
-            } else {
-              return <div key={key}> unknown part {part.type}</div>;
-            }
-          })}
+              if (part.type === "text" && !isUserMessage) {
+                return (
+                  <AssistMessagePart
+                    threadId={threadId}
+                    isLast={isLastMessage && isLastPart}
+                    isLoading={isLoading}
+                    key={key}
+                    readonly={readonly}
+                    part={part}
+                    prevMessage={prevMessage}
+                    showActions={
+                      isLastMessage ? isLastPart && !isLoading : isLastPart
+                    }
+                    message={message}
+                    setMessages={setMessages}
+                    sendMessage={sendMessage}
+                  />
+                );
+              }
+
+              if (isToolUIPart(part)) {
+                const isLast = isLastMessage && isLastPart;
+                const isManualToolInvocation =
+                  (message.metadata as ChatMetadata)?.toolChoice == "manual" &&
+                  isLastMessage &&
+                  isLastPart &&
+                  part.state == "input-available" &&
+                  isLoading &&
+                  !readonly;
+                return (
+                  <ToolMessagePart
+                    isLast={isLast}
+                    readonly={readonly}
+                    messageId={message.id}
+                    isManualToolInvocation={isManualToolInvocation}
+                    showActions={
+                      !readonly &&
+                      (isLastMessage ? isLastPart && !isLoading : isLastPart)
+                    }
+                    addToolResult={addToolResult}
+                    key={key}
+                    part={part}
+                    setMessages={setMessages}
+                  />
+                );
+              } else if (part.type === "step-start") {
+                return null;
+              } else if (
+                part.type === "data-agent-tag" ||
+                part.type === "data-agent-finish"
+              ) {
+                return null;
+              } else if (part.type === "file") {
+                return (
+                  <FileMessagePart
+                    key={key}
+                    part={part}
+                    isUserMessage={isUserMessage}
+                  />
+                );
+              } else if ((part as any).type === "source-url") {
+                return (
+                  <SourceUrlMessagePart
+                    key={key}
+                    part={part as any}
+                    isUserMessage={isUserMessage}
+                  />
+                );
+              } else {
+                return <div key={key}> unknown part {part.type}</div>;
+              }
+            };
+
+            return (
+              <>
+                {reasoningParts.map(renderPart)}
+                {otherParts.map(renderPart)}
+              </>
+            );
+          })()}
         </div>
       </div>
     </div>

@@ -177,7 +177,7 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
           ) : (
             <div className="flex flex-col min-h-0">
               <div className="relative overflow-y-auto">
-                <div className={cn("w-full")}>
+                <div className={cn("w-full space-y-2")}>
                   {agents.map((agent, i) => {
                     const isSelected = isAgentSelected(agent.id);
                     return (
@@ -207,7 +207,7 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
                                     ],
                                 }}
                               >
-                                <Avatar className="size-4">
+                                <Avatar className="size-5">
                                   <AvatarImage
                                     src={
                                       agent.icon?.value
