@@ -50,7 +50,6 @@ export const AgentTable = pgTable("agent", {
     .notNull()
     .references(() => UserTable.id, { onDelete: "cascade" }),
   instructions: json("instructions").$type<Agent["instructions"]>(),
-  llmId: varchar("llm_id", { length: 32 }),
   visibility: varchar("visibility", {
     enum: ["public", "private", "readonly"],
   })
@@ -389,3 +388,17 @@ export const ProviderTable = pgTable("provider", {
 });
 
 export type ProviderEntity = typeof ProviderTable.$inferSelect;
+
+export const AgentGroupTable = pgTable("agent_group", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 32 }).notNull(),
+  agentIds: uuid("agent_ids").array().notNull().default(sql`'{}'::uuid[]`),
+  description: text("description"),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => UserTable.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export type AgentGroupEntity = typeof AgentGroupTable.$inferSelect;

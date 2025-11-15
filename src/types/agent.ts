@@ -33,7 +33,6 @@ export const AgentCreateSchema = z
       .optional(),
     userId: z.string(),
     instructions: AgentInstructionsSchema,
-    llmId: z.string().min(1).max(32).nullable().optional(),
     visibility: VisibilitySchema.optional().default("private"),
   })
   .strip();
@@ -49,7 +48,6 @@ export const AgentUpdateSchema = z
       })
       .optional(),
     instructions: AgentInstructionsSchema.optional(),
-    llmId: z.string().min(1).max(32).nullable().optional(),
     visibility: VisibilitySchema.optional(),
   })
   .strip();
