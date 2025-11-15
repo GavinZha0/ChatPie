@@ -113,12 +113,44 @@ export function AppHeader() {
                 variant={"ghost"}
                 className="hidden md:flex bg-secondary/40"
                 onClick={() => {
-                  appStoreMutate((state) => ({
-                    rightPanel: {
-                      ...state.rightPanel,
-                      isOpen: !state.rightPanel.isOpen,
-                    },
-                  }));
+                  appStoreMutate((state) => {
+                    const willOpen = !state.rightPanel.isOpen;
+                    if (willOpen) {
+                      const activeTab =
+                        state.rightPanel.tabs.find(
+                          (t) => t.id === state.rightPanel.activeTabId,
+                        ) ||
+                        state.rightPanel.tabs.find(
+                          (t) => t.type === "multicast",
+                        );
+
+                      if (activeTab?.type === "multicast") {
+                        const rightAgentsCount =
+                          activeTab.content?.agents?.length ?? 0;
+                        const totalAgents = Math.min(rightAgentsCount + 1, 5);
+                        const perAgentWidth = 100 / totalAgents;
+                        const rightPanelWidth =
+                          Math.min(Math.max(totalAgents - 1, 0), 4) *
+                          perAgentWidth;
+                        const leftPanelWidth = perAgentWidth;
+
+                        return {
+                          rightPanel: {
+                            ...state.rightPanel,
+                            isOpen: true,
+                            panelSizes: [leftPanelWidth, rightPanelWidth],
+                          },
+                        };
+                      }
+                    }
+
+                    return {
+                      rightPanel: {
+                        ...state.rightPanel,
+                        isOpen: !state.rightPanel.isOpen,
+                      },
+                    };
+                  });
                 }}
                 data-testid="right-panel-toggle"
                 aria-label={t("Chat.toggleRightPanel")}

@@ -1054,11 +1054,13 @@ export default function PromptInput({
 
                   <div className="flex-1" />
 
-                  <SelectModel
-                    onSelect={handleSelectModel}
-                    currentModel={chatModel}
-                    disabled={isModelSelectorDisabled}
-                  ></SelectModel>
+                  {!hasMultipleAgents && (
+                    <SelectModel
+                      onSelect={handleSelectModel}
+                      currentModel={chatModel}
+                      disabled={isModelSelectorDisabled}
+                    />
+                  )}
                   {!isLoading && !input.length && !voiceDisabled ? (
                     <Tooltip>
                       <TooltipTrigger asChild>

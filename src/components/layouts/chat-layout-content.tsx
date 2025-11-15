@@ -79,6 +79,7 @@ export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
   );
 
   const handlePanelResize = (sizes: number[]) => {
+    if (sizes.length < 2) return;
     appStoreMutate((prev) => ({
       rightPanel: {
         ...prev.rightPanel,

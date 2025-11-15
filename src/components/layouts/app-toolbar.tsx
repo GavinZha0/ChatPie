@@ -16,6 +16,8 @@ import {
 import { UserMenuList } from "./app-sidebar-user";
 import { BasicUser } from "app-types/user";
 import { getIsUserAdmin, getUserAvatar } from "lib/user/utils";
+import { appStore } from "@/app/store";
+import { useShallow } from "zustand/shallow";
 
 const ITEM_CLASS =
   "flex flex-col items-center justify-center gap-1 px-2 py-3 text-xs hover:bg-accent hover:text-accent-foreground rounded-md transition-colors";
@@ -38,7 +40,8 @@ function ToolbarItem({
           href={href}
           className={cn(
             ITEM_CLASS,
-            isActive && "bg-accent text-accent-foreground ring-1 ring-accent",
+            isActive &&
+              "bg-primary text-primary-foreground ring-1 ring-primary",
           )}
           data-testid={`toolbar-link-${label.toLowerCase()}`}
           aria-label={label}
@@ -55,6 +58,7 @@ export function AppToolbar({ user }: { user?: BasicUser }) {
   const pathname = usePathname();
   const t = useTranslations("");
   const isAdmin = getIsUserAdmin(user);
+  const [appStoreMutate] = appStore(useShallow((state) => [state.mutate]));
 
   return (
     <aside
@@ -71,6 +75,16 @@ export function AppToolbar({ user }: { user?: BasicUser }) {
           href="/"
           aria-label="Home"
           className="flex items-center justify-center py-2"
+          onClick={() => {
+            appStoreMutate((prev) => ({
+              rightPanel: {
+                ...prev.rightPanel,
+                tabs: [],
+                activeTabId: undefined,
+                isOpen: false,
+              },
+            }));
+          }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
