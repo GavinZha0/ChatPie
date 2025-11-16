@@ -15,7 +15,7 @@ import {
 import { Button } from "ui/button";
 import { Separator } from "ui/separator";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { ThreadDropdown } from "@/components/history/thread-dropdown";
 import { appStore } from "@/app/store";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -276,12 +276,6 @@ function ThreadDropdownComponent() {
   const currentThread = useMemo(() => {
     return threadList.find((thread) => thread.id === currentThreadId);
   }, [threadList, currentThreadId]);
-
-  useEffect(() => {
-    if (currentThread?.id) {
-      document.title = currentThread.title || "New Chat";
-    }
-  }, [currentThread?.id]);
 
   if (!currentThread) return null;
 
