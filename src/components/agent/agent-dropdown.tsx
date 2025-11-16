@@ -1,10 +1,22 @@
 "use client";
 import { appStore } from "@/app/store";
-import { AudioWaveformIcon, PencilLine } from "lucide-react";
+import { AudioWaveformIcon, PencilLine, UserPlus } from "lucide-react";
+import useSWR from "swr";
+import { fetcher } from "lib/utils";
+import { AgentGroup } from "app-types/agent-group";
+import { toast } from "sonner";
 import { type PropsWithChildren, useState } from "react";
-import { Command, CommandGroup, CommandItem, CommandList } from "ui/command";
-import { Separator } from "ui/separator";
-import { Popover, PopoverContent, PopoverTrigger } from "ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "ui/dropdown-menu";
 import { useTranslations } from "next-intl";
 import { generateUUID } from "lib/utils";
 import { AgentSummary } from "app-types/agent";
@@ -24,65 +36,95 @@ export function AgentDropdown({ agent, children, side, align }: Props) {
   const { data: session } = authClient.useSession();
   const isOwner = session?.user?.id === agent.userId;
   const canEdit = isOwner || agent.visibility === "public";
+  const { data: groups = [] } = useSWR<AgentGroup[]>(
+    "/api/agent-group?limit=50",
+    fetcher,
+    {
+      fallbackData: [],
+      revalidateOnFocus: false,
+    },
+  );
+
+  const addToGroup = async (group: AgentGroup) => {
+    try {
+      const current = group.agentIds || [];
+      if (current.includes(agent.id)) {
+        toast.info("Already in group");
+        setOpen(false);
+        return;
+      }
+      const res = await fetch(`/api/agent-group/${group.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agentIds: [...current, agent.id] }),
+      });
+      if (!res.ok) throw new Error("Failed to add to group");
+      toast.success("Added to group");
+      setOpen(false);
+    } catch (_error) {
+      toast.error("Failed to add to group");
+    }
+  };
 
   return (
     <>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>{children}</PopoverTrigger>
-        <PopoverContent className="p-0 w-[220px]" side={side} align={align}>
-          <Command>
-            <CommandList>
-              <CommandGroup>
-                <CommandItem className="cursor-pointer p-0">
-                  <div
-                    className="flex items-center gap-2 w-full px-2 py-1 rounded"
-                    onClick={() => {
-                      appStore.setState((state) => ({
-                        voiceChat: {
-                          ...state.voiceChat,
-                          isOpen: true,
-                          threadId: generateUUID(),
-                          agentId: agent.id,
-                        },
-                      }));
-                      setOpen(false);
-                    }}
-                  >
-                    <AudioWaveformIcon className="text-foreground" />
-                    <span>{t("Chat.VoiceChat.title")}</span>
-                  </div>
-                </CommandItem>
-                {canEdit && (
-                  <CommandItem className="cursor-pointer p-0">
-                    <div
-                      className="flex items-center gap-2 w-full px-2 py-1 rounded"
-                      onClick={() => {
-                        setShowEditDialog(true);
-                        setOpen(false);
-                      }}
-                    >
-                      <PencilLine className="text-foreground" />
-                      {t("Common.edit")}
-                    </div>
-                  </CommandItem>
-                )}
-              </CommandGroup>
-              {!isOwner && agent.userName && (
-                <>
-                  <Separator className="my-1" />
-                  <div className="px-2 py-1.5">
-                    <p className="text-xs text-muted-foreground">
-                      {t("Common.sharedBy", { userName: agent.userName })}
-                    </p>
-                  </div>
-                </>
-              )}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
+        <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+        <DropdownMenuContent className="w-[200px]" side={side} align={align}>
+          <DropdownMenuGroup>
+            <DropdownMenuItem
+              onClick={() => {
+                appStore.setState((state) => ({
+                  voiceChat: {
+                    ...state.voiceChat,
+                    isOpen: true,
+                    threadId: generateUUID(),
+                    agentId: agent.id,
+                  },
+                }));
+                setOpen(false);
+              }}
+            >
+              <AudioWaveformIcon className="mr-2" />
+              <span>{t("Chat.VoiceChat.title")}</span>
+            </DropdownMenuItem>
 
-      {/* Edit Agent Dialog */}
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <UserPlus className="mr-2" />
+                <span>Add to group</span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuSubContent>
+                  {groups.map((g) => (
+                    <DropdownMenuItem key={g.id} onClick={() => addToGroup(g)}>
+                      <span className="truncate">{g.name}</span>
+                    </DropdownMenuItem>
+                  ))}
+                  {groups.length === 0 && (
+                    <div className="px-2 py-1.5">
+                      <p className="text-xs text-muted-foreground">No groups</p>
+                    </div>
+                  )}
+                </DropdownMenuSubContent>
+              </DropdownMenuPortal>
+            </DropdownMenuSub>
+
+            {canEdit && (
+              <DropdownMenuItem
+                onClick={() => {
+                  setShowEditDialog(true);
+                  setOpen(false);
+                }}
+              >
+                <PencilLine className="mr-2" />
+                {t("Common.edit")}
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
       {session?.user?.id && (
         <EditAgentDialog
           open={showEditDialog}

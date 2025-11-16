@@ -5,7 +5,13 @@ import Link from "next/link";
 import { SidebarMenuButton, SidebarMenuSkeleton } from "ui/sidebar";
 import { SidebarGroupContent, SidebarMenu, SidebarMenuItem } from "ui/sidebar";
 import { SidebarGroup } from "ui/sidebar";
-import { MoreHorizontal, PlusIcon } from "lucide-react";
+import {
+  MoreHorizontal,
+  UserPlus,
+  UserRoundPlus,
+  UsersRound,
+  Trash,
+} from "lucide-react";
 
 import { useMounted } from "@/hooks/use-mounted";
 
@@ -17,6 +23,11 @@ import { useAgents } from "@/hooks/queries/use-agents";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
 import { AgentDropdown } from "../agent/agent-dropdown";
 import { EditAgentDialog } from "../agent/edit-agent-dialog";
+import { EditGroupDialog } from "../group/edit-group-dialog";
+import { AgentGroup } from "app-types/agent-group";
+import useSWR from "swr";
+import { fetcher } from "lib/utils";
+import { Separator } from "ui/separator";
 
 import { appStore } from "@/app/store";
 import { useStore } from "zustand";
@@ -27,12 +38,22 @@ import { getEmojiUrl } from "lib/emoji";
 import { cn } from "lib/utils";
 import { canCreateAgent } from "lib/auth/client-permissions";
 import { authClient } from "auth/client";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "ui/dropdown-menu";
+import { notify } from "lib/notify";
+import { toast } from "sonner";
 
 export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
   const mounted = useMounted();
   const t = useTranslations();
   const router = useRouter();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showCreateGroupDialog, setShowCreateGroupDialog] = useState(false);
+  const [editingGroup, setEditingGroup] = useState<AgentGroup | null>(null);
   const { data: session } = authClient.useSession();
 
   // Get current thread mentions and thread ID from store
@@ -44,6 +65,7 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
     readonlyAgents,
     isLoading,
     sharedAgents,
+    agents: allAgents,
   } = useAgents({
     limit: 50,
   }); // Increase limit since we're not artificially limiting display
@@ -59,6 +81,20 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
       return true;
     });
   }, [bookmarkedAgents, myAgents]);
+
+  const { data: groups = [], mutate: mutateGroups } = useSWR<AgentGroup[]>(
+    "/api/agent-group?limit=50",
+    fetcher,
+    {
+      fallbackData: [],
+      revalidateOnFocus: false,
+    },
+  );
+
+  const agentById = useMemo(
+    () => new Map(allAgents.map((a) => [a.id, a])),
+    [allAgents],
+  );
 
   // Function to check if an agent is currently selected
   const isAgentSelected = useCallback(
@@ -121,40 +157,124 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
     [agents, router],
   );
 
+  const handleGroupClick = useCallback(
+    (group: AgentGroup) => {
+      const currentThreadId = appStore.getState().currentThreadId;
+      const members = (group.agentIds || [])
+        .map((id) => agentById.get(id))
+        .filter(Boolean) as any[];
+
+      if (members.length === 0) return;
+
+      const newMentions: ChatMention[] = members.map((agent: any) => ({
+        type: "agent",
+        agentId: agent.id,
+        name: agent.name,
+        icon: agent.icon,
+        description: agent.description,
+      }));
+
+      if (currentThreadId) {
+        appStore.setState((prev) => {
+          const currentMentions = prev.threadMentions[currentThreadId] || [];
+          const nonAgentMentions = currentMentions.filter(
+            (v) => v.type != "agent",
+          );
+          return {
+            threadMentions: {
+              ...prev.threadMentions,
+              [currentThreadId]: [...nonAgentMentions, ...newMentions],
+            },
+          };
+        });
+      } else {
+        router.push("/");
+        appStore.setState(() => ({
+          pendingThreadMentions: newMentions,
+        }));
+      }
+    },
+    [agentById, router],
+  );
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className="group-data-[collapsible=icon]:hidden group/agents">
         <SidebarMenu className="group/agents" data-testid="agents-sidebar-menu">
           <SidebarMenuItem className="justify-center">
-            <SidebarMenuButton
-              asChild
-              className="font-semibold border border-border rounded-md px-2 py-1 justify-center"
-            >
-              <Link
-                href="/agents"
-                data-testid="agents-link"
-                className="block w-full text-center"
+            <div className="flex items-center gap-2 w-full justify-center">
+              <SidebarMenuButton
+                asChild
+                className="relative font-semibold border border-border rounded-md px-2 py-1 justify-center"
               >
-                {t("Layout.agents")}
-              </Link>
-            </SidebarMenuButton>
-            {canCreateAgent(userRole) && (
-              <SidebarMenuAction
-                className="opacity-100"
-                onClick={() => setShowCreateDialog(true)}
-                data-testid="sidebar-create-agent-button"
+                <div className="relative w-full">
+                  <Link
+                    href="/groups"
+                    data-testid="groups-link"
+                    className="block w-full text-center"
+                  >
+                    Groups
+                  </Link>
+                  {canCreateAgent(userRole) && (
+                    <div
+                      className="absolute right-1 top-1/2 -translate-y-1/2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        setShowCreateGroupDialog(true);
+                      }}
+                      data-testid="sidebar-create-group-button"
+                    >
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <UserRoundPlus className="size-4" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" align="center">
+                          Create Group
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  )}
+                </div>
+              </SidebarMenuButton>
+
+              <SidebarMenuButton
+                asChild
+                className="relative font-semibold border border-border rounded-md px-2 py-1 justify-center"
               >
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <PlusIcon className="size-4" />
-                  </TooltipTrigger>
-                  <TooltipContent side="right" align="center">
-                    {t("Agent.newAgent")}
-                  </TooltipContent>
-                </Tooltip>
-              </SidebarMenuAction>
-            )}
+                <div className="relative w-full">
+                  <Link
+                    href="/agents"
+                    data-testid="agents-link"
+                    className="block w-full text-center"
+                  >
+                    {t("Layout.agents")}
+                  </Link>
+                  {canCreateAgent(userRole) && (
+                    <div
+                      className="absolute right-1 top-1/2 -translate-y-1/2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        setShowCreateDialog(true);
+                      }}
+                      data-testid="sidebar-create-agent-button"
+                    >
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <UserPlus className="size-4" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" align="center">
+                          {t("Agent.newAgent")}
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  )}
+                </div>
+              </SidebarMenuButton>
+            </div>
           </SidebarMenuItem>
+          <Separator className="my-2" />
 
           {isLoading ? (
             <SidebarMenuItem>
@@ -180,6 +300,7 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
                 <div className={cn("w-full space-y-2")}>
                   {agents.map((agent, i) => {
                     const isSelected = isAgentSelected(agent.id);
+                    const isShared = agent.userId !== session?.user?.id;
                     return (
                       <SidebarMenu
                         key={agent.id}
@@ -196,9 +317,24 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
                               isSelected && "bg-accent text-accent-foreground",
                             )}
                           >
-                            <div className="flex gap-1 w-full min-w-0">
+                            <div
+                              className="flex gap-1 w-full min-w-0"
+                              draggable
+                              onDragStart={(e) => {
+                                try {
+                                  e.dataTransfer.setData(
+                                    "application/agent-id",
+                                    agent.id,
+                                  );
+                                  e.dataTransfer.effectAllowed = "copy";
+                                } catch {}
+                              }}
+                            >
                               <div
-                                className="p-1 rounded-full ring-2 ring-border bg-background"
+                                className={cn(
+                                  "p-1 bg-background",
+                                  isShared ? "rounded-full" : "rounded-md",
+                                )}
                                 style={{
                                   backgroundColor:
                                     agent.icon?.style?.backgroundColor ||
@@ -207,7 +343,12 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
                                     ],
                                 }}
                               >
-                                <Avatar className="size-5">
+                                <Avatar
+                                  className={cn(
+                                    "size-5",
+                                    isShared && "rounded-full",
+                                  )}
+                                >
                                   <AvatarImage
                                     src={
                                       agent.icon?.value
@@ -263,6 +404,127 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
               </div>
             </div>
           )}
+          <Separator className="my-2" />
+          {groups.length > 0 && (
+            <div className="flex flex-col min-h-0">
+              <div className="relative overflow-y-auto">
+                <div className={cn("w-full space-y-2")}>
+                  {groups.map((group) => {
+                    const members = (group.agentIds || [])
+                      .map((id) => agentById.get(id))
+                      .filter(Boolean)
+                      .slice(0, 3) as any[];
+                    return (
+                      <SidebarMenu
+                        key={group.id}
+                        className="group/group mr-0 w-full"
+                      >
+                        <SidebarMenuItem
+                          className="px-2 cursor-pointer w-full"
+                          onClick={() => handleGroupClick(group)}
+                        >
+                          <SidebarMenuButton asChild className="w-full">
+                            <div className="flex items-center min-w-0 w-full">
+                              {members.length > 0 && (
+                                <div className="flex -space-x-1">
+                                  {members.map((m, idx) => (
+                                    <Avatar
+                                      key={m.id}
+                                      className="size-6 rounded-md"
+                                    >
+                                      <AvatarImage
+                                        src={
+                                          m.icon?.value
+                                            ? getEmojiUrl(
+                                                m.icon.value,
+                                                "apple",
+                                                64,
+                                              )
+                                            : getEmojiUrl(
+                                                EMOJI_DATA[
+                                                  idx % EMOJI_DATA.length
+                                                ],
+                                                "apple",
+                                                64,
+                                              )
+                                        }
+                                      />
+                                      <AvatarFallback>
+                                        {m.name.slice(0, 1)}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                  ))}
+                                </div>
+                              )}
+                              <p
+                                className="truncate"
+                                data-testid="sidebar-group-name"
+                              >
+                                {group.name}
+                              </p>
+                              <div
+                                className="ml-auto flex items-center"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                }}
+                              >
+                                <span className="mr-1 text-xs text-muted-foreground">
+                                  ({(group.agentIds || []).length})
+                                </span>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <SidebarMenuAction className="data-[state=open]:bg-input! data-[state=open]:opacity-100  opacity-0 group-hover/group:opacity-100 mr-2">
+                                      <MoreHorizontal className="size-4" />
+                                    </SidebarMenuAction>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent
+                                    side="right"
+                                    align="start"
+                                  >
+                                    <DropdownMenuItem
+                                      onClick={() => {
+                                        setEditingGroup(group);
+                                      }}
+                                    >
+                                      <UsersRound className="mr-2 size-4" />
+                                      Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      variant="destructive"
+                                      onClick={async () => {
+                                        const ok = await notify.confirm({
+                                          description: "Delete this group?",
+                                        });
+                                        if (!ok) return;
+                                        const res = await fetch(
+                                          `/api/agent-group/${group.id}`,
+                                          { method: "DELETE" },
+                                        );
+                                        if (res.ok) {
+                                          toast.success("Group deleted");
+                                          mutateGroups();
+                                        } else {
+                                          toast.error("Failed to delete group");
+                                        }
+                                      }}
+                                    >
+                                      <Trash className="mr-2 size-4" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            </div>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      </SidebarMenu>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
         </SidebarMenu>
       </SidebarGroupContent>
 
@@ -274,6 +536,40 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
           agentId={null}
           userId={session.user.id}
           userRole={userRole}
+        />
+      )}
+
+      {/* Create Group Dialog */}
+      {showCreateGroupDialog && (
+        <EditGroupDialog
+          group={
+            {
+              id: 0,
+              name: "",
+              description: "",
+              agentIds: [],
+              userId: session?.user?.id || "",
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            } as AgentGroup
+          }
+          onClose={() => setShowCreateGroupDialog(false)}
+          onUpdated={() => {
+            setShowCreateGroupDialog(false);
+            mutateGroups();
+          }}
+        />
+      )}
+
+      {/* Edit Group Dialog */}
+      {editingGroup && (
+        <EditGroupDialog
+          group={editingGroup}
+          onClose={() => setEditingGroup(null)}
+          onUpdated={() => {
+            setEditingGroup(null);
+            mutateGroups();
+          }}
         />
       )}
     </SidebarGroup>
