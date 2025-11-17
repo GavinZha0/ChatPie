@@ -255,7 +255,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
               const newTabs = [...prev.rightPanel.tabs];
               newTabs[multicastTabIndex] = {
                 ...newTabs[multicastTabIndex],
-                content: { agents: agentInfos },
+                content: { agents: agentInfos, status },
               };
 
               return {
@@ -278,7 +278,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
                       id: "comparison-tab",
                       type: "comparison",
                       title: "Group Chat",
-                      content: { agents: agentInfos },
+                      content: { agents: agentInfos, status },
                     },
                   ],
                   activeTabId: "comparison-tab",
@@ -828,39 +828,29 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
                     setMessages={setMessages as any}
                     sendMessage={sendMessage as any}
                     widthMode={chatWidthMode}
-                    className={
-                      isLastMessage &&
-                      message.role != "user" &&
-                      !space &&
-                      message.parts.length > 1
-                        ? "min-h-[calc(60dvh-30px)]"
-                        : ""
-                    }
+                    className={""}
                   />
                 );
               })}
               {space && (
-                <>
-                  <div
-                    className={cn(
-                      "w-full mx-auto relative",
-                      chatWidthMode === "wide"
-                        ? "max-w-none px-10"
-                        : "max-w-4xl px-6",
-                    )}
-                  >
-                    <div className={space == "space" ? "opacity-0" : ""}>
-                      <Think />
-                    </div>
+                <div
+                  className={cn(
+                    "w-full mx-auto relative",
+                    chatWidthMode === "wide"
+                      ? "max-w-none px-10"
+                      : "max-w-4xl px-6",
+                  )}
+                >
+                  <div className={space == "space" ? "opacity-0" : ""}>
+                    <Think />
                   </div>
-                  <div className="min-h-[calc(60dvh-30px)]" />
-                </>
+                </div>
               )}
 
               {error && (
                 <ErrorMessage error={error} widthMode={chatWidthMode} />
               )}
-              <div className="min-w-0 min-h-52" />
+              <div className="min-h-[calc(70dvh-40px)]" />
             </div>
           </>
         )}

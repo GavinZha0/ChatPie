@@ -34,6 +34,7 @@ interface Props {
   status?: UseChatHelpers<UIMessage>["status"];
   readonly?: boolean;
   widthMode?: ChatWidthMode;
+  containerWidthClassName?: string;
 }
 
 const PurePreviewMessage = ({
@@ -50,6 +51,7 @@ const PurePreviewMessage = ({
   messageIndex,
   sendMessage,
   widthMode = "centered",
+  containerWidthClassName,
 }: Props) => {
   const isUserMessage = useMemo(() => message.role === "user", [message.role]);
   const partsForDisplay = useMemo(
@@ -74,7 +76,8 @@ const PurePreviewMessage = ({
     <div
       className={cn(
         "w-full mx-auto group/message",
-        widthMode === "wide" ? "max-w-none px-10" : "max-w-4xl px-6",
+        containerWidthClassName ??
+          (widthMode === "wide" ? "max-w-none px-10" : "max-w-4xl px-6"),
       )}
     >
       <div className={cn("flex gap-4 w-full", className)}>

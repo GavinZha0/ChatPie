@@ -404,7 +404,6 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
               </div>
             </div>
           )}
-          <Separator className="my-2" />
           {groups.length > 0 && (
             <div className="flex flex-col min-h-0">
               <div className="relative overflow-y-auto">
