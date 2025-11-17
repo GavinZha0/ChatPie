@@ -43,6 +43,10 @@
     "docker:pg": "docker run --name chatpie-pg -e POSTGRES_PASSWORD=chatpie123 -e POSTGRES_USER=chatpie -e POSTGRES_DB=chatpie -p 5432:5432 -d postgres",
     "docker:redis": "docker run --name chatpie-redis -p 6379:6379 -d redis:7-alpine",
     "docker:app": "docker build -f docker/Dockerfile -t chatpie . && docker run -p 8300:8300 -e NO_HTTPS=1 chatpie",
+    "docker:buildx:init": "docker buildx create --use || true",
+    "docker:buildx:amd64": "docker buildx build -f docker/Dockerfile --platform linux/amd64 -t chatpie:latest . --load",
+    "docker:buildx:arm64": "docker buildx build -f docker/Dockerfile --platform linux/arm64 -t chatpie:latest . --load",
+    "docker:buildx:multi:push": "docker buildx build -f docker/Dockerfile --platform linux/amd64,linux/arm64 -t chatpie:latest . --push",
     "prepare": "husky",
     "playwright:install": "playwright install",
     "check": "pnpm lint:fix && pnpm check-types && pnpm test"

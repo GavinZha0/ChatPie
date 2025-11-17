@@ -61,6 +61,7 @@ Open [http://localhost:8300](http://localhost:8300) in your browser to get start
 
 The `pnpm i` command generates a `.env` file. Fill in the required values.
 
+```dotenv
 # Secret for Better Auth (generate with: npx @better-auth/cli@latest secret)
 BETTER_AUTH_SECRET=****
 

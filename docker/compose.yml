@@ -1,3 +1,4 @@
+name: chatpie
 services:
   chatpie:
     container_name: chatpie-app
@@ -11,6 +12,8 @@ services:
       - NO_HTTPS=1
     env_file:
       - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     dns:
       - 8.8.8.8 # Google's public DNS server
       - 8.8.4.4 # Google's public DNS server
@@ -18,6 +21,12 @@ services:
       - chatpie-networks
     depends_on:
       - postgres
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"http=require('http');req=http.request({host:'127.0.0.1',port:8300,path:'/'},res=>{process.exit(res.statusCode>=200&&res.statusCode<500?0:1)});req.on('error',()=>process.exit(1));req.end()\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     restart: unless-stopped
 
   postgres:
@@ -29,6 +38,11 @@ services:
       - chatpie-networks
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\" -h 127.0.0.1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
 
 volumes:
