@@ -286,7 +286,7 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
             <div className="px-2 mt-1">
               <div className="bg-input/40 py-8 px-4 rounded-lg text-xs overflow-hidden">
                 <div className="gap-1 z-10">
-                  <p className="font-semibold mb-2">
+                  <p className="font-semibold mb-2 text-center">
                     {sharedAgents.length + readonlyAgents.length > 0
                       ? t("Layout.availableAgents")
                       : t("Layout.noAgentsAvailable")}

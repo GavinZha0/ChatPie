@@ -833,7 +833,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
                       message.role != "user" &&
                       !space &&
                       message.parts.length > 1
-                        ? "min-h-[calc(55dvh-40px)]"
+                        ? "min-h-[calc(60dvh-30px)]"
                         : ""
                     }
                   />
@@ -853,7 +853,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
                       <Think />
                     </div>
                   </div>
-                  <div className="min-h-[calc(55dvh-56px)]" />
+                  <div className="min-h-[calc(60dvh-30px)]" />
                 </>
               )}
 

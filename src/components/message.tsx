@@ -264,7 +264,7 @@ export const ErrorMessage = ({
   message?: UIMessage;
   widthMode?: ChatWidthMode;
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const t = useTranslations();
 
   return (
@@ -276,11 +276,11 @@ export const ErrorMessage = ({
     >
       <div className="flex flex-col gap-2">
         <div className="flex flex-col gap-4 px-2 opacity-70">
-          <div
-            className="flex flex-col cursor-pointer"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            <div className="flex flex-row gap-2 items-center text-destructive hover:text-destructive/80 transition-colors">
+          <div className="flex flex-col">
+            <div
+              className="flex flex-row gap-2 items-center text-destructive hover:text-destructive/80 transition-colors cursor-pointer"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
               <div className="p-1.5 bg-muted rounded-sm">
                 <TriangleAlertIcon className="size-3.5" />
               </div>
