@@ -160,8 +160,7 @@ export function ToolSelectDropdown({
 
   // Calculate agent tool count
   const agentToolCount = useMemo(() => {
-    if (!agentDetails?.instructions?.mentions) return 0;
-    return agentDetails.instructions.mentions.length;
+    return agentDetails?.tools?.length ?? 0;
   }, [agentDetails]);
 
   const bindingTools = useMemo<string[]>(() => {

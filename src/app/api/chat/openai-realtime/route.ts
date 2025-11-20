@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     agentId && logger.info(`[${agentId}] Agent: ${agent?.name}`);
 
-    const enabledMentions = agent ? agent.instructions.mentions : mentions;
+    const enabledMentions = agent?.tools ?? mentions;
 
     const allowedMcpTools = await loadMcpTools({ mentions: enabledMentions });
 

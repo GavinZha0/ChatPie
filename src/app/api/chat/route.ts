@@ -56,6 +56,7 @@ const logger = globalLogger.withDefaults({
   message: colorize("blackBright", `Chat API: `),
 });
 
+// receive chat message from client
 export async function POST(request: Request) {
   try {
     const json = await request.json();
@@ -263,8 +264,8 @@ async function handleChatModels(
 
       // Build agent-specific mentions
       const agentMentions = [...mentions];
-      if (agent?.instructions?.mentions) {
-        agentMentions.push(...agent.instructions.mentions);
+      if (agent?.tools) {
+        agentMentions.push(...agent.tools);
       }
 
       const supportToolCall =

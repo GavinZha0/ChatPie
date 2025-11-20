@@ -221,9 +221,13 @@ export async function rememberAgentAction(
   userId: string,
 ) {
   if (!agent) return undefined;
-  const key = CacheKeys.agentInstructions(agent);
+  const key = CacheKeys.agent(agent);
   let cachedAgent = await serverCache.get<Agent | null>(key);
   if (!cachedAgent) {
+    cachedAgent = await agentRepository.selectAgentById(agent, userId);
+    await serverCache.set(key, cachedAgent);
+  }
+  if (cachedAgent && !cachedAgent.model) {
     cachedAgent = await agentRepository.selectAgentById(agent, userId);
     await serverCache.set(key, cachedAgent);
   }

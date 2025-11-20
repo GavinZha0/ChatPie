@@ -3,5 +3,5 @@ export const CacheKeys = {
   user: (userId: string) => `user-${userId}`,
   mcpServerCustomizations: (userId: string) =>
     `mcp-server-customizations-${userId}`,
-  agentInstructions: (agent: string) => `agent-instructions-${agent}`,
+  agent: (agentId: string) => `agent-${agentId}`,
 };

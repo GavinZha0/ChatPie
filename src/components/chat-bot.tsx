@@ -177,6 +177,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
   } = useChat<MyUIMessage>({
     id: threadId,
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
+    // send chat message to server
     transport: new DefaultChatTransport({
       prepareSendMessagesRequest: ({ messages, body, id }) => {
         if (window.location.pathname !== `/chat/${threadId}`) {
@@ -301,7 +302,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
                   const agent = latestRef.current.agents?.find(
                     (a) => a.id === mention.agentId,
                   );
-                  const agentModel = agent?.chatModel;
+                  const agentModel = agent?.model;
 
                   // Respect manual model override when only one agent is chatting
                   const effectiveModel = isSingleAgent

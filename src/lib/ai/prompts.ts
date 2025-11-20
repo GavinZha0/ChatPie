@@ -58,18 +58,18 @@ export const buildUserSystemPrompt = (
 
   let prompt = `You are ${assistantName}`;
 
-  if (agent?.instructions?.role) {
-    prompt += `. You are an expert in ${agent.instructions.role}`;
+  if (agent?.role) {
+    prompt += `. You are an expert in ${agent.role}`;
   }
 
   prompt += `. The current date and time is ${currentTime}.`;
 
   // Agent-specific instructions as primary core
-  if (agent?.instructions?.systemPrompt) {
+  if (agent?.systemPrompt) {
     prompt += `
   # Core Instructions
   <core_capabilities>
-  ${agent.instructions.systemPrompt}
+  ${agent.systemPrompt}
   </core_capabilities>`;
   }
 
@@ -141,17 +141,17 @@ export const buildSpeechSystemPrompt = (
 
   let prompt = `You are ${assistantName}`;
 
-  if (agent?.instructions?.role) {
-    prompt += `. You are an expert in ${agent.instructions.role}`;
+  if (agent?.role) {
+    prompt += `. You are an expert in ${agent.role}`;
   }
 
   prompt += `. The current date and time is ${currentTime}.`;
 
   // Agent-specific instructions as primary core
-  if (agent?.instructions?.systemPrompt) {
+  if (agent?.systemPrompt) {
     prompt += `# Core Instructions
     <core_capabilities>
-    ${agent.instructions.systemPrompt}
+    ${agent.systemPrompt}
     </core_capabilities>`;
   }
 

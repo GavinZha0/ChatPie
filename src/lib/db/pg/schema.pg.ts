@@ -1,4 +1,5 @@
 import { Agent } from "app-types/agent";
+import { ChatMention, ChatModel } from "app-types/chat";
 import { UserPreferences } from "app-types/user";
 import { MCPServerConfig } from "app-types/mcp";
 import { LLMConfig } from "app-types/provider";
@@ -49,7 +50,10 @@ export const AgentTable = pgTable("agent", {
   userId: uuid("user_id")
     .notNull()
     .references(() => UserTable.id, { onDelete: "cascade" }),
-  instructions: json("instructions").$type<Agent["instructions"]>(),
+  role: varchar("role", { length: 32 }),
+  systemPrompt: text("system_prompt"),
+  tools: json("tools").$type<ChatMention[]>(),
+  model: json("model").$type<ChatModel>().notNull(),
   visibility: varchar("visibility", {
     enum: ["public", "private", "readonly"],
   })

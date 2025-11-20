@@ -8,18 +8,6 @@ export type AgentIcon = {
   style?: Record<string, string>;
 };
 
-export const AgentInstructionsSchema = z.object({
-  role: z.string().optional(),
-  systemPrompt: z.string().optional(),
-  mentions: z.array(ChatMentionSchema).optional(),
-  chatModel: z
-    .object({
-      provider: z.string(),
-      model: z.string(),
-    })
-    .optional(),
-});
-
 export const AgentCreateSchema = z
   .object({
     name: z.string().min(1).max(100),
@@ -32,7 +20,15 @@ export const AgentCreateSchema = z
       })
       .optional(),
     userId: z.string(),
-    instructions: AgentInstructionsSchema,
+    role: z.string().max(32).optional(),
+    systemPrompt: z.string().optional(),
+    tools: z.array(ChatMentionSchema).optional(),
+    model: z
+      .object({
+        provider: z.string(),
+        model: z.string(),
+      })
+      .optional(),
     visibility: VisibilitySchema.optional().default("private"),
   })
   .strip();
@@ -47,7 +43,15 @@ export const AgentUpdateSchema = z
         style: z.record(z.string(), z.string()).optional(),
       })
       .optional(),
-    instructions: AgentInstructionsSchema.optional(),
+    role: z.string().max(32).optional(),
+    systemPrompt: z.string().optional(),
+    tools: z.array(ChatMentionSchema).optional(),
+    model: z
+      .object({
+        provider: z.string(),
+        model: z.string(),
+      })
+      .optional(),
     visibility: VisibilitySchema.optional(),
   })
   .strip();
@@ -60,24 +64,25 @@ export const AgentQuerySchema = z.object({
 
 export type AgentVisibility = z.infer<typeof VisibilitySchema>;
 
-export type AgentSummary = {
+export type Agent = {
   id: string;
   name: string;
   description?: string;
   icon?: AgentIcon;
   userId: string;
-  chatModel?: ChatModel;
   visibility: AgentVisibility;
   createdAt: Date;
   updatedAt: Date;
   userName?: string;
   userAvatar?: string;
   isBookmarked?: boolean;
+  role?: string;
+  systemPrompt?: string;
+  tools?: z.infer<typeof ChatMentionSchema>[];
+  model?: ChatModel;
 };
 
-export type Agent = AgentSummary & {
-  instructions: z.infer<typeof AgentInstructionsSchema>;
-};
+export type AgentSummary = Agent;
 
 export type AgentRepository = {
   insertAgent(agent: z.infer<typeof AgentCreateSchema>): Promise<Agent>;

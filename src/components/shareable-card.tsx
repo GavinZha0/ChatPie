@@ -100,9 +100,10 @@ export function ShareableCard({
               >
                 {item.name}
               </span>
-              {type === "agent" && (item as AgentSummary).chatModel && (
+              {type === "agent" && (item as AgentSummary).model && (
                 <span className="px-2 rounded-sm bg-secondary text-foreground shrink-0 text-xs">
-                  {(item as AgentSummary).chatModel?.model}
+                  {(item as AgentSummary).model?.provider}/
+                  {(item as AgentSummary).model?.model}
                 </span>
               )}
             </div>

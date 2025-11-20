@@ -190,7 +190,7 @@ export default function PromptInput({
     return agents.find((a) => a.id === selectedAgentId);
   }, [agents, selectedAgentId]);
 
-  const agentPreferredModel = selectedAgent?.chatModel;
+  const agentPreferredModel = selectedAgent?.model;
 
   // Sync agent preferred model into global chatModel when agent changes,
   // unless user has manually overridden model for this agent/thread.
@@ -467,13 +467,13 @@ export default function PromptInput({
           },
         };
 
-        // Trigger model switch to the newly added agent's preferred model
-        if (agent.chatModel) {
+        // Trigger model switch to agent's preferred model
+        if (agent.model) {
           // Capture previous model before switching (if not already captured)
           const prevByThread = (prev as any)._previousModelByThread || {};
           const previousCaptured = prevByThread[threadId!] !== undefined;
 
-          next.chatModel = agent.chatModel;
+          next.chatModel = agent.model;
           next._previousModelByThread = { ...prevByThread };
 
           if (!previousCaptured) {

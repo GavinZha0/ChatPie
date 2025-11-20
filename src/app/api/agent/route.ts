@@ -75,7 +75,7 @@ export async function POST(request: Request): Promise<Response> {
       ...data,
       userId: session.user.id,
     });
-    serverCache.delete(CacheKeys.agentInstructions(agent.id));
+    serverCache.delete(CacheKeys.agent(agent.id));
 
     return Response.json(agent);
   } catch (error) {

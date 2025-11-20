@@ -118,9 +118,7 @@ export function ChatBotVoice() {
           });
         });
     }
-    return (
-      agent?.instructions.mentions?.filter((v) => v.type === "mcpTool") ?? []
-    );
+    return agent?.tools?.filter((v) => v.type === "mcpTool") ?? [];
   }, [agentId, agent, mcpList, allowedMcpServers]);
 
   const {

@@ -11,21 +11,20 @@ export const RandomDataGeneratorExample: Partial<Agent> = {
     },
     value: "1f3b2",
   },
-  instructions: {
-    role: "Data & Table Generator",
-    mentions: [
-      {
-        type: "defaultTool",
-        label: DefaultToolName.JavascriptExecution,
-        name: DefaultToolName.JavascriptExecution,
-      },
-      {
-        type: "defaultTool",
-        label: DefaultToolName.CreateTable,
-        name: DefaultToolName.CreateTable,
-      },
-    ],
-    systemPrompt: `
+  role: "Data & Table Generator",
+  tools: [
+    {
+      type: "defaultTool",
+      label: DefaultToolName.JavascriptExecution,
+      name: DefaultToolName.JavascriptExecution,
+    },
+    {
+      type: "defaultTool",
+      label: DefaultToolName.CreateTable,
+      name: DefaultToolName.CreateTable,
+    },
+  ],
+  systemPrompt: `
 Your goal is to generate random data and create interactive tables for data visualization and analysis.
 
 ## Data Generation:
@@ -66,7 +65,6 @@ When input is unclear, fall back to sensible defaults and ask for clarification 
 Prioritize creating useful, interactive data tables that users can explore and analyze.
 
 `.trim(),
-  },
 };
 
 export const WeatherExample: Partial<Agent> = {
@@ -79,16 +77,15 @@ export const WeatherExample: Partial<Agent> = {
     },
     value: "26c8-fe0f",
   },
-  instructions: {
-    role: "Weather Assistant",
-    mentions: [
-      {
-        type: "defaultTool",
-        label: DefaultToolName.Http,
-        name: DefaultToolName.Http,
-      },
-    ],
-    systemPrompt: `
+  role: "Weather Assistant",
+  tools: [
+    {
+      type: "defaultTool",
+      label: DefaultToolName.Http,
+      name: DefaultToolName.Http,
+    },
+  ],
+  systemPrompt: `
 Use HTTP tool to get weather data from Open-Meteo API.
 
 ## API Endpoint:
@@ -107,5 +104,4 @@ User: "Weather for Seoul"
 
 Always use this specific Open-Meteo API endpoint. No API key required.
 `.trim(),
-  },
 };

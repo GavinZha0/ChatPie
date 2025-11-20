@@ -16,6 +16,7 @@ import {
   AgentUpdateSchema,
   AgentSummary,
 } from "app-types/agent";
+import { ChatMention } from "app-types/chat";
 import { BACKGROUND_COLORS, EMOJI_DATA } from "lib/const";
 import { cn, fetcher } from "lib/utils";
 import { safe } from "ts-safe";
@@ -52,12 +53,10 @@ const defaultConfig = (): PartialBy<
         backgroundColor: BACKGROUND_COLORS[0],
       },
     },
-    instructions: {
-      role: "",
-      systemPrompt: "",
-      mentions: [],
-      chatModel: currentChatModel,
-    },
+    role: "",
+    systemPrompt: "",
+    tools: [] as ChatMention[],
+    model: currentChatModel,
     visibility: "private",
   };
 };
@@ -111,32 +110,29 @@ export function AgentEditor({
 
   // Check if the current selected model is of agent type
   const isSelectedModelAgentType = useMemo(() => {
-    if (!agent.instructions?.chatModel || !allProviders) return false;
+    if (!agent.model || !allProviders) return false;
 
     for (const provider of allProviders) {
       const selectedModel = provider.models.find(
         (m) =>
-          m.name === agent.instructions?.chatModel?.model &&
-          provider.provider === agent.instructions?.chatModel?.provider,
+          m.name === agent.model?.model &&
+          provider.provider === agent.model?.provider,
       );
       if (selectedModel && selectedModel.type === "agent") {
         return true;
       }
     }
     return false;
-  }, [agent.instructions?.chatModel, allProviders]);
+  }, [agent.model, allProviders]);
 
   // Clear role, systemPrompt, and mentions when agent-type model is selected
   useEffect(() => {
     if (isSelectedModelAgentType) {
-      setAgent((prev) => ({
-        instructions: {
-          ...prev.instructions,
-          role: "",
-          systemPrompt: "",
-          mentions: [],
-        },
-      }));
+      setAgent({
+        role: "",
+        systemPrompt: "",
+        tools: [],
+      });
     }
   }, [isSelectedModelAgentType, setAgent]);
 
@@ -269,15 +265,8 @@ export function AgentEditor({
                   : t("Agent.agentRolePlaceholder")
               }
               className="hover:bg-input placeholder:text-xs bg-secondary/40 transition-colors border-transparent !border-none !focus-visible:bg-input !ring-0"
-              value={agent.instructions?.role || ""}
-              onChange={(e) =>
-                setAgent((prev) => ({
-                  instructions: {
-                    ...prev.instructions,
-                    role: e.target.value || "",
-                  },
-                }))
-              }
+              value={agent.role || ""}
+              onChange={(e) => setAgent({ role: e.target.value || "" })}
               readOnly={!hasEditAccess || isSelectedModelAgentType}
             />
           </div>
@@ -298,15 +287,8 @@ export function AgentEditor({
                   : t("Agent.agentInstructionsPlaceholder")
               }
               className="p-6 hover:bg-input min-h-48 max-h-96 overflow-y-auto resize-none placeholder:text-xs bg-secondary/40 transition-colors border-transparent !border-none !focus-visible:bg-input !ring-0"
-              value={agent.instructions?.systemPrompt || ""}
-              onChange={(e) =>
-                setAgent((prev) => ({
-                  instructions: {
-                    ...prev.instructions,
-                    systemPrompt: e.target.value || "",
-                  },
-                }))
-              }
+              value={agent.systemPrompt || ""}
+              onChange={(e) => setAgent({ systemPrompt: e.target.value || "" })}
               readOnly={!hasEditAccess || isSelectedModelAgentType}
             />
           </div>
@@ -317,18 +299,11 @@ export function AgentEditor({
               {t("Agent.agentToolsLabel")}
             </Label>
             <AgentToolSelector
-              mentions={agent.instructions?.mentions || []}
+              mentions={agent.tools || []}
               isLoading={isLoadingTool}
               disabled={isLoading || isSelectedModelAgentType}
               hasEditAccess={hasEditAccess && !isSelectedModelAgentType}
-              onChange={(mentions) =>
-                setAgent((prev) => ({
-                  instructions: {
-                    ...prev.instructions,
-                    mentions,
-                  },
-                }))
-              }
+              onChange={(mentions) => setAgent({ tools: mentions })}
             />
 
             {/* Model */}
@@ -344,7 +319,7 @@ export function AgentEditor({
                 )}
               >
                 <SelectModel
-                  currentModel={agent.instructions?.chatModel}
+                  currentModel={agent.model}
                   buttonClassName="w-full justify-between"
                   showAgentModels={true}
                   onSelect={(model) => {
@@ -352,12 +327,7 @@ export function AgentEditor({
                       return;
                     }
 
-                    setAgent((prev) => ({
-                      instructions: {
-                        ...prev.instructions,
-                        chatModel: model,
-                      },
-                    }));
+                    setAgent({ model });
                   }}
                 />
               </div>
@@ -430,7 +400,13 @@ export function EditAgentDialog({
   // Determine if we have complete agent data
   const hasCompleteData = useMemo(() => {
     if (isCreating) return true;
-    return fullAgent?.instructions !== undefined;
+    if (!fullAgent) return false;
+    return (
+      fullAgent.role !== undefined &&
+      fullAgent.systemPrompt !== undefined &&
+      fullAgent.tools !== undefined &&
+      fullAgent.model !== undefined
+    );
   }, [isCreating, fullAgent]);
 
   // Ownership and actions state for header controls

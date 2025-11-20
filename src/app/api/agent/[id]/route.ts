@@ -67,7 +67,7 @@ export async function PUT(
     }
 
     const agent = await agentRepository.updateAgent(id, session.user.id, data);
-    serverCache.delete(CacheKeys.agentInstructions(agent.id));
+    serverCache.delete(CacheKeys.agent(agent.id));
 
     return Response.json(agent);
   } catch (error) {
@@ -113,7 +113,7 @@ export async function DELETE(
       return new Response("Unauthorized", { status: 401 });
     }
     await agentRepository.deleteAgent(id, session.user.id);
-    serverCache.delete(CacheKeys.agentInstructions(id));
+    serverCache.delete(CacheKeys.agent(id));
     return Response.json({ success: true });
   } catch (error) {
     console.error("Failed to delete agent:", error);
