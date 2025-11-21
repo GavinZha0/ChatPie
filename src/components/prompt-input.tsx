@@ -77,6 +77,7 @@ interface PromptInputProps {
   onFocus?: () => void;
   widthMode?: ChatWidthMode;
   onNewChat?: () => void;
+  updateGlobalModel?: boolean;
 }
 
 const ChatMentionInput = dynamic(() => import("./chat-mention-input"), {
@@ -102,6 +103,7 @@ export default function PromptInput({
   disabledMention,
   widthMode = "centered",
   onNewChat,
+  updateGlobalModel = true,
 }: PromptInputProps) {
   const t = useTranslations("Chat");
   const layoutT = useTranslations("");
@@ -297,24 +299,26 @@ export default function PromptInput({
       if (setModel) {
         setModel(model);
       }
-      appStoreMutate((prev) => {
-        const next: any = { chatModel: model };
-        if (threadId) {
-          const hadAgent = (prev.threadMentions[threadId] || []).some(
-            (m) => m.type === "agent",
-          );
-          if (hadAgent) {
-            const manualMap = (prev as any)._agentManualModelByThread || {};
-            next._agentManualModelByThread = {
-              ...manualMap,
-              [threadId]: model,
-            };
+      if (updateGlobalModel) {
+        appStoreMutate((prev) => {
+          const next: any = { chatModel: model };
+          if (threadId) {
+            const hadAgent = (prev.threadMentions[threadId] || []).some(
+              (m) => m.type === "agent",
+            );
+            if (hadAgent) {
+              const manualMap = (prev as any)._agentManualModelByThread || {};
+              next._agentManualModelByThread = {
+                ...manualMap,
+                [threadId]: model,
+              };
+            }
           }
-        }
-        return next;
-      });
+          return next;
+        });
+      }
     },
-    [setModel, appStoreMutate, threadId],
+    [setModel, appStoreMutate, threadId, updateGlobalModel],
   );
 
   const deleteMention = useCallback(

@@ -358,6 +358,7 @@ function DrawerTemporaryContent({
           voiceDisabled
           isLoading={isLoading}
           onStop={stop}
+          updateGlobalModel={false}
         />
       </div>
     </div>
