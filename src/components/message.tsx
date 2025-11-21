@@ -87,7 +87,6 @@ const PurePreviewMessage = ({
               part: p,
               index: i,
             }));
-            const lastIndex = partsWithIndex.length - 1;
             const reasoningParts = partsWithIndex.filter(
               (p) => p.part.type === "reasoning",
             );
@@ -100,7 +99,16 @@ const PurePreviewMessage = ({
               index,
             }: { part: any; index: number }) => {
               const key = `message-${messageIndex}-part-${part.type}-${index}`;
-              const isLastPart = index === lastIndex;
+
+              // Fix: Determine if this is the last part within its respective group
+              // For reasoning parts: check if it's the last in reasoningParts
+              // For other parts: check if it's the last in otherParts
+              const isLastPart =
+                part.type === "reasoning"
+                  ? reasoningParts.length > 0 &&
+                    index === reasoningParts[reasoningParts.length - 1].index
+                  : otherParts.length > 0 &&
+                    index === otherParts[otherParts.length - 1].index;
 
               if (part.type === "reasoning") {
                 return (

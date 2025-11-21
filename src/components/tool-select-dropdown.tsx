@@ -2,7 +2,7 @@
 
 import { appStore } from "@/app/store";
 import { AllowedMCPServer, MCPServerInfo } from "app-types/mcp";
-import { cn, objectFlow, fetcher } from "lib/utils";
+import { cn, objectFlow } from "lib/utils";
 import {
   ChartColumn,
   Check,
@@ -66,12 +66,8 @@ import { AppDefaultToolkit } from "lib/ai/tools";
 import { ChatMention } from "app-types/chat";
 import { CountAnimation } from "ui/count-animation";
 
-import useSWR from "swr";
-import { Agent } from "app-types/agent";
-
 import { Separator } from "ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
-import { AgentSummary } from "app-types/agent";
 import { authClient } from "auth/client";
 
 import { Alert, AlertDescription, AlertTitle } from "ui/alert";
@@ -91,7 +87,6 @@ interface ToolSelectDropdownProps {
   disabled?: boolean;
   mentions?: ChatMention[];
   onSelectWorkflow?: (workflow: WorkflowSummary) => void;
-  onSelectAgent?: (agent: AgentSummary) => void;
   onGenerateImage?: (provider?: "google" | "openai") => void;
   className?: string;
 }
@@ -144,24 +139,10 @@ export function ToolSelectDropdown({
     refreshInterval: 1000 * 60 * 5,
   });
 
-  const agentMention = useMemo(() => {
-    return mentions?.find((m) => m.type === "agent");
+  // Check if there's an agent in mentions to disable the button
+  const hasAgentMention = useMemo(() => {
+    return mentions?.some((m) => m.type === "agent") ?? false;
   }, [mentions]);
-
-  // Fetch agent details if in agent mode to get tool count
-  const { data: agentDetails } = useSWR<Agent>(
-    agentMention ? `/api/agent/${agentMention.agentId}` : null,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-    },
-  );
-
-  // Calculate agent tool count
-  const agentToolCount = useMemo(() => {
-    return agentDetails?.tools?.length ?? 0;
-  }, [agentDetails]);
 
   const bindingTools = useMemo<string[]>(() => {
     if (mentions?.length) {
@@ -192,16 +173,12 @@ export function ToolSelectDropdown({
 
   // Determine if in manual mention mode (user manually selected tools)
   const isManualMode = useMemo(() => {
-    return !agentMention && (mentions?.length ?? 0) > 0;
-  }, [agentMention, mentions]);
+    return !hasAgentMention && (mentions?.length ?? 0) > 0;
+  }, [hasAgentMention, mentions]);
 
   const triggerButton = useMemo(() => {
-    // Agent mode - disabled state
-    const isAgentMode = !!agentMention;
-    const isDisabled = isAgentMode;
-
-    // Determine tool count to display
-    const displayToolCount = isAgentMode ? agentToolCount : bindingTools.length;
+    // Button is disabled when there's an agent in mentions
+    const isDisabled = hasAgentMention;
 
     return (
       <Button
@@ -214,12 +191,12 @@ export function ToolSelectDropdown({
           isManualMode &&
             "bg-primary/10 border-primary text-primary hover:bg-primary/20!",
           // Agent mode - disabled styling
-          isAgentMode && "opacity-50 cursor-not-allowed",
+          hasAgentMention && "opacity-50 cursor-not-allowed",
           // Empty state
-          !displayToolCount &&
+          !bindingTools.length &&
             !isLoading &&
             !isManualMode &&
-            !isAgentMode &&
+            !hasAgentMention &&
             "text-muted-foreground bg-transparent border-transparent",
           isLoading && "bg-input/60",
           open && !isManualMode && "bg-input!",
@@ -231,12 +208,12 @@ export function ToolSelectDropdown({
           className={cn(
             "size-3.5",
             isManualMode && "text-primary",
-            isAgentMode && "text-muted-foreground",
+            hasAgentMention && "text-muted-foreground",
           )}
         />
 
         {/* Show tool count or loading state */}
-        {(displayToolCount > 0 || isLoading) && (
+        {(bindingTools.length > 0 || isLoading) && (
           <>
             <div className="h-4 hidden sm:block mx-1">
               <Separator orientation="vertical" />
@@ -247,11 +224,11 @@ export function ToolSelectDropdown({
                 <Loader className="animate-spin size-3.5" />
               ) : (
                 <CountAnimation
-                  number={displayToolCount}
+                  number={bindingTools.length}
                   className={cn(
                     "text-xs",
                     isManualMode && "text-primary",
-                    isAgentMode && "text-muted-foreground",
+                    hasAgentMention && "text-muted-foreground",
                   )}
                 />
               )}
@@ -261,13 +238,12 @@ export function ToolSelectDropdown({
       </Button>
     );
   }, [
-    agentMention,
-    agentToolCount,
-    mentions?.length,
+    hasAgentMention,
     bindingTools.length,
     isLoading,
     open,
     isManualMode,
+    className,
   ]);
 
   useEffect(() => {

@@ -54,3 +54,7 @@ local-data
 .mcp-config.json
 .next
 .changeset
+
+# vibe codeing tool
+/.windsurf
+/.agent

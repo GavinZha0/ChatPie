@@ -51,7 +51,7 @@ import {
 } from "ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useThreadFileUploader } from "@/hooks/use-thread-file-uploader";
-import { AgentSummary } from "app-types/agent";
+
 import { useAgents } from "@/hooks/queries/use-agents";
 import { FileUIPart, TextUIPart } from "ai";
 import { toast } from "sonner";
@@ -414,7 +414,7 @@ export default function PromptInput({
       appStoreMutate((prev) => {
         if (mentions.some((m) => equal(m, mention))) return prev;
 
-        // Allow multiple agents for future multi-agent support
+        // Allow multiple agents for multi-agent support
         const newMentions = [...mentions, mention];
 
         return {
@@ -439,52 +439,6 @@ export default function PromptInput({
       });
     },
     [addMention],
-  );
-
-  const onSelectAgent = useCallback(
-    (agent: AgentSummary) => {
-      appStoreMutate((prev) => {
-        const currentMentions = prev.threadMentions[threadId!] || [];
-        const newAgent = {
-          type: "agent" as const,
-          name: agent.name,
-          icon: agent.icon,
-          description: agent.description,
-          agentId: agent.id,
-        };
-
-        // Check if agent already exists
-        if (currentMentions.some((m) => equal(m, newAgent))) {
-          return prev;
-        }
-
-        // Add new agent to existing mentions
-        const newMentions = [...currentMentions, newAgent];
-        const next: any = {
-          threadMentions: {
-            ...prev.threadMentions,
-            [threadId!]: newMentions,
-          },
-        };
-
-        // Trigger model switch to agent's preferred model
-        if (agent.model) {
-          // Capture previous model before switching (if not already captured)
-          const prevByThread = (prev as any)._previousModelByThread || {};
-          const previousCaptured = prevByThread[threadId!] !== undefined;
-
-          next.chatModel = agent.model;
-          next._previousModelByThread = { ...prevByThread };
-
-          if (!previousCaptured) {
-            next._previousModelByThread[threadId!] = prev.chatModel;
-          }
-        }
-
-        return next;
-      });
-    },
-    [threadId],
   );
 
   const onChangeMention = useCallback(
@@ -881,153 +835,153 @@ export default function PromptInput({
                         align="start"
                         side="top"
                         onSelectWorkflow={onSelectWorkflow}
-                        onSelectAgent={onSelectAgent}
                         onGenerateImage={handleGenerateImage}
                         mentions={mentions}
                       />
                     ))}
-
                   {/* Group Chat Mode Selector */}
-                  <DropdownMenu
-                    open={isGroupChatModeOpen}
-                    onOpenChange={setIsGroupChatModeOpen}
-                  >
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="rounded-full hover:bg-input! p-2! data-[state=open]:bg-input! mx-1"
-                            disabled={!isGroupChatModeEnabled}
-                          >
-                            {groupChatModeIcon}
-                          </Button>
-                        </DropdownMenuTrigger>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom" align="center">
-                        <span className="text-sm">
-                          {t("GroupChat.groupMode")}
-                        </span>
-                      </TooltipContent>
-                    </Tooltip>
-                    <DropdownMenuContent
-                      align="start"
-                      side="top"
-                      className="w-64"
+                  {!disabledMention && (
+                    <DropdownMenu
+                      open={isGroupChatModeOpen}
+                      onOpenChange={setIsGroupChatModeOpen}
                     >
-                      <DropdownMenuItem
-                        className="cursor-pointer"
-                        onClick={() => {
-                          appStoreMutate({ groupChatMode: "comparison" });
-                          setIsGroupChatModeOpen(false);
-                        }}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="rounded-full hover:bg-input! p-2! data-[state=open]:bg-input! mx-1"
+                              disabled={!isGroupChatModeEnabled}
+                            >
+                              {groupChatModeIcon}
+                            </Button>
+                          </DropdownMenuTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" align="center">
+                          <span className="text-sm">
+                            {t("GroupChat.groupMode")}
+                          </span>
+                        </TooltipContent>
+                      </Tooltip>
+                      <DropdownMenuContent
+                        align="start"
+                        side="top"
+                        className="w-64"
                       >
-                        <div className="flex flex-col gap-2 w-full">
-                          <div className="flex items-center gap-2">
-                            <Users className="size-4" />
-                            <span className="font-bold">
-                              {t("GroupChat.comparison")}
-                            </span>
-                            {groupChatMode === "comparison" && (
-                              <Check className="ml-auto size-4" />
-                            )}
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={() => {
+                            appStoreMutate({ groupChatMode: "comparison" });
+                            setIsGroupChatModeOpen(false);
+                          }}
+                        >
+                          <div className="flex flex-col gap-2 w-full">
+                            <div className="flex items-center gap-2">
+                              <Users className="size-4" />
+                              <span className="font-bold">
+                                {t("GroupChat.comparison")}
+                              </span>
+                              {groupChatMode === "comparison" && (
+                                <Check className="ml-auto size-4" />
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {t("GroupChat.comparisonDescription")}
+                            </p>
                           </div>
-                          <p className="text-xs text-muted-foreground">
-                            {t("GroupChat.comparisonDescription")}
-                          </p>
-                        </div>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="cursor-pointer"
-                        onClick={() => {
-                          appStoreMutate({ groupChatMode: "discussion" });
-                          setIsGroupChatModeOpen(false);
-                        }}
-                      >
-                        <div className="flex flex-col gap-2 w-full">
-                          <div className="flex items-center gap-2">
-                            <MessagesSquare className="size-4" />
-                            <span className="font-bold">
-                              {t("GroupChat.discussion")}
-                            </span>
-                            {groupChatMode === "discussion" && (
-                              <Check className="ml-auto size-4" />
-                            )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={() => {
+                            appStoreMutate({ groupChatMode: "discussion" });
+                            setIsGroupChatModeOpen(false);
+                          }}
+                        >
+                          <div className="flex flex-col gap-2 w-full">
+                            <div className="flex items-center gap-2">
+                              <MessagesSquare className="size-4" />
+                              <span className="font-bold">
+                                {t("GroupChat.discussion")}
+                              </span>
+                              {groupChatMode === "discussion" && (
+                                <Check className="ml-auto size-4" />
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {t("GroupChat.discussionDescription")}
+                            </p>
                           </div>
-                          <p className="text-xs text-muted-foreground">
-                            {t("GroupChat.discussionDescription")}
-                          </p>
-                        </div>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="cursor-pointer"
-                        onClick={() => {
-                          appStoreMutate({ groupChatMode: "chain" });
-                          setIsGroupChatModeOpen(false);
-                        }}
-                      >
-                        <div className="flex flex-col gap-2 w-full">
-                          <div className="flex items-center gap-2">
-                            <Repeat1 className="size-4" />
-                            <span className="font-bold">
-                              {t("GroupChat.chain")}
-                            </span>
-                            {groupChatMode === "chain" && (
-                              <Check className="ml-auto size-4" />
-                            )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={() => {
+                            appStoreMutate({ groupChatMode: "chain" });
+                            setIsGroupChatModeOpen(false);
+                          }}
+                        >
+                          <div className="flex flex-col gap-2 w-full">
+                            <div className="flex items-center gap-2">
+                              <Repeat1 className="size-4" />
+                              <span className="font-bold">
+                                {t("GroupChat.chain")}
+                              </span>
+                              {groupChatMode === "chain" && (
+                                <Check className="ml-auto size-4" />
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {t("GroupChat.chainDescription")}
+                            </p>
                           </div>
-                          <p className="text-xs text-muted-foreground">
-                            {t("GroupChat.chainDescription")}
-                          </p>
-                        </div>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="cursor-pointer"
-                        onClick={() => {
-                          appStoreMutate({ groupChatMode: "task" });
-                          setIsGroupChatModeOpen(false);
-                        }}
-                      >
-                        <div className="flex flex-col gap-2 w-full">
-                          <div className="flex items-center gap-2">
-                            <Target className="size-4" />
-                            <span className="font-bold">
-                              {t("GroupChat.task")}
-                            </span>
-                            {groupChatMode === "task" && (
-                              <Check className="ml-auto size-4" />
-                            )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={() => {
+                            appStoreMutate({ groupChatMode: "task" });
+                            setIsGroupChatModeOpen(false);
+                          }}
+                        >
+                          <div className="flex flex-col gap-2 w-full">
+                            <div className="flex items-center gap-2">
+                              <Target className="size-4" />
+                              <span className="font-bold">
+                                {t("GroupChat.task")}
+                              </span>
+                              {groupChatMode === "task" && (
+                                <Check className="ml-auto size-4" />
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {t("GroupChat.taskDescription")}
+                            </p>
                           </div>
-                          <p className="text-xs text-muted-foreground">
-                            {t("GroupChat.taskDescription")}
-                          </p>
-                        </div>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="cursor-pointer"
-                        onClick={() => {
-                          appStoreMutate({ groupChatMode: "debate" });
-                          setIsGroupChatModeOpen(false);
-                        }}
-                      >
-                        <div className="flex flex-col gap-2 w-full">
-                          <div className="flex items-center gap-2">
-                            <Scale className="size-4" />
-                            <span className="font-bold">
-                              {t("GroupChat.debate")}
-                            </span>
-                            {groupChatMode === "debate" && (
-                              <Check className="ml-auto size-4" />
-                            )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={() => {
+                            appStoreMutate({ groupChatMode: "debate" });
+                            setIsGroupChatModeOpen(false);
+                          }}
+                        >
+                          <div className="flex flex-col gap-2 w-full">
+                            <div className="flex items-center gap-2">
+                              <Scale className="size-4" />
+                              <span className="font-bold">
+                                {t("GroupChat.debate")}
+                              </span>
+                              {groupChatMode === "debate" && (
+                                <Check className="ml-auto size-4" />
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {t("GroupChat.debateDescription")}
+                            </p>
                           </div>
-                          <p className="text-xs text-muted-foreground">
-                            {t("GroupChat.debateDescription")}
-                          </p>
-                        </div>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
 
                   <div className="flex-1" />
 

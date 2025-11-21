@@ -62,7 +62,7 @@ export function AppToolbar({ user }: { user?: BasicUser }) {
 
   return (
     <aside
-      className="fixed left-0 top-0 z-30 h-svh w-16 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 hidden md:flex flex-col items-center justify-between py-3"
+      className="fixed left-0 top-0 z-30 h-svh w-16 border-r bg-sidebar hidden md:flex flex-col items-center justify-between py-3"
       style={{
         // Expose width to other components (sidebar offset)
         ["--app-toolbar-w" as any]: "4rem",

@@ -313,7 +313,7 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
                           <SidebarMenuButton
                             asChild
                             className={cn(
-                              "data-[state=open]:bg-input! w-full",
+                              "data-[state=open]:bg-input! w-full h-auto py-1.5",
                               isSelected && "bg-accent text-accent-foreground",
                             )}
                           >
@@ -345,7 +345,7 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
                               >
                                 <Avatar
                                   className={cn(
-                                    "size-5",
+                                    "size-6",
                                     isShared && "rounded-full",
                                   )}
                                 >
@@ -370,13 +370,18 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
                                 </Avatar>
                               </div>
 
-                              <div className="flex items-center min-w-0 w-full">
+                              <div className="flex flex-col min-w-0 w-full text-left">
                                 <p
                                   className="truncate"
                                   data-testid="sidebar-agent-name"
                                 >
                                   {agent.name}
                                 </p>
+                                {(agent.role || agent.description) && (
+                                  <p className="truncate text-xs text-muted-foreground">
+                                    {agent.role || agent.description}
+                                  </p>
+                                )}
                               </div>
                               <div
                                 onClick={(e) => {

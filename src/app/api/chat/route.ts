@@ -69,8 +69,7 @@ export async function POST(request: Request) {
     const {
       id,
       message,
-      chatModels, // New: Multi-agent array
-      chatModel, // Keep: Single model compatibility
+      chatModel,
       toolChoice,
       allowedAppDefaultToolkit,
       allowedMcpServers,
@@ -79,23 +78,9 @@ export async function POST(request: Request) {
       attachments = [],
     } = chatApiSchemaRequestBodySchema.parse(json);
 
-    // Unified processing: build target models array
-    const targetModels = chatModels?.length
-      ? chatModels
-      : chatModel
-        ? [
-            {
-              provider: chatModel.provider,
-              model: chatModel.model,
-              agentId:
-                mentions?.find((m) => m.type === "agent")?.agentId || null,
-              agentName:
-                mentions?.find((m) => m.type === "agent")?.name || "Assistant",
-            },
-          ]
-        : [];
-
-    if (targetModels.length === 0) {
+    // agent mentions have models
+    const agentMentions = mentions.filter((m) => m.type === "agent");
+    if (agentMentions.length === 0 && !chatModel) {
       return new Response("No valid models specified", { status: 400 });
     }
 
@@ -193,8 +178,10 @@ export async function POST(request: Request) {
 
     messages.push(message);
 
-    // Unified processing for single or multiple models
-    return handleChatModels(targetModels, {
+    // support model only, single agent or multiple agents
+    // chatModel is selected model by user
+    // mentions may have single agent or multiple agents with pre-defined models
+    return handleChatModels(chatModel, {
       id,
       message,
       messages,
@@ -216,12 +203,12 @@ export async function POST(request: Request) {
 
 // Unified processing function for single or multiple models
 async function handleChatModels(
-  targetModels: {
-    provider: string;
-    model: string;
-    agentId: string | null;
-    agentName: string;
-  }[],
+  chatModel:
+    | {
+        provider: string;
+        model: string;
+      }
+    | undefined,
   context: {
     id: string;
     message: UIMessage;
@@ -250,17 +237,31 @@ async function handleChatModels(
     request,
   } = context;
 
-  // Process all models concurrently (1 or more)
-  const modelResponses = await Promise.all(
-    targetModels.map(async (targetModel) => {
-      const model = await customModelProvider.getModel({
-        provider: targetModel.provider,
-        model: targetModel.model,
-      });
+  // Extract agent IDs from mentions for multi-agent support
+  const agentMentions = mentions.filter((m) => m.type === "agent");
+  const agentIdsToProcess =
+    agentMentions.length > 0 ? agentMentions.map((m) => m.agentId) : [null]; // null represents no agent (use chatModel)
 
-      const agent = targetModel.agentId
-        ? await rememberAgentAction(targetModel.agentId, session.user.id)
+  const modelResponses = await Promise.all(
+    agentIdsToProcess.map(async (agentId) => {
+      // Get complete agent info from cache/db if agent id exists
+      const agent = agentId
+        ? await rememberAgentAction(agentId, session.user.id)
         : null;
+
+      // Determine the model to use: chatModel (if provided) or agent's model
+      // chatModel takes priority - when frontend sends it, user wants to use that model
+      // When chatModel is undefined, use agent's predefined model
+      const modelToUse = chatModel || agent?.model;
+      if (!modelToUse) {
+        throw new Error(
+          `No model specified for ${agent ? `agent ${agent.name}` : "chat"}`,
+        );
+      }
+
+      const agentName = agent?.name || "null";
+      // Language model that is used by the AI SDK Core functions
+      const model = await customModelProvider.getModel(modelToUse);
 
       // Build agent-specific mentions
       const agentMentions = [...mentions];
@@ -276,15 +277,14 @@ async function handleChatModels(
         (toolChoice != "none" || agentMentions.length > 0) &&
         !useImageTool;
 
+      // pass to frontend for multi-agent support
+      // and save to db as chat log
       const metadata: ChatMetadata = {
-        agentId: targetModel.agentId || undefined,
-        agentName: targetModel.agentName,
-        toolChoice: toolChoice,
+        agentId,
+        agentName,
+        toolChoice,
         toolCount: 0,
-        chatModel: {
-          provider: targetModel.provider,
-          model: targetModel.model,
-        },
+        chatModel: modelToUse,
       };
 
       // Create independent response stream for each model
@@ -293,7 +293,7 @@ async function handleChatModels(
           const mcpClients = await mcpClientsManager.getClients();
           const mcpTools = await mcpClientsManager.tools();
           logger.info(
-            `Agent: ${targetModel.agentName}, mcp-server count: ${mcpClients.length}, mcp-tools count: ${Object.keys(mcpTools).length}`,
+            `Agent: ${agentName}, mcp-server count: ${mcpClients.length}, mcp-tools count: ${Object.keys(mcpTools).length}`,
           );
 
           const MCP_TOOLS = await safe()
@@ -397,7 +397,7 @@ async function handleChatModels(
           metadata.toolCount = Object.keys(vercelAITooles).length;
 
           logger.info(
-            `Agent: ${targetModel.agentName}, model: ${targetModel.provider}/${targetModel.model}, tool mode: ${toolChoice}, mentions: ${agentMentions.length}`,
+            `Agent: ${agentName}, model: ${modelToUse.provider}/${modelToUse.model}, tool mode: ${toolChoice}, mentions: ${agentMentions.length}`,
           );
 
           const result = streamText({
@@ -419,6 +419,7 @@ async function handleChatModels(
             result.toUIMessageStream({
               messageMetadata: ({ part }) => {
                 if (part.type == "finish") {
+                  // add usage to metadata and send to frontend
                   metadata.usage = part.totalUsage;
                   return metadata;
                 }
@@ -428,6 +429,7 @@ async function handleChatModels(
         },
         generateId: generateUUID,
         onFinish: async ({ responseMessage }) => {
+          // save message to db
           if (responseMessage.id == message.id) {
             await chatRepository.upsertMessage({
               threadId: thread.id,
@@ -436,6 +438,7 @@ async function handleChatModels(
               metadata,
             });
           } else {
+            // save role and message to db
             await chatRepository.upsertMessage({
               threadId: thread.id,
               role: message.role,
@@ -456,8 +459,6 @@ async function handleChatModels(
       });
 
       return {
-        agentId: targetModel.agentId || "default",
-        agentName: targetModel.agentName,
         stream,
         metadata,
       };
@@ -482,8 +483,6 @@ async function handleChatModels(
 // Tagged stream merger for multiple agents
 function createTaggedMergedStream(
   responses: {
-    agentId: string;
-    agentName: string;
     stream: any;
     metadata: ChatMetadata;
   }[],
@@ -499,7 +498,8 @@ function createTaggedMergedStream(
     execute: async ({ writer }) => {
       // Process all agent streams concurrently
       await Promise.all(
-        responses.map(async ({ agentId, agentName, stream, metadata }) => {
+        responses.map(async ({ stream, metadata }) => {
+          const { agentId = "default", agentName = "Assistant" } = metadata;
           try {
             // Get reader from the stream directly
             const reader = stream.getReader();
@@ -516,6 +516,7 @@ function createTaggedMergedStream(
               const toolCallId = rawToolCallId || currentToolCallId;
 
               if (shouldTagChunk(value)) {
+                // bind blockId to agentId for multiple agents
                 if (blockId) currentBlockId = blockId;
                 if (toolCallId) currentToolCallId = toolCallId;
                 writer.write({
@@ -584,8 +585,8 @@ function createTaggedMergedStream(
 function shouldTagChunk(chunk: any): boolean {
   const tagTypes = [
     "text-start",
-    "text-delta", // Add text-delta
-    "step-start", // Add step-start
+    "text-delta",
+    "step-start",
     "reasoning-start",
     "tool-input-start",
     "tool-output-available",

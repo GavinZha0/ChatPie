@@ -459,13 +459,13 @@ export const ReasoningPart = memo(function ReasoningPart({
   }, [isThinking]);
 
   return (
-    <div
-      className="flex flex-col cursor-pointer"
-      onClick={() => {
-        setIsExpanded(!isExpanded);
-      }}
-    >
-      <div className="flex flex-row gap-2 items-center text-ring hover:text-primary transition-colors">
+    <div className="flex flex-col">
+      <div
+        className="flex flex-row gap-2 items-center text-ring hover:text-primary transition-colors cursor-pointer"
+        onClick={() => {
+          setIsExpanded(!isExpanded);
+        }}
+      >
         {isThinking ? (
           <TextShimmer>Reasoned</TextShimmer>
         ) : (

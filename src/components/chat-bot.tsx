@@ -52,6 +52,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useThreadFileUploader } from "@/hooks/use-thread-file-uploader";
 import { useFileDragOverlay } from "@/hooks/use-file-drag-overlay";
 import { useAgents } from "@/hooks/queries/use-agents";
+import { useChatModels } from "@/hooks/queries/use-chat-models";
 
 type Props = {
   threadId: string;
@@ -78,6 +79,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
   const [isAtBottom, setIsAtBottom] = useState(true);
   const { uploadFiles } = useThreadFileUploader(threadId);
   const { agents } = useAgents({ limit: 50 });
+  const { data: providers } = useChatModels();
   const router = useRouter();
   const handleFileDrop = useCallback(
     async (files: File[]) => {
@@ -221,11 +223,44 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           (m) => m.type === "agent",
         );
 
+        // Determine if we should send chatModel to backend
+        // - Multiple agents: don't send chatModel (each agent uses its own model)
+        // - Single agent with type='agent': don't send chatModel (model cannot be replaced)
+        // - Single agent with other type: send chatModel (model can be replaced)
+        // - No agent: send chatModel (pure model chat)
+        let finalChatModel = latestRef.current.model;
+
+        if (agentMentions.length === 1) {
+          // Single agent: check if model type is 'agent'
+          const agent = latestRef.current.agents?.find(
+            (a) => a.id === agentMentions[0].agentId,
+          );
+          if (agent?.model) {
+            // Check model type from providers data
+            const currentProviders = latestRef.current.providers;
+            if (currentProviders) {
+              const provider = currentProviders.find(
+                (p) => p.provider === agent.model!.provider,
+              );
+              const modelInfo = provider?.models.find(
+                (m) => m.name === agent.model!.model,
+              );
+              // If model type is 'agent', don't send chatModel
+              if (modelInfo?.type === "agent") {
+                finalChatModel = undefined;
+              }
+            }
+          }
+        } else if (agentMentions.length > 1) {
+          // Multiple agents: don't send chatModel, let each agent use its own model
+          finalChatModel = undefined;
+        }
+
         // Check if we should open right panel for comparison mode
-        const isMulticast = groupChatMode === "comparison";
+        const isComparison = groupChatMode === "comparison";
         const hasMultipleAgents = agentMentions.length >= 2;
 
-        if (isMulticast && hasMultipleAgents) {
+        if (isComparison && hasMultipleAgents) {
           // Open right panel immediately when user sends message
           // Skip the first agent (shown in main chat) and show agents 2-5 (max 4)
           const agentInfos = agentMentions.slice(1, 5).map((mention) => {
@@ -233,11 +268,12 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
               (a) => a.id === mention.agentId,
             );
 
+            // Show user's info on right panel immediately
             return {
               agentId: mention.agentId,
               agentName: mention.name,
               agentIcon: agent?.icon,
-              messages: [lastMessage], // Show the user's message immediately
+              messages: [lastMessage],
             };
           });
 
@@ -248,14 +284,14 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           const leftPanelWidth = perAgentWidth;
 
           appStoreMutate((prev) => {
-            const multicastTabIndex = prev.rightPanel.tabs.findIndex(
+            const comparisonTabIndex = prev.rightPanel.tabs.findIndex(
               (t) => t.type === "comparison",
             );
 
-            if (multicastTabIndex >= 0) {
+            if (comparisonTabIndex >= 0) {
               const newTabs = [...prev.rightPanel.tabs];
-              newTabs[multicastTabIndex] = {
-                ...newTabs[multicastTabIndex],
+              newTabs[comparisonTabIndex] = {
+                ...newTabs[comparisonTabIndex],
                 content: { agents: agentInfos, status },
               };
 
@@ -293,36 +329,10 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
         const requestBody: ChatApiSchemaRequestBody = {
           ...body,
           id,
-
-          // Use new chatModels array if agents are selected
-          ...(agentMentions.length > 0
-            ? {
-                chatModels: agentMentions.map((mention) => {
-                  const isSingleAgent = agentMentions.length === 1;
-                  const agent = latestRef.current.agents?.find(
-                    (a) => a.id === mention.agentId,
-                  );
-                  const agentModel = agent?.model;
-
-                  // Respect manual model override when only one agent is chatting
-                  const effectiveModel = isSingleAgent
-                    ? latestRef.current.model
-                    : (agentModel ?? latestRef.current.model);
-
-                  return {
-                    provider: effectiveModel?.provider || "",
-                    model: effectiveModel?.model || "",
-                    agentId: mention.agentId,
-                    agentName: mention.name,
-                  };
-                }),
-              }
-            : {
-                // Single model mode (no agents selected)
-                chatModel:
-                  (body as { model: ChatModel })?.model ??
-                  latestRef.current.model,
-              }),
+          ...{
+            // selected model - use finalChatModel which may be undefined for certain agent scenarios
+            chatModel: (body as { model: ChatModel })?.model ?? finalChatModel,
+          },
 
           toolChoice: latestRef.current.toolChoice,
           allowedAppDefaultToolkit:
@@ -332,7 +342,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           allowedMcpServers: latestRef.current.mentions?.length
             ? {}
             : latestRef.current.allowedMcpServers,
-          mentions: latestRef.current.mentions,
+          mentions: latestRef.current.mentions, // include agents/tools/workflows in mentions
           message: sanitizedLastMessage,
           imageTool: {
             model: latestRef.current.threadImageToolModel[threadId],
@@ -370,6 +380,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     mentions: threadMentions[threadId],
     threadImageToolModel,
     agents,
+    providers,
   });
 
   // Build blockId/toolCallId -> agentInfo mapping from agent tags
