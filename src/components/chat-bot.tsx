@@ -440,7 +440,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
         const agentUsage: Record<string, ChatMetadata["usage"] | undefined> =
           {};
         const agentNames: Record<string, string | undefined> = {};
-        let currentAgentId = "default"; // Track current agent for consecutive parts
+        let currentAgentId = orderedAgentIds[0] || "default"; // Track current agent for consecutive parts
 
         msg.parts.forEach((part) => {
           if (part.type === "data-agent-tag") {

@@ -191,7 +191,7 @@ export const UserMessagePart = memo(
 
     return (
       <div className="flex flex-row gap-2 items-start mt-2 mb-1">
-        <Avatar className="size-7 mt-2 ring ring-border rounded-none flex-shrink-0">
+        <Avatar className="size-7 mt-1 ring ring-border rounded-none flex-shrink-0">
           <AvatarImage src={getUserAvatar({})} />
           <AvatarFallback>U</AvatarFallback>
         </Avatar>
@@ -199,7 +199,7 @@ export const UserMessagePart = memo(
           <div
             data-testid="message-content"
             className={cn(
-              "inline-flex flex-col gap-4 w-fit max-w-[80%] relative overflow-hidden px-4 py-2 rounded-2xl",
+              "inline-flex flex-col gap-4 w-fit max-w-[80%] relative overflow-hidden px-4 py-1 rounded-2xl",
               "bg-green-200 dark:bg-green-800",
               "text-green-900 dark:text-green-50",
               "border border-green-300 dark:border-green-700",

@@ -63,7 +63,7 @@ function MulticastTabContent({
             key={agent.agentId}
             className="flex-1 min-w-0 h-full flex flex-col border-r last:border-r-0 border-border/50"
           >
-            <div className="flex items-center justify-end gap-2 p-3 border-b border-border/50 bg-muted/30">
+            <div className="flex items-center justify-end gap-2 py-1 px-6 border-b border-border/50 bg-muted/30">
               <span className="text-sm font-semibold truncate text-right">
                 {agent.agentName}
               </span>
