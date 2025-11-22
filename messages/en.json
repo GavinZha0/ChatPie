@@ -506,7 +506,9 @@
     "createTeamDescription": "Create a private team to organize your agents.",
     "editTeamDescription": "Update team details and manage its agent members.",
     "selectMembers": "Select members",
-    "teamMembers": "Team members"
+    "teamMembers": "Team members",
+    "modelAvailable": "Model available",
+    "modelUnavailable": "Model unavailable"
   },
   "KeyboardShortcuts": {
     "title": "Keyboard Shortcuts",

@@ -18,6 +18,7 @@ import { handleErrorWithToast } from "ui/shared-toast";
 import { safe } from "ts-safe";
 import { canCreateAgent } from "lib/auth/client-permissions";
 import { EditAgentDialog } from "./edit-agent-dialog";
+import { useChatModels } from "@/hooks/queries/use-chat-models";
 
 interface AgentsListProps {
   initialMyAgents: AgentSummary[];
@@ -128,6 +129,19 @@ export function AgentsList({
     setEditingAgent(null);
   };
 
+  const { data: chatModels, isLoading: isChatModelsLoading } = useChatModels();
+
+  const isAgentModelAvailable = (agent: AgentSummary) => {
+    if (isChatModelsLoading || !chatModels) return undefined;
+    if (!agent.model) return true; // No model requirement means available
+
+    return chatModels.some(
+      (provider) =>
+        provider.provider === agent.model?.provider &&
+        provider.models.some((model) => model.name === agent.model?.model),
+    );
+  };
+
   return (
     <>
       <div className="w-full flex flex-col gap-4 p-8">
@@ -169,6 +183,7 @@ export function AgentsList({
                   }
                   isDeleteLoading={deletingAgentLoading === agent.id}
                   onDelete={deleteAgent}
+                  isModelAvailable={isAgentModelAvailable(agent)}
                 />
               ))}
             </div>
@@ -194,6 +209,7 @@ export function AgentsList({
                 onClick={() => handleEditAgent(agent)}
                 onBookmarkToggle={toggleBookmark}
                 isBookmarkToggleLoading={isBookmarkLoading(agent.id)}
+                isModelAvailable={isAgentModelAvailable(agent)}
               />
             ))}
             {sharedAgents.length === 0 && (

@@ -506,7 +506,9 @@
     "createTeamDescription": "创建一个私有团队来组织您的智能体。",
     "editTeamDescription": "更新团队详细信息并管理其智能体成员。",
     "selectMembers": "选择成员",
-    "teamMembers": "团队成员"
+    "teamMembers": "团队成员",
+    "modelAvailable": "模型可用",
+    "modelUnavailable": "模型不可用"
   },
   "KeyboardShortcuts": {
     "title": "键盘快捷键",

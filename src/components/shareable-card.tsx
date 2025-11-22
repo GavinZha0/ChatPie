@@ -39,6 +39,7 @@ interface ShareableCardProps {
   isBookmarkToggleLoading?: boolean;
   isDeleteLoading?: boolean;
   actionsDisabled?: boolean;
+  isModelAvailable?: boolean;
 }
 
 export function ShareableCard({
@@ -54,6 +55,7 @@ export function ShareableCard({
   isVisibilityChangeLoading,
   isDeleteLoading,
   actionsDisabled,
+  isModelAvailable,
 }: ShareableCardProps) {
   const t = useTranslations();
   const isPublished = (item as WorkflowSummary).isPublished;
@@ -111,6 +113,19 @@ export function ShareableCard({
               <time className="shrink-0">
                 {format(item.updatedAt || new Date(), "MMM d, yyyy")}
               </time>
+              {type === "agent" && isModelAvailable !== undefined && (
+                <div
+                  className={cn(
+                    "size-2 rounded-full ml-auto shrink-0",
+                    isModelAvailable ? "bg-green-500" : "bg-destructive",
+                  )}
+                  title={
+                    isModelAvailable
+                      ? t("Agent.modelAvailable")
+                      : t("Agent.modelUnavailable")
+                  }
+                />
+              )}
               {type === "workflow" && !isPublished && (
                 <span className="px-2 rounded-sm bg-secondary text-foreground shrink-0">
                   {t("Workflow.draft")}

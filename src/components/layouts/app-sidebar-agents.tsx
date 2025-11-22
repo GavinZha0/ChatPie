@@ -46,6 +46,7 @@ import {
 } from "ui/dropdown-menu";
 import { notify } from "lib/notify";
 import { toast } from "sonner";
+import { useChatModels } from "@/hooks/queries/use-chat-models";
 
 export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
   const mounted = useMounted();
@@ -197,6 +198,19 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
     [agentById, router],
   );
 
+  const { data: chatModels, isLoading: isChatModelsLoading } = useChatModels();
+
+  const isAgentModelAvailable = (agent: any) => {
+    if (isChatModelsLoading || !chatModels) return undefined;
+    if (!agent.model) return true;
+
+    return chatModels.some(
+      (provider) =>
+        provider.provider === agent.model?.provider &&
+        provider.models.some((model) => model.name === agent.model?.model),
+    );
+  };
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className="group-data-[collapsible=icon]:hidden group/agents">
@@ -211,7 +225,10 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
                   <Link
                     href="/groups"
                     data-testid="groups-link"
-                    className="block w-full text-center"
+                    className={cn(
+                      "block w-full text-center",
+                      canCreateAgent(userRole) && "pr-6",
+                    )}
                   >
                     {t("Layout.teams")}
                   </Link>
@@ -246,7 +263,10 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
                   <Link
                     href="/agents"
                     data-testid="agents-link"
-                    className="block w-full text-center"
+                    className={cn(
+                      "block w-full text-center",
+                      canCreateAgent(userRole) && "pr-6",
+                    )}
                   >
                     {t("Layout.agents")}
                   </Link>
@@ -332,7 +352,7 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
                             >
                               <div
                                 className={cn(
-                                  "p-1 bg-background",
+                                  "p-1 bg-background relative",
                                   isShared ? "rounded-full" : "rounded-md",
                                 )}
                                 style={{
@@ -345,7 +365,7 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
                               >
                                 <Avatar
                                   className={cn(
-                                    "size-6",
+                                    "size-7",
                                     isShared && "rounded-full",
                                   )}
                                 >
@@ -368,6 +388,12 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
                                     {agent.name[0]}
                                   </AvatarFallback>
                                 </Avatar>
+                                {isAgentModelAvailable(agent) === false && (
+                                  <div
+                                    className="absolute -top-0.5 -right-0.5 size-2.5 bg-destructive rounded-full border-2 border-background"
+                                    title={t("Agent.modelUnavailable")}
+                                  />
+                                )}
                               </div>
 
                               <div className="flex flex-col min-w-0 w-full text-left">
