@@ -213,7 +213,7 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
                     data-testid="groups-link"
                     className="block w-full text-center"
                   >
-                    Groups
+                    {t("Layout.teams")}
                   </Link>
                   {canCreateAgent(userRole) && (
                     <div
@@ -230,7 +230,7 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
                           <UserRoundPlus className="size-4" />
                         </TooltipTrigger>
                         <TooltipContent side="top" align="center">
-                          Create Group
+                          {t("Layout.createTeam")}
                         </TooltipContent>
                       </Tooltip>
                     </div>

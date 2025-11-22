@@ -104,7 +104,7 @@ export function AgentsList({
       )
       .ifOk(() => {
         mutateAgents({ id: agentId }, true);
-        toast.success(t("Agent.deleted"));
+        toast.success(t("Agent.teamDeleted"));
       })
       .ifFail((e) => {
         handleErrorWithToast(e);

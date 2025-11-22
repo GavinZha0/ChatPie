@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useMemo, useState } from "react";
+import { ReactNode, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -20,24 +20,14 @@ import {
   MCPToolInfo,
 } from "app-types/mcp";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
-import {
-  ArrowLeft,
-  ChevronRight,
-  Info,
-  Loader,
-  Trash2,
-  Wrench,
-} from "lucide-react";
+import { ArrowLeft, Info, Loader, Trash2 } from "lucide-react";
 import { Button } from "ui/button";
 import { Textarea } from "ui/textarea";
 import { safe } from "ts-safe";
 import { z } from "zod";
 import { handleErrorWithToast } from "ui/shared-toast";
-import { Skeleton } from "ui/skeleton";
-import { Alert, AlertDescription, AlertTitle } from "ui/alert";
 import { ToolDetailPopupContent } from "./tool-detail-popup";
 import { ExamplePlaceholder } from "ui/example-placeholder";
-import { Input } from "ui/input";
 import { appStore } from "@/app/store";
 import { useShallow } from "zustand/shallow";
 
@@ -67,7 +57,7 @@ export function McpCustomizationPopup() {
 }
 
 export function McpServerCustomizationContent({
-  mcpServerInfo: { id, name, toolInfo, error },
+  mcpServerInfo: { id, name, error },
   title,
 }: {
   mcpServerInfo: MCPServerInfo & { id: string };
@@ -76,7 +66,6 @@ export function McpServerCustomizationContent({
   const t = useTranslations();
 
   const [prompt, setPrompt] = useState("");
-  const [search, setSearch] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
   const [selectedTool, setSelectedTool] = useState<MCPToolInfo | null>(null);
@@ -134,34 +123,11 @@ export function McpServerCustomizationContent({
     },
   );
 
-  const {
-    data: mcpToolCustomizations,
-    mutate: refreshMcpToolCustomizations,
-    isLoading: isLoadingMcpToolCustomizations,
-  } = useSWR<McpToolCustomization[]>(
-    `/api/mcp/tool-customizations/${id}`,
-    fetcher,
-    {
-      fallbackData: [],
-    },
-  );
-
-  const toolCustomizations = useMemo(() => {
-    const mcpToolCustomizationsMap = new Map(
-      mcpToolCustomizations?.map((tool) => [tool.toolName, tool]),
-    );
-    return toolInfo
-      .filter((tool) => tool.name.includes(search))
-      .map((tool) => {
-        return {
-          name: tool.name,
-          description: tool.description,
-          prompt: mcpToolCustomizationsMap.get(tool.name)?.prompt || "",
-          id: mcpToolCustomizationsMap.get(tool.name)?.id || null,
-          inputSchema: tool.inputSchema,
-        };
-      });
-  }, [mcpToolCustomizations, toolInfo, search]);
+  const { mutate: refreshMcpToolCustomizations } = useSWR<
+    McpToolCustomization[]
+  >(`/api/mcp/tool-customizations/${id}`, fetcher, {
+    fallbackData: [],
+  });
 
   if (selectedTool) {
     return (
@@ -252,75 +218,6 @@ export function McpServerCustomizationContent({
             <ExamplePlaceholder
               placeholder={[t("MCP.mcpServerCustomizationPlaceholder")]}
             />
-          </div>
-        )}
-      </div>
-      <div className="flex flex-col gap-2 mt-4">
-        <div className="text-xs flex items-center text-muted-foreground w-fit">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="text-xs font-medium flex-1 flex items-center text-muted-foreground">
-                {t("MCP.additionalInstructions")}
-                <Info className="size-3 ml-1 text-muted-foreground" />
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="whitespace-pre-wrap">
-                {t("MCP.toolCustomizationInstructions")}
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={t("MCP.searchTools")}
-        />
-
-        {isLoadingMcpToolCustomizations ? (
-          Array.from({ length: 6 }).map((_, index) => (
-            <Skeleton key={index} className="h-16 w-full" />
-          ))
-        ) : (
-          <div className="flex flex-col gap-2">
-            {toolCustomizations.length === 0 ? (
-              <Alert className="cursor-pointer py-8">
-                <Wrench className="size-3.5" />
-                <div className="flex w-full gap-2 items-center">
-                  <div className="flex-1 min-w-0">
-                    <AlertTitle>{t("MCP.noToolsAvailable")}</AlertTitle>
-                  </div>
-                </div>
-              </Alert>
-            ) : (
-              toolCustomizations.map((tool) => {
-                return (
-                  <Alert
-                    key={tool.name}
-                    onClick={() => setSelectedTool(tool)}
-                    className="cursor-pointer hover:bg-input"
-                  >
-                    <Wrench className="size-3.5" />
-                    <div className="flex w-full gap-2 items-center">
-                      <div className="flex-1 min-w-0">
-                        <AlertTitle>{tool.name}</AlertTitle>
-                        <AlertDescription className="flex gap-2 w-full min-w-0 items-start">
-                          <p
-                            className={cn(
-                              !tool.prompt && "italic",
-                              "text-xs text-muted-foreground whitespace-pre-wrap break-all line-clamp-3",
-                            )}
-                          >
-                            {tool.prompt || "None"}
-                          </p>
-                        </AlertDescription>
-                      </div>
-                      <ChevronRight className="size-3.5 flex-shrink-0" />
-                    </div>
-                  </Alert>
-                );
-              })
-            )}
           </div>
         )}
       </div>

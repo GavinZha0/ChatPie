@@ -62,8 +62,8 @@ const VISIBILITY_CONFIG = {
       description: "MCP.privateDescription",
     },
     public: {
-      label: "MCP.featured",
-      description: "MCP.featuredDescription",
+      label: "MCP.public",
+      description: "MCP.publicDescription",
     },
   },
 } as const;
@@ -153,7 +153,7 @@ export function ShareableActions({
                     </DropdownMenuTrigger>
                   </div>
                 </TooltipTrigger>
-                <TooltipContent>Change visibility</TooltipContent>
+                <TooltipContent>{t("Common.visibility")}</TooltipContent>
               </Tooltip>
               <DropdownMenuContent className="max-w-sm">
                 {visibilityItems.map((visibilityItem) => (

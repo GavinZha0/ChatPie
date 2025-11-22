@@ -11,6 +11,7 @@ import { GroupCard } from "./group-card";
 import { EditGroupDialog } from "./edit-group-dialog";
 import { useState } from "react";
 import { Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function GroupsList({ initialGroups }: { initialGroups: AgentGroup[] }) {
   const {
@@ -23,7 +24,7 @@ export function GroupsList({ initialGroups }: { initialGroups: AgentGroup[] }) {
   });
 
   const [editing, setEditing] = useState<AgentGroup | null>(null);
-
+  const t = useTranslations();
   const handleCreateGroup = () => {
     setEditing({
       // create placeholder
@@ -38,16 +39,18 @@ export function GroupsList({ initialGroups }: { initialGroups: AgentGroup[] }) {
   };
 
   const onDelete = async (group: AgentGroup) => {
-    const ok = await notify.confirm({ description: "Delete this group?" });
+    const ok = await notify.confirm({
+      description: t("Agent.deleteTeamConfirm"),
+    });
     if (!ok) return;
     const res = await fetch(`/api/agent-group/${group.id}`, {
       method: "DELETE",
     });
     if (res.ok) {
-      toast.success("Group deleted");
+      toast.success(t("Agent.deletedTeam"));
       mutate();
     } else {
-      toast.error("Failed to delete group");
+      toast.error(t("Common.error"));
     }
   };
 
@@ -61,10 +64,10 @@ export function GroupsList({ initialGroups }: { initialGroups: AgentGroup[] }) {
   return (
     <div className="w-full flex flex-col gap-4 p-8">
       <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold">Agent group</h1>
+        <h1 className="text-2xl font-bold">{t("Agent.agentTeam")}</h1>
         <Button variant="outline" size="sm" onClick={handleCreateGroup}>
           <Plus />
-          Create Group
+          {t("Agent.createTeam")}
         </Button>
       </div>
 

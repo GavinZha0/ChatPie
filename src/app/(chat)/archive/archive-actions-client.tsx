@@ -132,7 +132,7 @@ export function ArchiveExplorer({ archives, userId }: ArchiveExplorerProps) {
                   <PlusIcon className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom" align="center">
+              <TooltipContent side="top" align="center">
                 {t("Archive.addArchive")}
               </TooltipContent>
             </Tooltip>

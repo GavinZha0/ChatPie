@@ -10,15 +10,16 @@ import {
 } from "@/components/mcp/mcp-overview";
 
 import { Skeleton } from "ui/skeleton";
+import { Separator } from "ui/separator";
 
 import { ScrollArea } from "ui/scroll-area";
 import { useTranslations } from "next-intl";
-import { MCPIcon } from "ui/mcp-icon";
+
 import { useMcpList } from "@/hooks/queries/use-mcp-list";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { cn } from "lib/utils";
 import {
   DropdownMenu,
@@ -133,13 +134,27 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
       {particle}
       <ScrollArea className="h-full w-full z-40 ">
         <div className="pt-8 flex-1 relative flex flex-col gap-4 px-8 h-full pb-8">
-          <div className={cn("flex items-center  pb-8")}>
+          <div className={cn("flex items-center gap-2")}>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              {canCreate ? t("mcpServers") : t("availableMcpServers")}
+              {t("mcpServers")}
               {showValidating && isValidating && !isLoading && (
                 <Loader2 className="size-4 animate-spin" />
               )}
             </h1>
+            {canCreate && (
+              <Button
+                className="font-semibold bg-input/20"
+                variant="outline"
+                data-testid="add-mcp-server-button"
+                onClick={() => {
+                  setEditingMcp(null);
+                  setIsEditorOpen(true);
+                }}
+              >
+                <Plus className="size-3.5" />
+                {t("addMcpServer")}
+              </Button>
+            )}
             <div className="flex-1" />
 
             <div className="flex gap-2">
@@ -208,22 +223,9 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
-              {canCreate && (
-                <Button
-                  className="font-semibold bg-input/20"
-                  variant="outline"
-                  data-testid="add-mcp-server-button"
-                  onClick={() => {
-                    setEditingMcp(null);
-                    setIsEditorOpen(true);
-                  }}
-                >
-                  <MCPIcon className="fill-foreground size-3.5" />
-                  {t("addMcpServer")}
-                </Button>
-              )}
             </div>
           </div>
+          <Separator />
           {isLoading ? (
             <div className="flex flex-col gap-4">
               <Skeleton className="h-60 w-full" />

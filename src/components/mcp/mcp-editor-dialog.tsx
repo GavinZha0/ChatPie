@@ -192,7 +192,7 @@ function MCPEditor({
       <div className="flex flex-col space-y-6">
         {/* Name field */}
         <div className="space-y-2">
-          <Label htmlFor="name">Name</Label>
+          <Label htmlFor="name">{t("Common.name")}</Label>
 
           <Input
             id="name"
@@ -202,13 +202,13 @@ function MCPEditor({
               setName(e.target.value);
               if (e.target.value) validateName(e.target.value);
             }}
-            placeholder={t("MCP.enterMcpServerName")}
+            placeholder={t("Common.name")}
             className={nameError ? "border-destructive" : ""}
           />
           {nameError && <p className="text-xs text-destructive">{nameError}</p>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="config">Config</Label>
+          <Label htmlFor="config">{t("MCP.configuration")}</Label>
           <Textarea
             id="config-editor"
             value={jsonString}
@@ -221,7 +221,7 @@ function MCPEditor({
             <div className="w-full pt-2 animate-in fade-in-0 duration-300">
               <Alert variant="destructive" className="border-destructive">
                 <AlertTitle className="text-xs font-semibold">
-                  Parsing Error
+                  {t("MCP.parsingError")}
                 </AlertTitle>
                 <AlertDescription className="text-xs">
                   {jsonError}

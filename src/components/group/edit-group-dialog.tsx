@@ -22,6 +22,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AgentGroup } from "app-types/agent-group";
 import { toast } from "sonner";
 import { handleErrorWithToast } from "ui/shared-toast";
+import { useTranslations } from "next-intl";
 
 export function EditGroupDialog({
   group,
@@ -38,6 +39,7 @@ export function EditGroupDialog({
   const [members, setMembers] = useState<string[]>(group.agentIds || []);
   const [openMembers, setOpenMembers] = useState(false);
   const { agents } = useAgents({ filters: ["mine", "bookmarked"], limit: 100 });
+  const t = useTranslations();
 
   useEffect(() => {
     setName(group.name || "");
@@ -70,7 +72,7 @@ export function EditGroupDialog({
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("Failed");
-      toast.success(isCreate ? "Group created" : "Group updated");
+      toast.success(isCreate ? t("Agent.teamCreated") : t("Agent.teamUpdated"));
       onUpdated();
     } catch (error) {
       handleErrorWithToast(error as any);
@@ -81,34 +83,36 @@ export function EditGroupDialog({
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{isCreate ? "Create Group" : "Edit Group"}</DialogTitle>
+          <DialogTitle>
+            {isCreate ? t("Agent.createTeam") : t("Agent.editTeam")}
+          </DialogTitle>
           <DialogDescription>
             {isCreate
-              ? "Create a private group to organize your agents."
-              : "Update group details and manage its agent members."}
+              ? t("Agent.createTeamDescription")
+              : t("Agent.editTeamDescription")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Name</Label>
+            <Label>{t("Agent.teamName")}</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>Description</Label>
+            <Label>{t("Agent.teamDescription")}</Label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
           <div className="space-y-3">
-            <Label>Members</Label>
+            <Label>{t("Agent.teamMembers")}</Label>
             <DropdownMenu open={openMembers} onOpenChange={setOpenMembers}>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="w-full">
                   <div className="flex flex-wrap gap-1 w-full items-center">
                     {selectedNames.length === 0 ? (
                       <span className="text-sm text-muted-foreground">
-                        Select members
+                        {t("Agent.selectMembers")}
                       </span>
                     ) : (
                       selectedNames.map((name, idx) => (
@@ -145,7 +149,7 @@ export function EditGroupDialog({
                 })}
                 {!agents.length && (
                   <div className="text-xs text-muted-foreground p-2">
-                    No agents
+                    {t("Agent.noAgentsAvailable")}
                   </div>
                 )}
               </DropdownMenuContent>
@@ -153,10 +157,10 @@ export function EditGroupDialog({
           </div>
           <div className="flex gap-2 justify-end">
             <Button variant="secondary" onClick={onClose}>
-              Cancel
+              {t("Common.cancel")}
             </Button>
             <Button onClick={save} disabled={!name || members.length < 2}>
-              Save
+              {t("Common.save")}
             </Button>
           </div>
         </div>

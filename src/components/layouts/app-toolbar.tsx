@@ -117,7 +117,7 @@ export function AppToolbar({ user }: { user?: BasicUser }) {
           <ToolbarItem
             href="/admin/providers"
             icon={Boxes}
-            label={"Providers"}
+            label={t("Layout.providers") || "Providers"}
             isActive={pathname.startsWith("/admin/providers")}
           />
         )}
