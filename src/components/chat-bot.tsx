@@ -510,17 +510,20 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
       }
     });
 
-    // Add user messages to all agent groups (including those with no content yet)
-    const userMessages = messages.filter((m) => m.role === "user");
+    // Merge by original chronological order: push user messages and agent-specific assistant messages
     Object.keys(groups).forEach((agentId) => {
-      // Interleave user messages with agent messages
       const agentMessages = groups[agentId];
+      const byId = new Map(agentMessages.map((m) => [m.id, m]));
       const combined: UIMessage[] = [];
 
-      userMessages.forEach((userMsg, index) => {
-        combined.push(userMsg);
-        if (agentMessages[index]) {
-          combined.push(agentMessages[index]);
+      messages.forEach((msg) => {
+        if (msg.role === "user") {
+          combined.push(msg);
+          return;
+        }
+        if (msg.role === "assistant") {
+          const agentMsg = byId.get(msg.id);
+          if (agentMsg) combined.push(agentMsg);
         }
       });
 
