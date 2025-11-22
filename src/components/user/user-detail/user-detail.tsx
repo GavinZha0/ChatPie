@@ -54,11 +54,6 @@ export function UserDetail({
       className="min-h-full p-4 md:p-6 space-y-6"
       data-testid="user-detail-content"
     >
-      {/* Hero Section */}
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">{user?.name}</h1>
-      </div>
-
       {/* Cards Layout */}
       <div
         className={cn("grid grid-cols-1 md:grid-cols-2 gap-6", {

@@ -147,7 +147,6 @@
     },
     "Thread": {
       "chat": "채팅",
-
       "renameChat": "채팅 이름 변경",
       "deleteChat": "채팅 삭제",
       "deleteUnarchivedChats": "아카이브되지 않은 채팅 모두 삭제",
@@ -167,7 +166,6 @@
       "createLink": "링크 만들기",
       "linkCopied": "링크가 복사되었습니다"
     },
-
     "ChatPreferences": {
       "title": "채팅 환경설정",
       "whatShouldWeCallYou": "뭐라고 불러드릴까요?",
@@ -189,11 +187,11 @@
       "userInstructionsDescription": "자기소개를 하고 보다 내게 맞춰진 응답을 받으세요.",
       "mcpInstructions": "MCP 지침사항",
       "mcpInstructionsDescription": "MCP 서버 지침을 설정하세요.",
-      "myExports": "내 공유 목록",
-      "myExportsDescription": "공유한 채팅 내용을 관리하고 정리하세요.",
-      "noExportsYet": "아직 공유한 채팅이 없습니다",
-      "exportHint": "채팅 스레드를 공유하여 첫 번째 export를 생성하세요.",
-      "exported": "공유됨",
+      "mySharing": "내 공유 목록",
+      "mySharingDescription": "공유한 채팅 내용을 관리하고 정리하세요.",
+      "noSharingYet": "아직 공유한 채팅이 없습니다",
+      "sharingHint": "채팅 스레드를 공유하여 첫 번째 export를 생성하세요.",
+      "shared": "공유됨",
       "expires": "만료",
       "messages": "메시지",
       "comments": "댓글",

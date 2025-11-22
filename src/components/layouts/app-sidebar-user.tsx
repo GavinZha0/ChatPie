@@ -272,6 +272,14 @@ export function UserMenuList({ user }: { user: BasicUser }) {
         </div>
       </DropdownMenuLabel>
       <DropdownMenuSeparator />
+      <DropdownMenuItem
+        onClick={() => appStoreMutate({ openUserSettings: true })}
+        className="cursor-pointer"
+        data-testid="user-settings-menu-item"
+      >
+        <Settings className="size-4 text-foreground" />
+        <span>{t("userProfile")}</span>
+      </DropdownMenuItem>
 
       <DropdownMenuItem
         className="cursor-pointer"
@@ -288,14 +296,6 @@ export function UserMenuList({ user }: { user: BasicUser }) {
       >
         <Command className="size-4 text-foreground" />
         <span>{t("keyboardShortcuts")}</span>
-      </DropdownMenuItem>
-      <DropdownMenuItem
-        onClick={() => appStoreMutate({ openUserSettings: true })}
-        className="cursor-pointer"
-        data-testid="user-settings-menu-item"
-      >
-        <Settings className="size-4 text-foreground" />
-        <span>User Settings</span>
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem onClick={logout} className="cursor-pointer">

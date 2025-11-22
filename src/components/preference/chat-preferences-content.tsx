@@ -353,10 +353,10 @@ export function ExportsManagementContent() {
   return (
     <div className="flex flex-col">
       <h3 className="text-xl font-semibold">
-        {t("Chat.ChatPreferences.myExports")}
+        {t("Chat.ChatPreferences.mySharing")}
       </h3>
       <p className="text-sm text-muted-foreground py-2 pb-6">
-        {t("Chat.ChatPreferences.myExportsDescription")}
+        {t("Chat.ChatPreferences.mySharingDescription")}
       </p>
 
       <div className="flex flex-col gap-4 w-full">
@@ -389,7 +389,7 @@ export function ExportsManagementContent() {
                     <h4 className="font-medium truncate">{exportItem.title}</h4>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mt-2 text-sm text-muted-foreground">
                       <span>
-                        {t("Chat.ChatPreferences.exported")}{" "}
+                        {t("Chat.ChatPreferences.shared")}{" "}
                         {formatDistanceToNow(new Date(exportItem.exportedAt), {
                           addSuffix: true,
                         })}

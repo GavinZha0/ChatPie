@@ -51,7 +51,7 @@ export function UserSettingsPopup({
               <X />
             </Button>
           </div>
-          <DrawerTitle className="sr-only">{t("userSettings")}</DrawerTitle>
+          <DrawerTitle className="sr-only">{t("userProfile")}</DrawerTitle>
           <DrawerDescription className="sr-only" />
           <div className="flex-1 flex flex-col min-h-0">
             <div className="flex-1 overflow-y-auto">
