@@ -1,4 +1,79 @@
+<div align="center">
+  <h1>
+    <img src="./public/logo.png" alt="ChatPie Logo" height="50" style="vertical-align: middle;"/>
+    ChatPie 🥧
+  </h1>
+</div>
 
+<div align="center">
+  <img src="./public/image/preview/Chat.png" alt="ChatPie Preview" width="800"/>
+</div>
+
+<br/>
+
+ChatPie, a modern AI-powered chatbot platform designed to foster seamless human-AI collaboration. ChatPie transforms AI from a simple tool into a true partner or colleague, enabling users to chat naturally, work efficiently, and accomplish tasks together with AI as a helpful assistant.
+
+## ✨ Key Features
+
+### 🤖 AI Collaboration Platform
+- **Classic Chatbot Interface**: Intuitive and user-friendly chat experience
+- **Human-AI Partnership**: Designed for natural conversations and productive collaboration
+- **Multi-User Support**: Enterprise-ready platform with comprehensive user management
+
+### 🎯 Advanced Chat Capabilities
+- **Multiple Chat Modes**: Support for both one-on-one and group conversations
+- **AI Agent Builder**: Create and customize intelligent agents for specific tasks
+- **Workflow Construction**: Build automated workflows to streamline complex processes
+- **Chat Archive & Management**: Archive conversations with configurable retention policies
+
+### 🔌 Model & Integration Support
+- **Multi-Model Support**: Seamlessly integrate with leading AI providers via Vercel AI SDK:
+  - OpenAI
+  - Anthropic
+  - xAI
+  - OpenRouter
+  - Groq
+  - Qwen
+  - Dify
+  - And more...
+- **MCP Server Integration**: Support for both local and remote Model Context Protocol (MCP) servers
+- **Secure API Management**: All API keys managed securely on the backend by administrators, never exposed to the frontend
+
+### 🌍 User Experience
+- **Multi-Language Support**: Localized experience for global users
+- **Multiple Themes**: Customizable visual themes to suit user preferences
+- **Flexible Authentication**: Multiple login methods for convenient access
+
+## 📸 Screenshots
+
+<div align="center">
+  <table>
+    <tr>
+      <td width="50%">
+        <img src="./public/image/preview/Chat-web-search.png" alt="Web Search Integration"/>
+        <p align="center"><b>Web Search Integration</b></p>
+      </td>
+      <td width="50%">
+        <img src="./public/image/preview/Agent.png" alt="AI Agent Builder"/>
+        <p align="center"><b>AI Agent Builder</b></p>
+      </td>
+    </tr>
+    <tr>
+      <td width="50%">
+        <img src="./public/image/preview/Providers.png" alt="Multi-Model Providers"/>
+        <p align="center"><b>Multi-Model Providers</b></p>
+      </td>
+      <td width="50%">
+        <img src="./public/image/preview/Users-profile.png" alt="User Profile Management"/>
+        <p align="center"><b>User Profile Management</b></p>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<p align="center">
+  📷 <a href="./public/image/preview">View more screenshots</a>
+</p>
 
 ## Getting Started
 
@@ -83,13 +158,8 @@ FILE_STORAGE_TYPE=vercel-blob
 FILE_STORAGE_PREFIX=uploads
 BLOB_READ_WRITE_TOKEN=
 
-# (Optional)
-# === OAuth Settings ===
-# Fill in these values only if you want to enable Google/GitHub/Microsoft login
-
 # Set this to 1 to disable user sign-ups.
 DISABLE_SIGN_UP=
-
 ```
 
 <br/>
