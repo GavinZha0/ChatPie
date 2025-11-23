@@ -1,18 +1,16 @@
 "use client";
 
 import { ToolUIPart } from "ai";
-import { ExaSearchResponse } from "lib/ai/tools/web/web-search";
+import type { ExaSearchResponse } from "lib/ai/tools/web/web-search.shared";
 import equal from "lib/equal";
 import { notify } from "lib/notify";
 import { cn, toAny } from "lib/utils";
-import { AlertTriangleIcon } from "lucide-react";
+import { AlertTriangleIcon, ChevronDownIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { memo, useMemo, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
 import { GlobalIcon } from "ui/global-icon";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "ui/hover-card";
-import JsonView from "ui/json-view";
-import { Separator } from "ui/separator";
 import { TextShimmer } from "ui/text-shimmer";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 
@@ -31,26 +29,7 @@ function PureWebSearchToolInvocation({ part }: WebSearchToolInvocationProps) {
     };
   }, [part.state]);
   const [errorSrc, setErrorSrc] = useState<string[]>([]);
-
-  const options = useMemo(() => {
-    return (
-      <HoverCard openDelay={200} closeDelay={0}>
-        <HoverCardTrigger asChild>
-          <span className="hover:text-primary transition-colors text-xs text-muted-foreground">
-            {t("Chat.Tool.searchOptions")}
-          </span>
-        </HoverCardTrigger>
-        <HoverCardContent className="max-w-xs md:max-w-md! w-full! overflow-auto flex flex-col">
-          <p className="text-xs text-muted-foreground px-2 mb-2">
-            {t("Chat.Tool.searchOptionsDescription")}
-          </p>
-          <div className="p-2">
-            <JsonView data={part.input} />
-          </div>
-        </HoverCardContent>
-      </HoverCard>
-    );
-  }, [part.input]);
+  const [expanded, setExpanded] = useState(true);
 
   const onError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = e.currentTarget;
@@ -75,24 +54,29 @@ function PureWebSearchToolInvocation({ part }: WebSearchToolInvocationProps) {
       </div>
     );
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2">
+    <div className="min-w-0 w-full p-4 rounded-lg bg-card px-4 border text-xs transition-colors fade-300">
+      <div
+        className="flex items-center gap-2 cursor-pointer group/title"
+        onClick={() => setExpanded(!expanded)}
+      >
         <GlobalIcon className="size-5 text-muted-foreground" />
         <span className="text-sm font-semibold">
           {t("Chat.Tool.searchedTheWeb")}
         </span>
-        {options}
-      </div>
-      <div className="flex gap-2">
-        <div className="px-2.5">
-          <Separator
-            orientation="vertical"
-            className="bg-gradient-to-b from-border to-transparent from-80%"
+        <div className="flex-1" />
+        <button
+          type="button"
+          className="cursor-pointer group-hover/title:bg-input p-1.5 rounded transition-colors duration-300"
+        >
+          <ChevronDownIcon
+            className={cn(expanded && "rotate-180", "size-3.5")}
           />
-        </div>
-        <div className="flex flex-col gap-2 pb-2">
+        </button>
+      </div>
+      {expanded && (
+        <div className="mt-2 flex flex-col gap-2 pb-2">
           {Boolean(images?.length) && (
-            <div className="grid grid-cols-3 gap-3 max-w-2xl">
+            <div className="grid grid-cols-3 gap-3 w-full">
               {images.map((image, i) => {
                 if (!image.url) return null;
                 return (
@@ -224,7 +208,7 @@ function PureWebSearchToolInvocation({ part }: WebSearchToolInvocationProps) {
             </p>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

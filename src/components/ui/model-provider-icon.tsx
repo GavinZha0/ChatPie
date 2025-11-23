@@ -1,7 +1,8 @@
-import { ProviderIcon, Dify } from "@lobehub/icons";
+import { ProviderIcon, Dify, Exa } from "@lobehub/icons";
 
 export const PROVIDER_ICONS = {
   dify: Dify,
+  exa: Exa,
 } as const;
 
 interface ModelProviderIconProps {

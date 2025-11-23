@@ -2,6 +2,7 @@
 
 import { providerRepository } from "lib/db/repository";
 import { updateProviderInCache } from "lib/ai/models";
+import { invalidateExaConfigCache } from "lib/ai/tools/web/web-search";
 import type { LLMConfig } from "app-types/provider";
 import { requireAdminPermission } from "auth/permissions";
 
@@ -17,6 +18,9 @@ export async function updateProviderApiKeyAction(
   if (provider) {
     await providerRepository.updateApiKey(id, apiKey);
     await updateProviderInCache(provider.name);
+    if (provider.name === "exa") {
+      invalidateExaConfigCache();
+    }
   }
 }
 
@@ -49,6 +53,9 @@ export async function saveProviderAction(provider: {
   await requireAdminPermission();
   const result = await providerRepository.save(provider);
   await updateProviderInCache(provider.name);
+  if (provider.name === "exa") {
+    invalidateExaConfigCache();
+  }
   return result;
 }
 
@@ -61,6 +68,9 @@ export async function deleteProviderAction(id: number) {
   if (provider) {
     await providerRepository.deleteById(id);
     await updateProviderInCache(provider.name);
+    if (provider.name === "exa") {
+      invalidateExaConfigCache();
+    }
   }
 }
 
@@ -78,4 +88,9 @@ export async function getAllProvidersAction() {
 export async function getProviderByIdAction(id: number) {
   await requireAdminPermission();
   return await providerRepository.selectById(id);
+}
+
+export async function getProviderByNameAction(name: string) {
+  await requireAdminPermission();
+  return await providerRepository.selectByName(name);
 }

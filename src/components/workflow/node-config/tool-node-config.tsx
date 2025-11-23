@@ -24,10 +24,10 @@ import { useMcpList } from "@/hooks/queries/use-mcp-list";
 
 import {
   exaSearchSchema,
-  exaSearchTool,
   exaContentsSchema,
-  exaContentsTool,
-} from "lib/ai/tools/web/web-search";
+  EXA_SEARCH_DESCRIPTION,
+  EXA_CONTENTS_DESCRIPTION,
+} from "lib/ai/tools/web/web-search.shared";
 import { DefaultToolName } from "lib/ai/tools";
 
 export const ToolNodeDataConfig = memo(function ({
@@ -66,13 +66,13 @@ export const ToolNodeDataConfig = memo(function ({
       {
         type: "app-tool",
         id: DefaultToolName.WebSearch,
-        description: exaSearchTool.description!,
+        description: EXA_SEARCH_DESCRIPTION,
         parameterSchema: exaSearchSchema,
       },
       {
         type: "app-tool",
         id: DefaultToolName.WebContent,
-        description: exaContentsTool.description!,
+        description: EXA_CONTENTS_DESCRIPTION,
         parameterSchema: exaContentsSchema,
       },
     ];

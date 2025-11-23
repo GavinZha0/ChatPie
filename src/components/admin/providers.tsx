@@ -35,8 +35,8 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ProviderEditDialog } from "./provider-edit-dialog";
 import {
-  updateProviderApiKeyAction,
   updateProviderLLMModelsAction,
+  deleteProviderAction,
 } from "@/app/api/admin/providers/actions";
 import { ProviderAddModelDialog } from "./provider-add-model-dialog";
 
@@ -217,8 +217,7 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
     setIsDeleting(true);
 
     try {
-      // 'Delete' provider - set API key to null
-      await updateProviderApiKeyAction(deleteProvider.id, null);
+      await deleteProviderAction(deleteProvider.id);
       toast.success(t("toast.deleted"));
       setDeleteDialogOpen(false);
       setDeleteProvider(null);

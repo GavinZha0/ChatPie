@@ -73,12 +73,6 @@ BETTER_AUTH_URL=
 # If you don't have PostgreSQL running locally, start it with: pnpm docker:pg
 POSTGRES_URL=postgres://chatpie:chatpie123@localhost:5432/chatpie
 
-# (Optional)
-# === Tools ===
-# Exa AI for web search and content extraction (optional, but recommended for @web and research features)
-EXA_API_KEY=your_exa_api_key_here
-
-
 # Whether to use file-based MCP config (default: false)
 FILE_BASED_MCP_CONFIG=false
 
@@ -89,40 +83,13 @@ FILE_STORAGE_TYPE=vercel-blob
 FILE_STORAGE_PREFIX=uploads
 BLOB_READ_WRITE_TOKEN=
 
-# -- S3 (coming soon) --
-# FILE_STORAGE_TYPE=s3
-# FILE_STORAGE_PREFIX=uploads
-# FILE_STORAGE_S3_BUCKET=
-# FILE_STORAGE_S3_REGION=
-
 # (Optional)
 # === OAuth Settings ===
 # Fill in these values only if you want to enable Google/GitHub/Microsoft login
 
-#GitHub
-GITHUB_CLIENT_ID=
-GITHUB_CLIENT_SECRET=
-
-#Google
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-# Set to 1 to force account selection
-GOOGLE_FORCE_ACCOUNT_SELECTION=
-
-
-# Microsoft
-MICROSOFT_CLIENT_ID=
-MICROSOFT_CLIENT_SECRET=
-# Optional Tenant Id
-MICROSOFT_TENANT_ID=
-# Set to 1 to force account selection
-MICROSOFT_FORCE_ACCOUNT_SELECTION=
-
 # Set this to 1 to disable user sign-ups.
 DISABLE_SIGN_UP=
 
-# Set this to 1 to disallow adding MCP servers.
-NOT_ALLOW_ADD_MCP_SERVERS=
 ```
 
 <br/>

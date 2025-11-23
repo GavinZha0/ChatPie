@@ -47,7 +47,7 @@ const providerFileSupportMap: Record<string, readonly string[]> = {
   google: GEMINI_FILE_MIME_TYPES,
   anthropic: ANTHROPIC_FILE_MIME_TYPES,
   xai: XAI_FILE_MIME_TYPES,
-  openRouter: DEFAULT_FILE_PART_MIME_TYPES,
+  openrouter: DEFAULT_FILE_PART_MIME_TYPES,
 };
 
 type ModelCapability = {
@@ -74,6 +74,12 @@ type ModelsCache = {
  * Global model cache
  */
 let modelsCache: ModelsCache = null;
+
+/**
+ * Providers that do not support model feature
+ * - Exa AI: provide api for web search
+ */
+const UNVALID_PROVIDER_NAME = ["exa"];
 
 /**
  * Cache TTL (1 hour - balance between performance and real-time updates)
@@ -167,7 +173,10 @@ export async function loadDynamicModels() {
 
   try {
     // Load all providers
-    const providers = await providerRepository.selectAll();
+    let providers = await providerRepository.selectAll();
+    providers = providers.filter(
+      (p) => !UNVALID_PROVIDER_NAME.includes(p.name),
+    );
 
     const models: Record<string, Record<string, LanguageModel>> = {};
     const filePartSupportByModel = new Map<LanguageModel, readonly string[]>();
@@ -282,7 +291,10 @@ export async function updateProviderInCache(providerName: string) {
 
   try {
     // Get updated provider from database
-    const updatedProviders = await providerRepository.selectAll();
+    let updatedProviders = await providerRepository.selectAll();
+    updatedProviders = updatedProviders.filter(
+      (p) => !UNVALID_PROVIDER_NAME.includes(p.name),
+    );
     const updatedProvider = updatedProviders.find(
       (p) => p.name === providerName,
     );

@@ -165,7 +165,7 @@ export function ProviderEditDialog({
               {tCommon("cancel")}
             </Button>
           </DialogClose>
-          <Button onClick={handleSubmit} disabled={loading}>
+          <Button onClick={handleSubmit} disabled={loading || !apiKey.trim()}>
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

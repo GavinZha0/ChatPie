@@ -820,10 +820,10 @@
       "selectProviderPrompt": "Please select a provider to view models",
       "noModels": "No models configured for this provider",
       "tooltips": {
-        "add": "Add Provider",
-        "edit": "Edit Provider",
+        "add": "Add instance",
+        "edit": "Edit",
         "addModel": "Add Model",
-        "delete": "Delete Provider"
+        "delete": "Delete"
       },
       "modelCard": {
         "contextLimit": "{limit} context",
