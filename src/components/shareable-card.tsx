@@ -102,21 +102,10 @@ export function ShareableCard({
               >
                 {item.name}
               </span>
-              {type === "agent" && (item as AgentSummary).model && (
-                <span className="px-2 rounded-sm bg-secondary text-foreground shrink-0 text-xs">
-                  {(item as AgentSummary).model?.provider}/
-                  {(item as AgentSummary).model?.model}
-                </span>
-              )}
-            </div>
-            <div className="text-xs text-muted-foreground flex items-center gap-1 min-w-0">
-              <time className="shrink-0">
-                {format(item.updatedAt || new Date(), "MMM d, yyyy")}
-              </time>
               {type === "agent" && isModelAvailable !== undefined && (
                 <div
                   className={cn(
-                    "size-2 rounded-full ml-auto shrink-0",
+                    "size-2 rounded-full shrink-0",
                     isModelAvailable ? "bg-green-500" : "bg-destructive",
                   )}
                   title={
@@ -125,6 +114,17 @@ export function ShareableCard({
                       : t("Agent.modelUnavailable")
                   }
                 />
+              )}
+            </div>
+            <div className="text-xs text-muted-foreground flex items-center gap-1 min-w-0">
+              <time className="shrink-0">
+                {format(item.updatedAt || new Date(), "MMM d, yyyy")}
+              </time>
+              {type === "agent" && (item as AgentSummary).model && (
+                <span className="px-2 rounded-sm bg-secondary text-foreground shrink-0 text-xs ml-auto">
+                  {(item as AgentSummary).model?.provider}/
+                  {(item as AgentSummary).model?.model}
+                </span>
               )}
               {type === "workflow" && !isPublished && (
                 <span className="px-2 rounded-sm bg-secondary text-foreground shrink-0">

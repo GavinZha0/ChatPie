@@ -5,16 +5,16 @@ import {
   ShieldAlertIcon,
   Loader,
   RotateCw,
-  Settings2,
-  Wrench,
   Globe,
   SquareTerminal,
+  Pencil,
+  Save,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "ui/alert";
 import { Button } from "ui/button";
 import { Card, CardContent, CardHeader } from "ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSWRConfig } from "swr";
 import { safe } from "ts-safe";
@@ -27,17 +27,25 @@ import {
 } from "@/app/api/mcp/actions";
 import { ShareableActions, type Visibility } from "../shareable-actions";
 
-import type { MCPServerInfo, MCPToolInfo } from "app-types/mcp";
+import type {
+  MCPServerInfo,
+  MCPToolInfo,
+  McpServerCustomization,
+} from "app-types/mcp";
 
 import { ToolDetailPopup } from "./tool-detail-popup";
 import { useTranslations } from "next-intl";
 import { Separator } from "ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
-import { appStore } from "@/app/store";
-import { isString } from "lib/utils";
+import { isString, cn } from "lib/utils";
 import { redriectMcpOauth } from "lib/ai/mcp/oauth-redirect";
 import { BasicUser } from "app-types/user";
 import { canChangeVisibilityMCP } from "lib/auth/client-permissions";
+import { Textarea } from "ui/textarea";
+import { toast } from "sonner";
+import { z } from "zod";
+import useSWR from "swr";
+import { fetcher } from "lib/utils";
 
 // Main MCPCard component
 export const MCPCard = memo(function MCPCard({
@@ -48,7 +56,6 @@ export const MCPCard = memo(function MCPCard({
   name,
   toolInfo,
   visibility,
-  enabled,
   userId,
   user,
   userName,
@@ -57,14 +64,30 @@ export const MCPCard = memo(function MCPCard({
 }: MCPServerInfo & { user: BasicUser; onEdit: () => void }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [visibilityChangeLoading, setVisibilityChangeLoading] = useState(false);
+  const [isEditingCustomization, setIsEditingCustomization] = useState(false);
+  const [customizationText, setCustomizationText] = useState("");
+  const [isSavingCustomization, setIsSavingCustomization] = useState(false);
   const t = useTranslations("MCP");
-  const appStoreMutate = appStore((state) => state.mutate);
   const { mutate } = useSWRConfig();
   const isOwner = userId === user?.id;
   const canChangeVisibility = useMemo(
     () => canChangeVisibilityMCP(user?.role),
     [user?.role],
   );
+
+  // Fetch server customization
+  const { data: serverCustomization, mutate: mutateCustomization } =
+    useSWR<McpServerCustomization | null>(
+      isOwner ? `/api/mcp/server-customizations/${id}` : null,
+      fetcher,
+    );
+
+  // Initialize customization text when data loads
+  useEffect(() => {
+    if (serverCustomization?.prompt && !isEditingCustomization) {
+      setCustomizationText(serverCustomization.prompt);
+    }
+  }, [serverCustomization, isEditingCustomization]);
 
   const isLoading = useMemo(() => {
     return isProcessing || status === "loading";
@@ -123,10 +146,44 @@ export const MCPCard = memo(function MCPCard({
     [id],
   );
 
+  const handleEditCustomization = useCallback(() => {
+    setCustomizationText(serverCustomization?.prompt || "");
+    setIsEditingCustomization(true);
+  }, [serverCustomization]);
+
+  const handleSaveCustomization = useCallback(async () => {
+    setIsSavingCustomization(true);
+    safe(() =>
+      z
+        .object({
+          prompt: z.string().min(1).max(3000),
+        })
+        .parse({
+          prompt: customizationText,
+        }),
+    )
+      .map((body) =>
+        fetch(`/api/mcp/server-customizations/${id}`, {
+          method: "POST",
+          body: JSON.stringify(body),
+        }),
+      )
+      .ifOk(() => {
+        mutateCustomization();
+        toast.success(t("customizationSaved"));
+        setIsEditingCustomization(false);
+      })
+      .ifFail((e) => {
+        handleErrorWithToast(e);
+        toast.error(t("Common.error"));
+      })
+      .watch(() => setIsSavingCustomization(false));
+  }, [id, customizationText, mutateCustomization, t]);
+
   return (
     <Card
       key={`mcp-card-${id}-${status}`}
-      className="relative hover:border-foreground/20 transition-colors bg-secondary/40"
+      className="relative hover:border-foreground/20 transition-colors bg-secondary/40 gap-2"
       data-testid="mcp-server-card"
       data-featured={visibility === "public"}
     >
@@ -135,7 +192,7 @@ export const MCPCard = memo(function MCPCard({
       )}
       <CardHeader
         key={`header-${status}-${needsAuthorization}`}
-        className="flex items-center gap-1 mb-2"
+        className="flex items-center gap-1"
       >
         {isLoading && <Loader className="size-4 z-20 animate-spin mr-1" />}
 
@@ -146,6 +203,9 @@ export const MCPCard = memo(function MCPCard({
             <Globe className="size-3.5 text-muted-foreground" />
           ) : null}
           {name}
+          <span className="text-muted-foreground font-normal ml-1">
+            ({toolInfo.length})
+          </span>
         </h4>
 
         <div className="flex-1" />
@@ -174,36 +234,6 @@ export const MCPCard = memo(function MCPCard({
         )}
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled={isDisabled}
-              onClick={() =>
-                appStoreMutate({
-                  mcpCustomizationPopup: {
-                    id,
-                    name,
-                    config,
-                    status,
-                    toolInfo,
-                    error,
-                    visibility,
-                    enabled,
-                    userId,
-                  },
-                })
-              }
-            >
-              <Settings2 className="size-3.5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{t("mcpServerCustomization")}</p>
-          </TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
             {isDisabled ? (
               <div className="cursor-pointer hidden sm:block">
                 <Button variant="ghost" size="icon" disabled>
@@ -225,9 +255,6 @@ export const MCPCard = memo(function MCPCard({
             <p>{t("toolsTest")}</p>
           </TooltipContent>
         </Tooltip>
-        <div className="h-4">
-          <Separator orientation="vertical" />
-        </div>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -307,13 +334,56 @@ export const MCPCard = memo(function MCPCard({
 
       <div className="relative hidden sm:flex w-full">
         <CardContent className="flex min-w-0 w-full flex-row text-sm max-h-[320px] overflow-hidden border-r-0">
-          <div className="w-full min-w-0 flex flex-col pl-4">
-            <div className="flex items-center gap-2 mb-4 pt-2 pb-1 z-10">
-              <Wrench size={14} className="text-muted-foreground" />
-              <h5 className="text-muted-foreground text-sm font-medium">
-                {t("availableTools")} ({toolInfo.length})
-              </h5>
-            </div>
+          <div className="w-full min-w-0 flex flex-col">
+            {/* Server Customization Section - Only show for owners */}
+            {isOwner && (
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h5 className="text-xs font-medium text-muted-foreground">
+                    {t("customInstructions")}
+                  </h5>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={
+                      isEditingCustomization
+                        ? handleSaveCustomization
+                        : handleEditCustomization
+                    }
+                    disabled={isSavingCustomization || isLoading}
+                  >
+                    {isSavingCustomization ? (
+                      <Loader className="size-3 animate-spin" />
+                    ) : isEditingCustomization ? (
+                      <Save className="size-3" />
+                    ) : (
+                      <Pencil className="size-3" />
+                    )}
+                  </Button>
+                </div>
+                {isEditingCustomization ? (
+                  <Textarea
+                    value={customizationText}
+                    onChange={(e) => setCustomizationText(e.target.value)}
+                    className="resize-none h-12 text-xs"
+                    placeholder={t("customInstructionsPlaceholder")}
+                    disabled={isSavingCustomization}
+                    autoFocus
+                  />
+                ) : (
+                  <div
+                    className={cn(
+                      "text-xs text-muted-foreground line-clamp-2 min-h-[3rem] px-2 py-1.5 rounded-md bg-secondary/30",
+                      !serverCustomization?.prompt && "italic opacity-60",
+                    )}
+                  >
+                    {serverCustomization?.prompt ||
+                      t("customInstructionsPlaceholder")}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="flex-1 overflow-y-auto">
               {toolInfo.length > 0 ? (

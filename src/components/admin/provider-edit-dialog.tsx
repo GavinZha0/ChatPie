@@ -92,7 +92,7 @@ export function ProviderEditDialog({
     } finally {
       setLoading(false);
     }
-  }, [provider, baseUrl, apiKey, onOpenChange, onSuccess, router]);
+  }, [provider, alias, baseUrl, apiKey, onOpenChange, onSuccess, router]);
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen && !loading) {

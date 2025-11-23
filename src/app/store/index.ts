@@ -60,7 +60,6 @@ export interface AppState {
   openShortcutsPopup: boolean;
   openChatPreferences: boolean;
   openUserSettings: boolean;
-  mcpCustomizationPopup?: MCPServerInfo & { id: string };
   temporaryChat: {
     isOpen: boolean;
     instructions: string;
@@ -115,7 +114,6 @@ const initialState: AppState = {
   chatModel: undefined,
   openShortcutsPopup: false,
   openChatPreferences: false,
-  mcpCustomizationPopup: undefined,
   temporaryChat: {
     isOpen: false,
     instructions: "",

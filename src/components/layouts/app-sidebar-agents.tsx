@@ -63,9 +63,7 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
   const {
     bookmarkedAgents,
     myAgents,
-    readonlyAgents,
     isLoading,
-    sharedAgents,
     agents: allAgents,
   } = useAgents({
     limit: 50,
@@ -302,18 +300,6 @@ export function AppSidebarAgents({ userRole }: { userRole?: string | null }) {
                 (_, index) => mounted && <SidebarMenuSkeleton key={index} />,
               )}
             </SidebarMenuItem>
-          ) : agents.length == 0 ? (
-            <div className="px-2 mt-1">
-              <div className="bg-input/40 py-8 px-4 rounded-lg text-xs overflow-hidden">
-                <div className="gap-1 z-10">
-                  <p className="font-semibold mb-2 text-center">
-                    {sharedAgents.length + readonlyAgents.length > 0
-                      ? t("Layout.availableAgents")
-                      : t("Layout.noAgentsAvailable")}
-                  </p>
-                </div>
-              </div>
-            </div>
           ) : (
             <div className="flex flex-col min-h-0">
               <div className="relative overflow-y-auto">

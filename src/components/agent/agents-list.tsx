@@ -170,7 +170,7 @@ export function AgentsList({
               <div className="flex-1 h-px bg-border" />
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
               {myAgents.map((agent) => (
                 <ShareableCard
                   key={agent.id}
@@ -199,7 +199,7 @@ export function AgentsList({
             <div className="flex-1 h-px bg-border" />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             {sharedAgents.map((agent) => (
               <ShareableCard
                 key={agent.id}
