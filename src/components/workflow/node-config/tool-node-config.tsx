@@ -145,6 +145,7 @@ export const ToolNodeDataConfig = memo(function ({
       <div className="flex items-center gap-2">
         <p className="text-sm font-semibold my-2">Message</p>
         <SelectModel
+          modelTypes={["chat"]}
           currentModel={data.model}
           onSelect={(model) => {
             updateNodeData(data.id, {

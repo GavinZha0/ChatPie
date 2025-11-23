@@ -320,8 +320,8 @@ export function AgentEditor({
               >
                 <SelectModel
                   currentModel={agent.model}
+                  modelTypes={["chat", "agent"]}
                   buttonClassName="w-full justify-between"
-                  showAgentModels={true}
                   onSelect={(model) => {
                     if (isLoading || !hasEditAccess) {
                       return;

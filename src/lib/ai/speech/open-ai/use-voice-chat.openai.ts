@@ -121,6 +121,7 @@ export function useOpenAIVoiceChat(props?: VoiceChatOptions): VoiceChatSession {
         audioStream.current = null;
       }
       if (tracks.current.length) {
+        // Replace with empty audio track instead of completely removing to maintain connection stability
         const placeholderTrack = createEmptyAudioTrack();
         tracks.current.forEach((sender) => {
           sender.replaceTrack(placeholderTrack);
@@ -267,6 +268,7 @@ export function useOpenAIVoiceChat(props?: VoiceChatOptions): VoiceChatSession {
               text: "",
             },
           });
+          // detect speech started
           setIsUserSpeaking(true);
           setMessages((prev) => [...prev, message]);
           break;
@@ -284,6 +286,7 @@ export function useOpenAIVoiceChat(props?: VoiceChatOptions): VoiceChatSession {
           break;
         }
         case "conversation.item.input_audio_transcription.completed": {
+          // audio transcription completed by OpenAI's Whisper-1
           updateUIMessage(event.item_id, {
             parts: [
               {
@@ -383,6 +386,7 @@ export function useOpenAIVoiceChat(props?: VoiceChatOptions): VoiceChatSession {
     setError(null);
     setMessages([]);
     try {
+      // set up WebRTC connection
       const session = await createSession();
       console.log({ session });
       const sessionToken = session.client_secret.value;
@@ -392,6 +396,7 @@ export function useOpenAIVoiceChat(props?: VoiceChatOptions): VoiceChatSession {
       }
       audioElement.current.autoplay = true;
       pc.ontrack = (e) => {
+        // play audio
         if (audioElement.current) {
           audioElement.current.srcObject = e.streams[0];
         }
@@ -440,6 +445,8 @@ export function useOpenAIVoiceChat(props?: VoiceChatOptions): VoiceChatSession {
         setIsActive(false);
         setIsListening(false);
       });
+
+      // SDP
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
       const sdpResponse = await fetch(`https://api.openai.com/v1/realtime`, {

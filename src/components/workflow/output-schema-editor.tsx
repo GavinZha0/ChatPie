@@ -152,6 +152,7 @@ export function OutputSchemaEditor({
             })}
           </p>
           <SelectModel
+            modelTypes={["chat"]}
             onSelect={(m) => {
               model = m;
             }}

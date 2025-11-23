@@ -63,7 +63,8 @@ export function UserInstructionsContent() {
     responseStyleExample: "",
     profession: "",
     botName: "",
-    botModel: undefined,
+    botSecretaryModel: undefined,
+    botAudioModel: undefined,
   });
 
   const {
@@ -110,9 +111,17 @@ export function UserInstructionsContent() {
       return true;
     if ((data?.botName || "") !== (preferences.botName || "")) return true;
     if (
-      (data?.botModel?.provider || "") !==
-        (preferences.botModel?.provider || "") ||
-      (data?.botModel?.model || "") !== (preferences.botModel?.model || "")
+      (data?.botSecretaryModel?.provider || "") !==
+        (preferences.botSecretaryModel?.provider || "") ||
+      (data?.botSecretaryModel?.model || "") !==
+        (preferences.botSecretaryModel?.model || "")
+    )
+      return true;
+    if (
+      (data?.botAudioModel?.provider || "") !==
+        (preferences.botAudioModel?.provider || "") ||
+      (data?.botAudioModel?.model || "") !==
+        (preferences.botAudioModel?.model || "")
     )
       return true;
     return false;
@@ -188,15 +197,31 @@ export function UserInstructionsContent() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label>{t("Chat.ChatPreferences.botModel")}</Label>
+          <Label>{t("Chat.ChatPreferences.botSecretaryModel")}</Label>
           {isLoading ? (
             <Skeleton className="h-9" />
           ) : (
             <SelectModel
-              currentModel={preferences.botModel}
+              currentModel={preferences.botSecretaryModel}
               onSelect={(model) => {
-                setPreferences({ botModel: model });
+                setPreferences({ botSecretaryModel: model });
               }}
+              modelTypes={["chat"]}
+            />
+          )}
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label>{t("Chat.ChatPreferences.botAudioModel")}</Label>
+          {isLoading ? (
+            <Skeleton className="h-9" />
+          ) : (
+            <SelectModel
+              currentModel={preferences.botAudioModel}
+              onSelect={(model) => {
+                setPreferences({ botAudioModel: model });
+              }}
+              modelTypes={["audio"]}
+              placeholder={t("Chat.ChatPreferences.selectAudioModel")}
             />
           )}
         </div>

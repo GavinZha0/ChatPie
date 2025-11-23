@@ -66,13 +66,6 @@ POSTGRES_URL=postgres://user:password@localhost:5432/database
 # Authentication (required)
 BETTER_AUTH_SECRET=your-secret-here
 
-# At least one LLM provider (required)
-OPENAI_API_KEY=your-openai-key
-# OR
-ANTHROPIC_API_KEY=your-anthropic-key
-# OR
-GOOGLE_GENERATIVE_AI_API_KEY=your-google-key
-
 # Optional: Set default model for tests - will need to be corelated with API keys
 E2E_DEFAULT_MODEL=openai/gpt-4o-mini
 ```

@@ -307,7 +307,7 @@ const GenerateExampleInputJsonDialog = ({
         <div className="flex flex-col gap-2 py-4 text-foreground">
           <Label>{t("MCP.model")}</Label>
           <SelectModel
-            showProvider
+            modelTypes={["chat"]}
             currentModel={option.model as ChatModel}
             onSelect={(model) => setOption({ model })}
           />

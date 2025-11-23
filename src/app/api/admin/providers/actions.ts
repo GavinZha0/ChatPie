@@ -3,6 +3,7 @@
 import { providerRepository } from "lib/db/repository";
 import { updateProviderInCache } from "lib/ai/models";
 import { invalidateExaConfigCache } from "lib/ai/tools/web/web-search";
+import { invalidateAudioModelCache } from "lib/ai/audio-model";
 import type { LLMConfig } from "app-types/provider";
 import { requireAdminPermission } from "auth/permissions";
 
@@ -18,6 +19,7 @@ export async function updateProviderApiKeyAction(
   if (provider) {
     await providerRepository.updateApiKey(id, apiKey);
     await updateProviderInCache(provider.name);
+    invalidateAudioModelCache(provider.name);
     if (provider.name === "exa") {
       invalidateExaConfigCache();
     }
@@ -36,6 +38,7 @@ export async function updateProviderLLMModelsAction(
   if (provider) {
     await providerRepository.updateLLMModels(id, llm);
     await updateProviderInCache(provider.name);
+    invalidateAudioModelCache(provider.name);
   }
 }
 
@@ -53,6 +56,7 @@ export async function saveProviderAction(provider: {
   await requireAdminPermission();
   const result = await providerRepository.save(provider);
   await updateProviderInCache(provider.name);
+  invalidateAudioModelCache(provider.name);
   if (provider.name === "exa") {
     invalidateExaConfigCache();
   }
@@ -68,6 +72,7 @@ export async function deleteProviderAction(id: number) {
   if (provider) {
     await providerRepository.deleteById(id);
     await updateProviderInCache(provider.name);
+    invalidateAudioModelCache(provider.name);
     if (provider.name === "exa") {
       invalidateExaConfigCache();
     }
@@ -90,6 +95,9 @@ export async function getProviderByIdAction(id: number) {
   return await providerRepository.selectById(id);
 }
 
+/**
+ * Get provider by Name
+ */
 export async function getProviderByNameAction(name: string) {
   await requireAdminPermission();
   return await providerRepository.selectByName(name);

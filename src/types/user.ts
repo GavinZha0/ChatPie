@@ -10,7 +10,8 @@ export type UserPreferences = {
   profession?: string; // User's job or profession
   responseStyleExample?: string; // Example of preferred response style
   botName?: string; // Name of the bot
-  botModel?: ChatModel; // Assistant model selection
+  botSecretaryModel?: ChatModel; // Assistant secretary model selection
+  botAudioModel?: ChatModel; // Assistant audio model selection
 };
 
 // user without password
@@ -88,7 +89,13 @@ export const UserPreferencesZodSchema = z.object({
   profession: z.string().optional(),
   responseStyleExample: z.string().optional(),
   botName: z.string().optional(),
-  botModel: z
+  botSecretaryModel: z
+    .object({
+      provider: z.string(),
+      model: z.string(),
+    })
+    .optional(),
+  botAudioModel: z
     .object({
       provider: z.string(),
       model: z.string(),

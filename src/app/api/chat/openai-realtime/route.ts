@@ -21,6 +21,7 @@ import globalLogger from "lib/logger";
 import { colorize } from "consola/utils";
 import { getUserPreferences } from "lib/user/server";
 import { ChatMention } from "app-types/chat";
+import { getAudioModelProvider } from "lib/ai/audio-model";
 
 const logger = globalLogger.withDefaults({
   message: colorize("blackBright", `OpenAI Realtime API: `),
@@ -28,20 +29,49 @@ const logger = globalLogger.withDefaults({
 
 export async function POST(request: NextRequest) {
   try {
-    if (!process.env.OPENAI_API_KEY) {
-      return new Response(
-        JSON.stringify({ error: "OPENAI_API_KEY is not set" }),
-        {
-          status: 500,
-        },
-      );
-    }
-
     const session = await getSession();
 
     if (!session?.user.id) {
       return new Response("Unauthorized", { status: 401 });
     }
+
+    // Get user preferences to retrieve audio model configuration
+    const userPreferences = await getUserPreferences(session.user.id);
+
+    // Check if user has configured an audio model
+    if (!userPreferences?.botAudioModel) {
+      return new Response(
+        JSON.stringify({
+          error: "Please configure your audio model in Chat Preferences",
+        }),
+        {
+          status: 400,
+        },
+      );
+    }
+
+    // Get audio model provider configuration from database
+    const audioModelConfig = await getAudioModelProvider(
+      userPreferences.botAudioModel,
+    );
+
+    if (!audioModelConfig) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "Selected audio model is not available or has been disabled. Please check your preferences.",
+        }),
+        {
+          status: 400,
+        },
+      );
+    }
+
+    const { provider, llmConfig } = audioModelConfig;
+
+    logger.info(
+      `Using audio model: ${provider.name}/${llmConfig.id} (${provider.alias})`,
+    );
 
     const { voice, mentions, agentId } = (await request.json()) as {
       model: string;
@@ -65,8 +95,6 @@ export async function POST(request: NextRequest) {
     } else {
       logger.info(`No tools found`);
     }
-
-    const userPreferences = await getUserPreferences(session.user.id);
 
     const mcpServerCustomizations = await safe()
       .map(() => {
@@ -94,15 +122,21 @@ export async function POST(request: NextRequest) {
 
     const bindingTools = [...openAITools, ...DEFAULT_VOICE_TOOLS];
 
-    const r = await fetch("https://api.openai.com/v1/realtime/sessions", {
+    // Construct dynamic Realtime API endpoint
+    const realtimeUrl = `${provider.baseUrl}/realtime/sessions`;
+
+    logger.info(`Realtime endpoint: ${realtimeUrl}`);
+
+    // Create session using provider configuration from database
+    const r = await fetch(realtimeUrl, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${provider.apiKey}`,
         "Content-Type": "application/json",
       },
 
       body: JSON.stringify({
-        model: "gpt-4o-realtime-preview",
+        model: llmConfig.id, // Use model ID from database
         voice: voice || "alloy",
         input_audio_transcription: {
           model: "whisper-1",
@@ -112,6 +146,12 @@ export async function POST(request: NextRequest) {
       }),
     });
 
+    if (!r.ok) {
+      const errorText = await r.text();
+      logger.error(`Realtime API error: ${r.status} - ${errorText}`);
+      throw new Error(`Failed to create realtime session: ${errorText}`);
+    }
+
     return new Response(r.body, {
       status: 200,
       headers: {
@@ -119,7 +159,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error("Error:", error);
+    logger.error("Error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
     });

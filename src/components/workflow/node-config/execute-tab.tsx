@@ -115,6 +115,7 @@ export function ExecuteTab({
             {t("Workflow.generateInputWithAIDescription")}
           </p>
           <SelectModel
+            modelTypes={["chat"]}
             onSelect={(m) => {
               model = m;
             }}

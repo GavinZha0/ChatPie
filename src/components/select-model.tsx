@@ -3,6 +3,7 @@
 import { appStore } from "@/app/store";
 import { useChatModels } from "@/hooks/queries/use-chat-models";
 import { ChatModel } from "app-types/chat";
+import { LlmType } from "app-types/provider";
 import { cn } from "lib/utils";
 import { CheckIcon, ChevronDown } from "lucide-react";
 import {
@@ -34,34 +35,33 @@ interface SelectModelProps {
   showProvider?: boolean;
   buttonClassName?: string;
   disabled?: boolean; // Disabled prop for agent scenarios
-  showAgentModels?: boolean; // Whether to show agent-type models (default: false)
+  modelTypes?: LlmType[]; // Filter models by specific types (e.g., ["audio"], ["chat", "vision"])
+  placeholder?: string; // Placeholder text when no model is selected
 }
 
 export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
   const [open, setOpen] = useState(false);
   const { data: allProviders } = useChatModels();
 
-  // Filter providers based on showAgentModels prop
+  // Filter providers based on modelTypes
   const providers = useMemo(() => {
     if (!allProviders) return allProviders;
 
-    // If showAgentModels is true, return all providers without filtering
-    if (props.showAgentModels) {
-      return allProviders;
-    }
-
-    // Otherwise, filter out agent-type models
     return allProviders
       .map((provider) => ({
         ...provider,
-        // Filter out agent-type models from each provider
+        // Filter models by specified types
         models: provider.models.filter((model) => {
-          // Filter out models with type "agent"
-          return model.type !== "agent";
+          // If modelTypes is specified, only show models matching those types
+          if (props.modelTypes && props.modelTypes.length > 0) {
+            return props.modelTypes.includes(model.type);
+          }
+          // If modelTypes is not specified or empty, show all models
+          return true;
         }),
       }))
-      .filter((provider) => provider.models.length > 0); // Remove providers with no non-agent models
-  }, [allProviders, props.showAgentModels]);
+      .filter((provider) => provider.models.length > 0); // Remove providers with no matching models
+  }, [allProviders, props.modelTypes]);
 
   const [model, setModel] = useState(props.currentModel);
 
@@ -69,12 +69,23 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
   const isDisabled = props.disabled;
 
   useEffect(() => {
-    const modelToUse = props.currentModel ?? appStore.getState().chatModel;
-
-    if (modelToUse) {
-      setModel(modelToUse);
+    // If currentModel is explicitly provided, use it
+    if (props.currentModel) {
+      setModel(props.currentModel);
+      return;
     }
-  }, [props.currentModel]);
+
+    // Only use appStore fallback when currentModel is undefined and no placeholder is provided
+    if (props.currentModel === undefined && !props.placeholder) {
+      const fallbackModel = appStore.getState().chatModel;
+      if (fallbackModel) {
+        setModel(fallbackModel);
+      }
+    } else {
+      // Clear model when currentModel is undefined and placeholder is provided
+      setModel(undefined);
+    }
+  }, [props.currentModel, props.placeholder]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -92,7 +103,7 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
             data-testid="model-selector-button"
           >
             <div className="mr-auto flex items-center gap-1">
-              {(props.showProvider ?? true) && (
+              {(props.showProvider ?? true) && model && (
                 <ModelProviderIcon
                   provider={model?.provider || ""}
                   size={16}
@@ -100,7 +111,12 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
                   className="mr-1 size-4 shrink-0"
                 />
               )}
-              <p data-testid="selected-model-name">{model?.model || "model"}</p>
+              <p
+                data-testid="selected-model-name"
+                className={cn(!model && "text-muted-foreground")}
+              >
+                {model?.model || props.placeholder || "model"}
+              </p>
             </div>
             <ChevronDown className="size-3" />
           </Button>

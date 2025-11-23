@@ -991,6 +991,7 @@ export default function PromptInput({
 
                   {!hasMultipleAgents && (
                     <SelectModel
+                      modelTypes={["chat"]}
                       onSelect={handleSelectModel}
                       currentModel={chatModel}
                       disabled={isModelSelectorDisabled}
