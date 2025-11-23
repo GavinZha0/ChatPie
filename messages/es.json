@@ -311,6 +311,7 @@
       "title": "Preferencias de Chat",
       "whatShouldWeCallYou": "¿Cómo deberíamos llamarte?",
       "botName": "Nombre del Asistente",
+      "botModel": "Modelo del Asistente",
       "whatBestDescribesYourWork": "¿Qué describe mejor tu trabajo?",
       "whatPersonalPreferencesShouldBeTakenIntoAccountInResponses": "¿Qué preferencias personales deberían considerarse en las respuestas?",
       "responseStyleExample1": "ej. mantén las explicaciones breves y al grano",

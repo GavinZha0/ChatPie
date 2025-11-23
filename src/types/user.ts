@@ -3,12 +3,14 @@ import { passwordSchema } from "lib/validations/password";
 
 import { UserEntity } from "lib/db/pg/schema.pg";
 import { getSession } from "auth/server";
+import { ChatModel } from "./chat";
 
 export type UserPreferences = {
   displayName?: string;
   profession?: string; // User's job or profession
   responseStyleExample?: string; // Example of preferred response style
   botName?: string; // Name of the bot
+  botModel?: ChatModel; // Assistant model selection
 };
 
 // user without password
@@ -86,4 +88,10 @@ export const UserPreferencesZodSchema = z.object({
   profession: z.string().optional(),
   responseStyleExample: z.string().optional(),
   botName: z.string().optional(),
+  botModel: z
+    .object({
+      provider: z.string(),
+      model: z.string(),
+    })
+    .optional(),
 });

@@ -30,6 +30,7 @@ import { ChatExportSummary } from "app-types/chat-export";
 import { formatDistanceToNow } from "date-fns";
 import { notify } from "lib/notify";
 import { APP_NAME } from "lib/const";
+import { SelectModel } from "@/components/select-model";
 
 export function UserInstructionsContent() {
   const t = useTranslations();
@@ -62,6 +63,7 @@ export function UserInstructionsContent() {
     responseStyleExample: "",
     profession: "",
     botName: "",
+    botModel: undefined,
   });
 
   const {
@@ -107,6 +109,12 @@ export function UserInstructionsContent() {
     )
       return true;
     if ((data?.botName || "") !== (preferences.botName || "")) return true;
+    if (
+      (data?.botModel?.provider || "") !==
+        (preferences.botModel?.provider || "") ||
+      (data?.botModel?.model || "") !== (preferences.botModel?.model || "")
+    )
+      return true;
     return false;
   }, [preferences, data]);
 
@@ -137,23 +145,6 @@ export function UserInstructionsContent() {
           )}
         </div>
 
-        <div className="flex flex-col gap-2">
-          <Label>{t("Chat.ChatPreferences.botName")}</Label>
-          {isLoading ? (
-            <Skeleton className="h-9" />
-          ) : (
-            <Input
-              placeholder={APP_NAME}
-              value={preferences.botName}
-              onChange={(e) => {
-                setPreferences({
-                  botName: e.target.value,
-                });
-              }}
-            />
-          )}
-        </div>
-
         <div className="flex flex-col gap-2 text-foreground flex-1">
           <Label>{t("Chat.ChatPreferences.whatBestDescribesYourWork")}</Label>
           <div className="relative w-full">
@@ -177,6 +168,37 @@ export function UserInstructionsContent() {
               </>
             )}
           </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label>{t("Chat.ChatPreferences.botName")}</Label>
+          {isLoading ? (
+            <Skeleton className="h-9" />
+          ) : (
+            <Input
+              placeholder={APP_NAME}
+              value={preferences.botName}
+              onChange={(e) => {
+                setPreferences({
+                  botName: e.target.value,
+                });
+              }}
+            />
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label>{t("Chat.ChatPreferences.botModel")}</Label>
+          {isLoading ? (
+            <Skeleton className="h-9" />
+          ) : (
+            <SelectModel
+              currentModel={preferences.botModel}
+              onSelect={(model) => {
+                setPreferences({ botModel: model });
+              }}
+            />
+          )}
         </div>
         <div className="flex flex-col gap-2 text-foreground">
           <Label>
