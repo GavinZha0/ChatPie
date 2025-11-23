@@ -8,11 +8,12 @@ import { Button } from "ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import {
-  Settings2,
   Trash2,
   CalendarClock,
   MessageCircleXIcon,
-  PlusIcon,
+  SquarePlus,
+  SquarePen,
+  ArchiveX,
 } from "lucide-react";
 import {
   Dialog,
@@ -26,7 +27,11 @@ import { ArchiveDialog } from "@/components/archive/archive-dialog";
 
 import { toast } from "sonner";
 import type { Archive } from "app-types/archive";
-import { deleteArchiveAction } from "@/app/api/archive/actions";
+import {
+  deleteArchiveAction,
+  removeItemFromArchiveAction,
+} from "@/app/api/archive/actions";
+import { deleteThreadAction } from "@/app/api/chat/actions";
 import { mutate } from "swr";
 import { cn } from "lib/utils";
 
@@ -49,16 +54,22 @@ interface ArchiveExplorerProps {
   userId: string;
 }
 
-export function ArchiveExplorer({ archives, userId }: ArchiveExplorerProps) {
+export function ArchiveExplorer({
+  archives: initialArchives,
+  userId,
+}: ArchiveExplorerProps) {
   const t = useTranslations();
   const router = useRouter();
+  const [archives, setArchives] = useState(initialArchives);
   const [selectedId, setSelectedId] = useState<string | null>(
-    archives.length > 0 ? (archives[0]?.id ?? null) : null,
+    initialArchives.length > 0 ? (initialArchives[0]?.id ?? null) : null,
   );
   const [addArchiveDialogOpen, setAddArchiveDialogOpen] = useState(false);
   const [editArchiveId, setEditArchiveId] = useState<string | null>(null);
   const [deleteArchiveId, setDeleteArchiveId] = useState<string | null>(null);
+  const [deleteThreadId, setDeleteThreadId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeletingThread, setIsDeletingThread] = useState(false);
 
   const selectedArchive = useMemo(() => {
     if (!selectedId) return null;
@@ -112,6 +123,59 @@ export function ArchiveExplorer({ archives, userId }: ArchiveExplorerProps) {
     setEditArchiveId(null);
   };
 
+  const handleRemoveFromArchive = async (threadId: string) => {
+    if (!selectedId) return;
+    try {
+      await removeItemFromArchiveAction(selectedId, threadId);
+      toast.success(t("Archive.itemRemovedFromArchive"));
+
+      // Update local state to remove the thread from current archive
+      setArchives((prev) =>
+        prev.map((archive) =>
+          archive.id === selectedId
+            ? {
+                ...archive,
+                threads: archive.threads.filter((t) => t.id !== threadId),
+              }
+            : archive,
+        ),
+      );
+
+      // Refresh data in background without causing re-render
+      mutate("/api/archive");
+    } catch (error) {
+      console.error("Failed to remove thread from archive:", error);
+      toast.error(t("Archive.failedToUpdateArchive"));
+    }
+  };
+
+  const handleDeleteThread = async () => {
+    if (!deleteThreadId) return;
+    setIsDeletingThread(true);
+    try {
+      await deleteThreadAction(deleteThreadId);
+      toast.success(t("Archive.threadDeleted"));
+
+      // Update local state to remove the thread from all archives
+      setArchives((prev) =>
+        prev.map((archive) => ({
+          ...archive,
+          threads: archive.threads.filter((t) => t.id !== deleteThreadId),
+        })),
+      );
+
+      setDeleteThreadId(null);
+      // Refresh thread list in background
+      mutate("/api/thread");
+      mutate("/api/archive");
+    } catch (error) {
+      console.error("Failed to delete thread:", error);
+      toast.error(t("Archive.failedToDeleteThread"));
+    } finally {
+      setIsDeletingThread(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6 lg:h-[calc(100vh-10rem)] lg:flex-row">
       <Card className="border border-border bg-background flex w-full flex-col lg:h-full lg:w-80 lg:shrink-0">
@@ -129,7 +193,7 @@ export function ArchiveExplorer({ archives, userId }: ArchiveExplorerProps) {
                   className="h-8 w-8"
                   onClick={() => setAddArchiveDialogOpen(true)}
                 >
-                  <PlusIcon className="h-4 w-4" />
+                  <SquarePlus className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top" align="center">
@@ -192,7 +256,7 @@ export function ArchiveExplorer({ archives, userId }: ArchiveExplorerProps) {
                         setEditArchiveId(archive.id);
                       }}
                     >
-                      <Settings2 className="h-4 w-4" />
+                      <SquarePen className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
@@ -219,22 +283,62 @@ export function ArchiveExplorer({ archives, userId }: ArchiveExplorerProps) {
             {selectedArchive ? (
               selectedArchive.threads.length > 0 ? (
                 selectedArchive.threads.map((thread) => (
-                  <Link
+                  <div
                     key={thread.id}
-                    href={`/chat/${thread.id}`}
-                    className="rounded-xl border border-border bg-background p-4 transition-all duration-200 hover:border-primary hover:bg-primary/5"
+                    className="group relative rounded-xl border border-border bg-background p-4 transition-all duration-200 hover:border-primary hover:bg-primary/5"
                   >
-                    <div className="flex items-start justify-between gap-3">
+                    <Link
+                      href={`/chat/${thread.id}`}
+                      className="flex items-start justify-between gap-3"
+                    >
                       <div className="flex-1">
                         <h3 className="truncate text-base font-medium">
                           {thread.title || t("Archive.untitledThread")}
                         </h3>
                       </div>
-                      <span className="shrink-0 text-xs text-muted-foreground">
+                      <span className="shrink-0 text-xs text-muted-foreground opacity-100 transition-opacity duration-200 group-hover:opacity-0">
                         {new Date(thread.createdAt).toLocaleString()}
                       </span>
+                    </Link>
+                    <div className="pointer-events-none absolute right-4 top-4 flex gap-2 opacity-0 transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={(event) => {
+                              event.preventDefault();
+                              handleRemoveFromArchive(thread.id);
+                            }}
+                          >
+                            <ArchiveX className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" align="center">
+                          {t("Archive.removeFromArchive")}
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={(event) => {
+                              event.preventDefault();
+                              setDeleteThreadId(thread.id);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" align="center">
+                          {t("Archive.deleteThread")}
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
-                  </Link>
+                  </div>
                 ))
               ) : (
                 <EmptyState message={t("Archive.noThreadsInArchive")} />
@@ -299,6 +403,43 @@ export function ArchiveExplorer({ archives, userId }: ArchiveExplorerProps) {
               disabled={isDeleting}
             >
               {isDeleting ? t("Common.deleting") : t("Common.delete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(deleteThreadId)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteThreadId(null);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("Archive.deleteThread")}</DialogTitle>
+            <DialogDescription>
+              {t("Archive.confirmDeleteThread")}
+              <br />
+              <br />
+              {t("Archive.deleteThreadDescription")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setDeleteThreadId(null)}
+              disabled={isDeletingThread}
+            >
+              {t("Common.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteThread}
+              disabled={isDeletingThread}
+            >
+              {isDeletingThread ? t("Common.deleting") : t("Common.delete")}
             </Button>
           </DialogFooter>
         </DialogContent>

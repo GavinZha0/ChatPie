@@ -444,7 +444,12 @@
     "createdAt": "创建时间 {time}",
     "noRecentMessages": "暂无最新活动",
     "noThreadsInArchive": "该归档下还没有会话。",
-    "selectArchiveToViewThreads": "请选择一个归档查看其中的会话。"
+    "selectArchiveToViewThreads": "请选择一个归档查看其中的会话。",
+    "deleteThread": "删除会话",
+    "confirmDeleteThread": "确定要删除此会话吗？",
+    "deleteThreadDescription": "该会话将从所有归档中永久删除,此操作无法撤销。",
+    "threadDeleted": "会话已删除",
+    "failedToDeleteThread": "删除会话失败"
   },
   "Agent": {
     "title": "智能体",
