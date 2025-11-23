@@ -226,7 +226,7 @@
       "temporaryChatInstructionsDescription": "一時チャットの指示を設定できます。これは一時チャットのシステムプロンプトとして使用されます。"
     },
     "GroupChat": {
-      "groupMode": "グループモード",
+      "teamMode": "チームモード",
       "comparison": "比較",
       "comparisonDescription": "一度に複数の回答を比較します。",
       "discussion": "討論",

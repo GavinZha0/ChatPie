@@ -226,7 +226,7 @@
       "temporaryChatInstructionsDescription": "Puedes establecer instrucciones para el chat temporal. Esto se usará como prompt del sistema para el chat temporal."
     },
     "GroupChat": {
-      "groupMode": "Modo de Grupo",
+      "teamMode": "Modo de Equipo",
       "comparison": "Comparación",
       "comparisonDescription": "Pregunta una vez, compara múltiples respuestas.",
       "discussion": "Discusión",

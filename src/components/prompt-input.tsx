@@ -864,7 +864,7 @@ export default function PromptInput({
                         </TooltipTrigger>
                         <TooltipContent side="bottom" align="center">
                           <span className="text-sm">
-                            {t("GroupChat.groupMode")}
+                            {t("GroupChat.teamMode")}
                           </span>
                         </TooltipContent>
                       </Tooltip>

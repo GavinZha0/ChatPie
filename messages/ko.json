@@ -226,7 +226,7 @@
       "temporaryChatInstructionsDescription": "임시 채팅에 대한 지침을 설정할 수 있습니다. 이것은 임시 채팅에 대한 시스템 프롬프트로 사용됩니다."
     },
     "GroupChat": {
-      "groupMode": "그룹 모드",
+      "teamMode": "팀 모드",
       "comparison": "비교",
       "comparisonDescription": "한 번 물어보고 여러 답변을 비교합니다.",
       "discussion": "토론",

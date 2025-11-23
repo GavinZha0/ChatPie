@@ -128,6 +128,35 @@ ${userPreferences.responseStyleExample}
 </communication_preferences>`;
   }
 
+  const MERMAID_GUIDELINES_PROMPT = `
+
+<diagram_guidelines>
+Mermaid Version: v11.12.x
+
+Rules for generating diagrams when needed:
+- Output a single fenced code block using \`\`\`mermaid\` at start and \`\`\` at end.
+- Do not include any text outside the code block.
+- Prefer flowchart syntax when unspecified: use \`graph LR\` for left-to-right.
+- Quote node labels that contain spaces, punctuation, parentheses, colons, or dashes.
+  Example: A["Large Language Models (LLMs)"] --> B["Verity - NovaTech"]
+- Alternatively escape parentheses if not quoting: A[Large Language Models \(LLMs\)].
+- Use directed edges with \`-->\` and avoid trailing semicolons.
+- Keep diagrams minimal and syntactically valid; no comments or Markdown inside the block.
+
+Example:
+\`\`\`mermaid
+graph LR
+  A["User"] --> B["Prompt"]
+  B --> C["LLM"]
+  C --> D{"Tool (e.g., Search Engine)"}
+  D --> E["Tool Output"]
+  E --> C
+  C --> F["Agent Response"]
+\`\`\`
+</diagram_guidelines>`;
+
+  prompt += MERMAID_GUIDELINES_PROMPT;
+
   return prompt.trim();
 };
 

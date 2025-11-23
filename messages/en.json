@@ -229,7 +229,7 @@
       "temporaryChatInstructionsDescription": "You can set instructions for the temporary chat. This will be used as a system prompt for the temporary chat."
     },
     "GroupChat": {
-      "groupMode": "Group Mode",
+      "teamMode": "Team Mode",
       "comparison": "Comparison",
       "comparisonDescription": "Ask once, compare multiple answers.",
       "discussion": "Discussion",
