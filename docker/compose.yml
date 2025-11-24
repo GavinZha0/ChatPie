@@ -10,6 +10,7 @@ services:
       - '8300:8300'
     environment:
       - NO_HTTPS=1
+      - POSTGRES_URL=postgres://${POSTGRES_USER:-chatpie}:${POSTGRES_PASSWORD:-chatpie123}@chatpie-db:5432/${POSTGRES_DB:-chatpie}
     env_file:
       - .env
     extra_hosts:
@@ -20,7 +21,8 @@ services:
     networks:
       - chatpie-networks
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "node -e \"http=require('http');req=http.request({host:'127.0.0.1',port:8300,path:'/'},res=>{process.exit(res.statusCode>=200&&res.statusCode<500?0:1)});req.on('error',()=>process.exit(1));req.end()\""]
       interval: 10s
@@ -32,6 +34,10 @@ services:
   postgres:
     container_name: chatpie-db
     image: postgres:17
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-chatpie}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-chatpie123}
+      - POSTGRES_DB=${POSTGRES_DB:-chatpie}
     env_file:
       - .env
     networks:

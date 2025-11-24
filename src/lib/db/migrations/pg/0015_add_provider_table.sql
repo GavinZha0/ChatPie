@@ -1,7 +1,7 @@
 -- Migration: Add provider table with initial data
 -- This migration adds the provider table to manage AI model providers
 
-CREATE TABLE "provider" (
+CREATE TABLE IF NOT EXISTS "provider" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" varchar(32) NOT NULL,
 	"alias" varchar(32) NOT NULL,
@@ -12,8 +12,9 @@ CREATE TABLE "provider" (
 );
 
 --> statement-breakpoint
--- Insert initial provider data with various AI providers
-INSERT INTO "provider" ("name", "alias", "base_url", "api_key", "llm") VALUES
+-- Insert initial provider data with various AI providers (skip if already exists)
+INSERT INTO "provider" ("name", "alias", "base_url", "api_key", "llm") 
+SELECT * FROM (VALUES
 ('openai', 'OpenAI', 'https://api.openai.com/v1', null, '[{"id": "gtp-4.1", "type": "chat", "enabled": false}, {"id": "gpt-5", "type": "chat", "enabled":false}]'::json),
 ('anthropic', 'Anthropic', 'https://api.anthropic.com/v1', null, '[{"id": "claude-sonnet-4-5", "type": "chat", "enabled": false}]'::json),
 ('google', 'Gemini', 'https://generativelanguage.googleapis.com/v1beta/openai', null, '[{"id": "gemini-2.0-flash", "type": "vision", "enabled": false}, {"id": "gemini-3-pro-preview", "type": "chat", "enabled": false}]'::json),
@@ -28,4 +29,6 @@ INSERT INTO "provider" ("name", "alias", "base_url", "api_key", "llm") VALUES
 ('deepseek', 'Deepseek', 'https://api.deepseek.com/v1', null, '[{"id": "deepseek-r1", "type": "chat", "enabled": false}, {"id": "deepseek-v3", "type": "chat", "enabled": false}]'::json),
 ('qwen', 'Qwen', 'https://dashscope.aliyuncs.com/compatible-mode/v1', null, '[{"id": "qwen-v3-max", "type": "chat", "enabled": false}]'::json),
 ('zhipu', 'Zhipu', 'https://open.bigmodel.cn/api/paas/v4', null, '[{"id": "glm-4-plus", "type": "chat", "enabled": false}]'::json),
-('exa', 'Exa Search', 'https://api.exa.ai', null, null);
+('exa', 'Exa Search', 'https://api.exa.ai', null, null)
+) AS new_providers("name", "alias", "base_url", "api_key", "llm")
+WHERE NOT EXISTS (SELECT 1 FROM "provider" LIMIT 1);
