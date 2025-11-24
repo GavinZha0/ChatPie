@@ -13,6 +13,13 @@ import { createGroq } from "@ai-sdk/groq";
 import { createDeepSeek } from "@ai-sdk/deepseek";
 import { createQwen } from "qwen-ai-provider";
 import { createDifyProvider } from "dify-ai-provider";
+import { createMistral } from "@ai-sdk/mistral";
+import { createVercel } from "@ai-sdk/vercel";
+import { createAzure } from "@ai-sdk/azure";
+import { createFireworks } from "@ai-sdk/fireworks";
+import { createZhipu } from "zhipu-ai-provider";
+import { createPerplexity } from "@ai-sdk/perplexity";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { providerRepository } from "lib/db/repository";
 import logger from "logger";
 import {
@@ -120,6 +127,34 @@ function createProviderSDK(
       const provider = createXai({ baseURL, apiKey });
       return (modelId: string) => provider(modelId) as unknown as LanguageModel;
     }
+    case "mistral": {
+      const provider = createMistral({ baseURL, apiKey });
+      return (modelId: string) => provider(modelId) as unknown as LanguageModel;
+    }
+    case "vercel": {
+      const provider = createVercel({ apiKey });
+      return (modelId: string) => provider(modelId) as unknown as LanguageModel;
+    }
+    case "azure": {
+      const provider = createAzure({ resourceName: baseURL, apiKey });
+      return (modelId: string) => provider(modelId) as unknown as LanguageModel;
+    }
+    case "fireworks": {
+      const provider = createFireworks({ apiKey });
+      return (modelId: string) => provider(modelId) as unknown as LanguageModel;
+    }
+    case "perplexity": {
+      const provider = createPerplexity({ apiKey });
+      return (modelId: string) => provider(modelId) as unknown as LanguageModel;
+    }
+    case "nvidia": {
+      const provider = createOpenAICompatible({
+        name: "nim",
+        baseURL: baseURL || "",
+        headers: { Authorization: "Bearer " + apiKey },
+      });
+      return (modelId: string) => provider(modelId) as unknown as LanguageModel;
+    }
     case "ollama": {
       if (!apiKey || apiKey === "empty") {
         const provider = createOllama({ baseURL });
@@ -148,6 +183,10 @@ function createProviderSDK(
     }
     case "qwen": {
       const provider = createQwen({ baseURL, apiKey });
+      return (modelId: string) => provider(modelId) as unknown as LanguageModel;
+    }
+    case "zhipu": {
+      const provider = createZhipu({ baseURL, apiKey });
       return (modelId: string) => provider(modelId) as unknown as LanguageModel;
     }
     case "dify": {

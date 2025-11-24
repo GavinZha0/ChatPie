@@ -1,5 +1,5 @@
 {
-  "id": "78c8bd63-1886-4941-8deb-db63139af8ec",
+  "id": "c77ebb7a-ecb4-403b-94d1-ccb3c3bce977",
   "prevId": "38d89506-17d0-44ef-89dd-625725e3bbfd",
   "version": "7",
   "dialect": "postgresql",
@@ -1070,14 +1070,14 @@
           "primaryKey": true,
           "notNull": true
         },
-        "icon": {
-          "name": "icon",
+        "name": {
+          "name": "name",
           "type": "varchar(32)",
           "primaryKey": false,
           "notNull": true
         },
-        "name": {
-          "name": "name",
+        "alias": {
+          "name": "alias",
           "type": "varchar(32)",
           "primaryKey": false,
           "notNull": true

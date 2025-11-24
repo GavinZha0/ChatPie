@@ -110,57 +110,22 @@
     {
       "idx": 15,
       "version": "7",
-      "when": 1761790552714,
-      "tag": "0015_furry_lord_hawal",
+      "when": 1763947101124,
+      "tag": "0015_add_provider_table",
       "breakpoints": true
     },
     {
       "idx": 16,
       "version": "7",
-      "when": 1761954199899,
-      "tag": "0016_soft_anita_blake",
+      "when": 1763947358174,
+      "tag": "0016_add_agent_group_table",
       "breakpoints": true
     },
     {
       "idx": 17,
       "version": "7",
-      "when": 1761954223176,
-      "tag": "0017_colossal_genesis",
-      "breakpoints": true
-    },
-    {
-      "idx": 18,
-      "version": "7",
-      "when": 1762021587522,
-      "tag": "0018_bouncy_gladiator",
-      "breakpoints": true
-    },
-    {
-      "idx": 19,
-      "version": "7",
-      "when": 1762562013723,
-      "tag": "0019_wooden_thunderball",
-      "breakpoints": true
-    },
-    {
-      "idx": 20,
-      "version": "7",
-      "when": 1762645223672,
-      "tag": "0020_mighty_the_executioner",
-      "breakpoints": true
-    },
-    {
-      "idx": 21,
-      "version": "7",
-      "when": 1763242783081,
-      "tag": "0021_outstanding_matthew_murdock",
-      "breakpoints": true
-    },
-    {
-      "idx": 22,
-      "version": "7",
-      "when": 1763436599069,
-      "tag": "0022_smooth_lake",
+      "when": 1763947858674,
+      "tag": "0017_refactor_agent_table",
       "breakpoints": true
     }
   ]

@@ -1,7 +1,7 @@
 <div align="center">
   <h1>
     <img src="./public/logo.png" alt="ChatPie Logo" height="50" style="vertical-align: middle;"/>
-    ChatPie 🥧
+    ChatPie
   </h1>
 </div>
 
@@ -107,7 +107,10 @@ pnpm docker:pg
 
 # Enter required information in the .env file
 # The .env file is created automatically. Just fill in the required values.
+# Apply migrations
+pnpm db:migrate
 
+# Build and start the application
 pnpm build:local && pnpm start
 
 # (Recommended for most cases. Ensures correct cookie settings.)

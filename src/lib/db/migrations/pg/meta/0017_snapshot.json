@@ -1,6 +1,6 @@
 {
-  "id": "6e5ee6e6-d3d6-43d9-b341-e45c8a96ee7a",
-  "prevId": "6e0a9ab9-779e-44e0-b33a-8fd8f637257a",
+  "id": "9734cc07-5227-4666-93a2-e83db4ab540c",
+  "prevId": "b89869c9-fa42-4bee-be7b-b8901d5bec4b",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -108,6 +108,74 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.agent_group": {
+      "name": "agent_group",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "agent_ids": {
+          "name": "agent_ids",
+          "type": "uuid[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::uuid[]"
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "agent_group_user_id_user_id_fk": {
+          "name": "agent_group_user_id_user_id_fk",
+          "tableFrom": "agent_group",
+          "tableTo": "user",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.agent": {
       "name": "agent",
       "schema": "",
@@ -143,11 +211,29 @@
           "primaryKey": false,
           "notNull": true
         },
-        "instructions": {
-          "name": "instructions",
+        "role": {
+          "name": "role",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "system_prompt": {
+          "name": "system_prompt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tools": {
+          "name": "tools",
           "type": "json",
           "primaryKey": false,
           "notNull": false
+        },
+        "model": {
+          "name": "model",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
         },
         "visibility": {
           "name": "visibility",

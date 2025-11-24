@@ -1,6 +1,6 @@
 {
-  "id": "6e0a9ab9-779e-44e0-b33a-8fd8f637257a",
-  "prevId": "78c8bd63-1886-4941-8deb-db63139af8ec",
+  "id": "b89869c9-fa42-4bee-be7b-b8901d5bec4b",
+  "prevId": "c77ebb7a-ecb4-403b-94d1-ccb3c3bce977",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -95,6 +95,74 @@
         "account_user_id_user_id_fk": {
           "name": "account_user_id_user_id_fk",
           "tableFrom": "account",
+          "tableTo": "user",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.agent_group": {
+      "name": "agent_group",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "agent_ids": {
+          "name": "agent_ids",
+          "type": "uuid[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::uuid[]"
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "agent_group_user_id_user_id_fk": {
+          "name": "agent_group_user_id_user_id_fk",
+          "tableFrom": "agent_group",
           "tableTo": "user",
           "columnsFrom": ["user_id"],
           "columnsTo": ["id"],
@@ -1070,8 +1138,8 @@
           "primaryKey": true,
           "notNull": true
         },
-        "icon": {
-          "name": "icon",
+        "name": {
+          "name": "name",
           "type": "varchar(32)",
           "primaryKey": false,
           "notNull": true

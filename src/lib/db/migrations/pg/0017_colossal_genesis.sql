@@ -1,1 +1,0 @@
-ALTER TABLE "provider" RENAME COLUMN "icon" TO "name";
