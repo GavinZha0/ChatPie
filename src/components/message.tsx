@@ -14,6 +14,7 @@ import {
   ReasoningPart,
   FileMessagePart,
   SourceUrlMessagePart,
+  type ChatCurrentUser,
 } from "./message-parts";
 import { ChevronDownIcon, TriangleAlertIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -35,6 +36,7 @@ interface Props {
   readonly?: boolean;
   widthMode?: ChatWidthMode;
   containerWidthClassName?: string;
+  currentUser?: ChatCurrentUser;
 }
 
 const PurePreviewMessage = ({
@@ -52,6 +54,7 @@ const PurePreviewMessage = ({
   sendMessage,
   widthMode = "centered",
   containerWidthClassName,
+  currentUser,
 }: Props) => {
   const isUserMessage = useMemo(() => message.role === "user", [message.role]);
   const partsForDisplay = useMemo(
@@ -132,6 +135,7 @@ const PurePreviewMessage = ({
                     message={message}
                     setMessages={setMessages}
                     sendMessage={sendMessage}
+                    currentUser={currentUser}
                   />
                 );
               }

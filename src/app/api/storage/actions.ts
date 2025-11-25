@@ -3,15 +3,38 @@
 import { storageDriver } from "lib/file-storage";
 import { IS_VERCEL_ENV } from "lib/const";
 
+const getEnvVar = (key: string): string | undefined => {
+  if (typeof globalThis === "undefined") {
+    return undefined;
+  }
+
+  const env = (globalThis as any).process?.env;
+  if (!env) {
+    return undefined;
+  }
+
+  const value = env[key];
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  return value;
+};
+
 /**
  * Get storage configuration info.
  * Used by clients to determine upload strategy.
  */
 export async function getStorageInfoAction() {
+  const storageCheck = await checkStorageAction();
+
   return {
     type: storageDriver,
     supportsDirectUpload:
       storageDriver === "vercel-blob" || storageDriver === "s3",
+    isConfigured: storageCheck.isValid,
+    error: storageCheck.error,
+    solution: storageCheck.solution,
   };
 }
 
@@ -28,7 +51,7 @@ interface StorageCheckResult {
 export async function checkStorageAction(): Promise<StorageCheckResult> {
   // 1. Check Vercel Blob configuration
   if (storageDriver === "vercel-blob") {
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    if (!getEnvVar("BLOB_READ_WRITE_TOKEN")) {
       return {
         isValid: false,
         error: "BLOB_READ_WRITE_TOKEN is not set",
@@ -48,12 +71,11 @@ export async function checkStorageAction(): Promise<StorageCheckResult> {
   // 2. Check S3 configuration
   if (storageDriver === "s3") {
     const missing: string[] = [];
-    if (!process.env.FILE_STORAGE_S3_BUCKET)
+    if (!getEnvVar("FILE_STORAGE_S3_BUCKET"))
       missing.push("FILE_STORAGE_S3_BUCKET");
-    if (!process.env.FILE_STORAGE_S3_REGION && !process.env.AWS_REGION) {
+    if (!getEnvVar("FILE_STORAGE_S3_REGION") && !getEnvVar("AWS_REGION")) {
       missing.push("FILE_STORAGE_S3_REGION or AWS_REGION");
     }
-
     if (missing.length > 0) {
       return {
         isValid: false,
@@ -63,6 +85,9 @@ export async function checkStorageAction(): Promise<StorageCheckResult> {
           "- FILE_STORAGE_TYPE=s3\n" +
           "- FILE_STORAGE_S3_BUCKET=your-bucket\n" +
           "- FILE_STORAGE_S3_REGION=your-region (e.g., us-east-1)\n" +
+          "Provide credentials via either:\n" +
+          "  • FILE_STORAGE_S3_ACCESS_KEY / FILE_STORAGE_S3_SECRET_KEY\n" +
+          "  • Standard AWS credential chain (IAM role, AWS_PROFILE, etc.)\n" +
           "(Optional) FILE_STORAGE_S3_PUBLIC_BASE_URL=https://cdn.example.com\n" +
           "(Optional) FILE_STORAGE_S3_ENDPOINT for S3-compatible stores (e.g., MinIO)\n" +
           "(Optional) FILE_STORAGE_S3_FORCE_PATH_STYLE=1 for path-style endpoints",

@@ -669,6 +669,7 @@
         "chooseDefault": "기본 이미지 선택",
         "useEmoji": "이모지 사용",
         "generateWithAI": "AI로 생성",
+        "fileStorageNotAvailable": "파일 저장소 서비스를 사용할 수 없습니다",
         "changeProfilePhoto": "프로필 사진 변경",
         "selectDefaultAvatar": "기본 아바타 선택",
         "selectDefaultAvatarDescription": "아래의 기본 아바타 중 하나를 선택하세요",

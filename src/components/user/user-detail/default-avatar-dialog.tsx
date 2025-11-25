@@ -20,14 +20,17 @@ interface DefaultAvatarDialogProps {
   onSelect: (imageUrl: string) => void;
 }
 
-const DEFAULT_AVATARS = [
-  { id: "pf", url: "/pf.png", label: "Default" },
-  { id: "p1", url: "/p1.png", label: "Avatar 1" },
-  { id: "p2", url: "/p2.png", label: "Avatar 2" },
-  { id: "p3", url: "/p3.png", label: "Avatar 3" },
-  { id: "p4", url: "/p4.png", label: "Avatar 4" },
-  { id: "p5", url: "/p5.png", label: "Avatar 5" },
-];
+const AVATAR_COUNT = 16;
+const DEFAULT_AVATARS = Array.from({ length: AVATAR_COUNT }, (_, index) => {
+  const number = index + 1;
+  const paddedNumber = number.toString().padStart(2, "0");
+
+  return {
+    id: `avatar-${paddedNumber}`,
+    url: `/image/avatar/avatar${paddedNumber}.png`,
+    label: `Avatar ${number}`,
+  };
+});
 
 export function DefaultAvatarDialog({
   open,
@@ -58,7 +61,7 @@ export function DefaultAvatarDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-3 gap-4 py-4">
+        <div className="grid grid-cols-4 gap-4 py-4">
           {DEFAULT_AVATARS.map((avatar) => (
             <button
               key={avatar.id}

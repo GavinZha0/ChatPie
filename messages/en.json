@@ -697,6 +697,7 @@
         "chooseDefault": "Choose Default",
         "useEmoji": "Use Emoji",
         "generateWithAI": "Generate with AI",
+        "fileStorageNotAvailable": "File storage is not available",
         "changeProfilePhoto": "Change Profile Photo",
         "selectDefaultAvatar": "Choose Default Avatar",
         "selectDefaultAvatarDescription": "Select one of the default avatars below",

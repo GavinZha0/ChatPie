@@ -668,6 +668,7 @@
         "uploadPhoto": "写真をアップロード",
         "chooseDefault": "デフォルトを選択",
         "useEmoji": "絵文字を使用",
+        "fileStorageNotAvailable": "ファイルストレージは利用できません",
         "generateWithAI": "AIで生成",
         "changeProfilePhoto": "プロフィール写真を変更",
         "selectDefaultAvatar": "デフォルトアバターを選択",

@@ -668,6 +668,7 @@
         "summaryPrefix": "📊 Résumé: ",
         "uploadPhoto": "Télécharger une Photo",
         "chooseDefault": "Choisir par Défaut",
+        "fileStorageNotAvailable": "Stockage de fichiers non disponible",
         "useEmoji": "Utiliser un Emoji",
         "generateWithAI": "Générer avec l'IA",
         "changeProfilePhoto": "Changer la Photo de Profil",

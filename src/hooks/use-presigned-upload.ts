@@ -10,6 +10,9 @@ import { getStorageInfoAction } from "@/app/api/storage/actions";
 interface StorageInfo {
   type: "local" | "vercel-blob" | "s3";
   supportsDirectUpload: boolean;
+  isConfigured: boolean;
+  error?: string;
+  solution?: string;
 }
 
 interface UploadOptions {
@@ -39,6 +42,9 @@ function useStorageInfo() {
   return {
     storageType: data?.type,
     supportsDirectUpload: data?.supportsDirectUpload ?? false,
+    isConfigured: data?.isConfigured ?? false,
+    storageError: data?.error,
+    storageSolution: data?.solution,
     isLoading,
   };
 }
@@ -69,9 +75,14 @@ export function useFileUpload() {
   const {
     storageType,
     supportsDirectUpload,
+    isConfigured,
+    storageError,
+    storageSolution,
     isLoading: isLoadingStorageInfo,
   } = useStorageInfo();
   const [isUploading, setIsUploading] = useState(false);
+
+  const isStorageReady = Boolean(storageType) && isConfigured;
 
   const upload = useCallback(
     async (
@@ -90,6 +101,13 @@ export function useFileUpload() {
       // Wait for storage info to load
       if (isLoadingStorageInfo || !storageType) {
         toast.error("Storage is still loading. Please try again.");
+        return;
+      }
+
+      if (!isConfigured) {
+        toast.error(storageError || "Storage is not configured", {
+          description: storageSolution,
+        });
         return;
       }
 
@@ -199,12 +217,22 @@ export function useFileUpload() {
         setIsUploading(false);
       }
     },
-    [storageType, supportsDirectUpload, isLoadingStorageInfo],
+    [
+      storageType,
+      supportsDirectUpload,
+      isLoadingStorageInfo,
+      isConfigured,
+      storageError,
+      storageSolution,
+    ],
   );
 
   return {
     upload,
     isUploading: isUploading || isLoadingStorageInfo,
+    isStorageReady,
+    storageError,
+    storageSolution,
   };
 }
 

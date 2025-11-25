@@ -53,6 +53,7 @@ import { useThreadFileUploader } from "@/hooks/use-thread-file-uploader";
 import { useFileDragOverlay } from "@/hooks/use-file-drag-overlay";
 import { useAgents } from "@/hooks/queries/use-agents";
 import { useChatModels } from "@/hooks/queries/use-chat-models";
+import { authClient } from "auth/client";
 
 type Props = {
   threadId: string;
@@ -80,6 +81,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
   const { uploadFiles } = useThreadFileUploader(threadId);
   const { agents } = useAgents({ limit: 50 });
   const { data: providers } = useChatModels();
+  const { data: session } = authClient.useSession();
   const router = useRouter();
   const handleFileDrop = useCallback(
     async (files: File[]) => {
@@ -844,6 +846,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
                     sendMessage={sendMessage as any}
                     widthMode={chatWidthMode}
                     className={""}
+                    currentUser={session?.user}
                   />
                 );
               })}

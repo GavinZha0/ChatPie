@@ -2,24 +2,17 @@
 
 import { useState, useRef } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "ui/avatar";
-import {
-  Camera,
-  Loader2,
-  Upload,
-  Smile,
-  Sparkles,
-  ImageIcon,
-} from "lucide-react";
+import { Camera, Loader2, Upload, Smile, ImageIcon } from "lucide-react";
 import { useFileUpload } from "@/hooks/use-presigned-upload";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "ui/popover";
 import { Button } from "ui/button";
 import { useTranslations } from "next-intl";
+import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 
 import { EmojiAvatarDialog } from "./emoji-avatar-dialog";
 import { DefaultAvatarDialog } from "./default-avatar-dialog";
-import { GenerateAvatarDialog } from "./generate-avatar-dialog";
 
 interface UserAvatarUploadProps {
   currentImageUrl?: string | null;
@@ -42,9 +35,11 @@ export function UserAvatarUpload({
   const [isOpen, setIsOpen] = useState(false);
   const [showDefaultDialog, setShowDefaultDialog] = useState(false);
   const [showEmojiDialog, setShowEmojiDialog] = useState(false);
-  const [showGenerateDialog, setShowGenerateDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { upload, isUploading } = useFileUpload();
+  const { upload, isUploading, isStorageReady } = useFileUpload();
+
+  const isTriggerDisabled = disabled || isUploading;
+  const isUploadOptionDisabled = isTriggerDisabled || !isStorageReady;
 
   const displayUrl = previewUrl || currentImageUrl;
 
@@ -90,23 +85,27 @@ export function UserAvatarUpload({
   };
 
   const handleUploadClick = () => {
+    if (isUploadOptionDisabled) {
+      return;
+    }
     setIsOpen(false);
     fileInputRef.current?.click();
   };
 
   const handleDefaultAvatarClick = () => {
+    if (isTriggerDisabled) {
+      return;
+    }
     setIsOpen(false);
     setShowDefaultDialog(true);
   };
 
   const handleEmojiClick = () => {
+    if (isTriggerDisabled) {
+      return;
+    }
     setIsOpen(false);
     setShowEmojiDialog(true);
-  };
-
-  const handleGenerateClick = () => {
-    setIsOpen(false);
-    setShowGenerateDialog(true);
   };
 
   return (
@@ -134,30 +133,41 @@ export function UserAvatarUpload({
               variant="secondary"
               className={cn(
                 "absolute bottom-0 right-0 size-8 rounded-full shadow-lg",
-                (disabled || isUploading) && "cursor-not-allowed opacity-60",
+                isTriggerDisabled && "cursor-not-allowed opacity-60",
               )}
-              disabled={disabled || isUploading}
+              disabled={isTriggerDisabled}
             >
               <Camera className="size-4" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-56 p-2" align="end">
             <div className="flex flex-col gap-1">
-              <Button
-                variant="ghost"
-                className="justify-start w-full"
-                onClick={handleUploadClick}
-                disabled={isUploading}
-              >
-                <Upload className="mr-2 size-4" />
-                {t("uploadPhoto")}
-              </Button>
+              <Tooltip disableHoverableContent={isStorageReady}>
+                <TooltipTrigger asChild>
+                  <span className="w-full">
+                    <Button
+                      variant="ghost"
+                      className="justify-start w-full"
+                      onClick={handleUploadClick}
+                      disabled={isUploadOptionDisabled}
+                    >
+                      <Upload className="mr-2 size-4" />
+                      {t("uploadPhoto")}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                {!isStorageReady && (
+                  <TooltipContent className="max-w-xs text-left">
+                    <p>{t("fileStorageNotAvailable")}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
 
               <Button
                 variant="ghost"
                 className="justify-start w-full"
                 onClick={handleDefaultAvatarClick}
-                disabled={isUploading}
+                disabled={isTriggerDisabled}
               >
                 <ImageIcon className="mr-2 size-4" />
                 {t("chooseDefault")}
@@ -167,20 +177,10 @@ export function UserAvatarUpload({
                 variant="ghost"
                 className="justify-start w-full"
                 onClick={handleEmojiClick}
-                disabled={isUploading}
+                disabled={isTriggerDisabled}
               >
                 <Smile className="mr-2 size-4" />
                 {t("useEmoji")}
-              </Button>
-
-              <Button
-                variant="ghost"
-                className="justify-start w-full"
-                onClick={handleGenerateClick}
-                disabled={isUploading}
-              >
-                <Sparkles className="mr-2 size-4" />
-                {t("generateWithAI")}
               </Button>
             </div>
           </PopoverContent>
@@ -194,7 +194,7 @@ export function UserAvatarUpload({
         accept={ALLOWED_TYPES.join(",")}
         onChange={handleFileSelect}
         className="hidden"
-        disabled={disabled || isUploading}
+        disabled={isUploadOptionDisabled}
       />
 
       {/* Dialogs */}
@@ -208,12 +208,6 @@ export function UserAvatarUpload({
         open={showEmojiDialog}
         onOpenChange={setShowEmojiDialog}
         onSelect={onImageUpdate}
-      />
-
-      <GenerateAvatarDialog
-        open={showGenerateDialog}
-        onOpenChange={setShowGenerateDialog}
-        onGenerate={onImageUpdate}
       />
     </div>
   );

@@ -67,6 +67,12 @@ type MessagePart = UIMessage["parts"][number];
 type TextMessagePart = Extract<MessagePart, { type: "text" }>;
 type AssistMessagePart = Extract<MessagePart, { type: "text" }>;
 
+export type ChatCurrentUser = {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+};
+
 // Parse text to extract think sections
 interface ParsedTextSection {
   type: "text" | "think";
@@ -118,6 +124,7 @@ interface UserMessagePartProps {
   status?: UseChatHelpers<UIMessage>["status"];
   isError?: boolean;
   readonly?: boolean;
+  currentUser?: ChatCurrentUser;
 }
 
 interface AssistMessagePartProps {
@@ -156,6 +163,7 @@ export const UserMessagePart = memo(
     setMessages,
     sendMessage,
     isError,
+    currentUser,
   }: UserMessagePartProps) {
     const t = useTranslations();
     const [mode, setMode] = useState<"view" | "edit">("view");
@@ -189,11 +197,19 @@ export const UserMessagePart = memo(
       );
     }
 
+    const fallbackSource =
+      currentUser?.name?.trim() || currentUser?.email?.trim();
+    const avatarFallback = fallbackSource
+      ? fallbackSource.charAt(0).toUpperCase()
+      : "U";
+
     return (
       <div className="flex flex-row gap-2 items-start mt-2 mb-1">
         <Avatar className="size-7 mt-1 ring ring-border rounded-none flex-shrink-0">
-          <AvatarImage src={getUserAvatar({})} />
-          <AvatarFallback>U</AvatarFallback>
+          <AvatarImage
+            src={getUserAvatar({ image: currentUser?.image ?? undefined })}
+          />
+          <AvatarFallback>{avatarFallback}</AvatarFallback>
         </Avatar>
         <div className="flex flex-col gap-2 w-full">
           <div
@@ -244,6 +260,9 @@ export const UserMessagePart = memo(
     if (prev.isLast != next.isLast) return false;
     if (prev.status != next.status) return false;
     if (prev.message.id != next.message.id) return false;
+    if (prev.currentUser?.image !== next.currentUser?.image) return false;
+    if (prev.currentUser?.name !== next.currentUser?.name) return false;
+    if (prev.currentUser?.email !== next.currentUser?.email) return false;
     if (!equal(prev.part, next.part)) return false;
     return true;
   },

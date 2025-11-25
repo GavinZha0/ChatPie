@@ -698,6 +698,7 @@
         "useEmoji": "使用表情符号",
         "generateWithAI": "使用AI生成",
         "changeProfilePhoto": "更改个人资料照片",
+        "fileStorageNotAvailable": "文件存储服务不可用",
         "selectDefaultAvatar": "选择默认头像",
         "selectDefaultAvatarDescription": "从下面选择一个默认头像",
         "chooseEmojiAvatar": "选择表情头像",
