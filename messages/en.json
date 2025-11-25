@@ -413,7 +413,7 @@
   },
   "Archive": {
     "title": "Archive",
-    "addArchive": "Add archive",
+    "addArchive": "Create archive",
     "archiveName": "Archive name",
     "archiveDescription": "Archive description",
     "archiveDescriptionPlaceholder": "Archives are spaces to store chat history.",

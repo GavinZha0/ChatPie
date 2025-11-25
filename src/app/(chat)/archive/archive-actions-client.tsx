@@ -5,13 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "ui/card";
+import { Card, CardContent } from "ui/card";
+import { Separator } from "ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import {
   Trash2,
   CalendarClock,
   MessageCircleXIcon,
-  SquarePlus,
+  Plus,
   SquarePen,
   ArchiveX,
 } from "lucide-react";
@@ -177,179 +178,172 @@ export function ArchiveExplorer({
   };
 
   return (
-    <div className="flex flex-col gap-6 lg:h-[calc(100vh-10rem)] lg:flex-row">
-      <Card className="border border-border bg-background flex w-full flex-col lg:h-full lg:w-80 lg:shrink-0">
-        <CardHeader className="space-y-1 pb-4">
-          <div className="flex items-center justify-between gap-2">
-            <CardTitle className="text-lg font-semibold">
-              {t("Archive.archives")}
-            </CardTitle>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setAddArchiveDialogOpen(true)}
-                >
-                  <SquarePlus className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top" align="center">
-                {t("Archive.addArchive")}
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </CardHeader>
-        <CardContent className="flex-1 overflow-y-auto px-0">
-          <div
-            className="flex flex-col gap-3 px-4 pb-4"
-            role="listbox"
-            aria-label={t("Archive.archives")}
-          >
-            {archives.map((archive) => {
-              const isSelected = archive.id === selectedId;
-              return (
-                <div
-                  key={archive.id}
-                  role="option"
-                  tabIndex={0}
-                  onClick={() => setSelectedId(archive.id)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      setSelectedId(archive.id);
-                    }
-                  }}
-                  aria-selected={isSelected}
-                  className={cn(
-                    "group relative cursor-pointer rounded-xl border border-border bg-background p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
-                    isSelected
-                      ? "border-primary bg-primary/5 shadow-lg"
-                      : "hover:border-primary hover:bg-primary/5",
-                  )}
-                >
-                  <div className="flex flex-col gap-3 pr-12">
-                    <h3 className="truncate text-base font-medium">
-                      {archive.name}
-                    </h3>
-                    {archive.description ? (
-                      <p className="line-clamp-2 text-sm text-muted-foreground">
-                        {archive.description}
-                      </p>
-                    ) : null}
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <CalendarClock className="h-3.5 w-3.5" />
-                      <span>
-                        {new Date(archive.updatedAt).toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="pointer-events-none absolute right-4 top-4 flex flex-col gap-2 opacity-0 transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setEditArchiveId(archive.id);
-                      }}
-                    >
-                      <SquarePen className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setDeleteArchiveId(archive.id);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="border border-border bg-background flex flex-1 min-h-[320px] flex-col lg:h-full lg:min-h-0">
-        <CardContent className="flex-1 overflow-y-auto px-0">
-          <div className="flex flex-col gap-3 px-4 pb-4">
-            {selectedArchive ? (
-              selectedArchive.threads.length > 0 ? (
-                selectedArchive.threads.map((thread) => (
+    <div className="flex w-full h-full flex-col gap-4">
+      <div className="flex items-center gap-2 w-full">
+        <h1 className="text-2xl font-bold">{t("Archive.archives")}</h1>
+        <Button
+          className="font-semibold bg-input/20"
+          variant="outline"
+          onClick={() => setAddArchiveDialogOpen(true)}
+        >
+          <Plus className="size-3.5" />
+          {t("Archive.addArchive")}
+        </Button>
+        <div className="flex-1" />
+      </div>
+      <Separator />
+      <div className="flex flex-1 min-h-0 flex-col gap-6 lg:flex-row">
+        <Card className="border border-border bg-background flex w-full flex-col lg:h-full lg:w-80 lg:shrink-0">
+          <CardContent className="flex-1 overflow-y-auto px-0">
+            <div
+              className="flex flex-col gap-3 px-4 pb-4"
+              role="listbox"
+              aria-label={t("Archive.archives")}
+            >
+              {archives.map((archive) => {
+                const isSelected = archive.id === selectedId;
+                return (
                   <div
-                    key={thread.id}
-                    className="group relative rounded-xl border border-border bg-background p-4 transition-all duration-200 hover:border-primary hover:bg-primary/5"
+                    key={archive.id}
+                    role="option"
+                    tabIndex={0}
+                    onClick={() => setSelectedId(archive.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setSelectedId(archive.id);
+                      }
+                    }}
+                    aria-selected={isSelected}
+                    className={cn(
+                      "group relative cursor-pointer rounded-xl border border-border bg-background p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+                      isSelected
+                        ? "border-primary bg-primary/5 shadow-lg"
+                        : "hover:border-primary hover:bg-primary/5",
+                    )}
                   >
-                    <Link
-                      href={`/chat/${thread.id}`}
-                      className="flex items-start justify-between gap-3"
-                    >
-                      <div className="flex-1">
-                        <h3 className="truncate text-base font-medium">
-                          {thread.title || t("Archive.untitledThread")}
-                        </h3>
+                    <div className="flex flex-col gap-3 pr-12">
+                      <h3 className="truncate text-base font-medium">
+                        {archive.name}
+                      </h3>
+                      {archive.description ? (
+                        <p className="line-clamp-2 text-sm text-muted-foreground">
+                          {archive.description}
+                        </p>
+                      ) : null}
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <CalendarClock className="h-3.5 w-3.5" />
+                        <span>
+                          {new Date(archive.updatedAt).toLocaleString()}
+                        </span>
                       </div>
-                      <span className="shrink-0 text-xs text-muted-foreground opacity-100 transition-opacity duration-200 group-hover:opacity-0">
-                        {new Date(thread.createdAt).toLocaleString()}
-                      </span>
-                    </Link>
-                    <div className="pointer-events-none absolute right-4 top-4 flex gap-2 opacity-0 transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={(event) => {
-                              event.preventDefault();
-                              handleRemoveFromArchive(thread.id);
-                            }}
-                          >
-                            <ArchiveX className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" align="center">
-                          {t("Archive.removeFromArchive")}
-                        </TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive"
-                            onClick={(event) => {
-                              event.preventDefault();
-                              setDeleteThreadId(thread.id);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" align="center">
-                          {t("Archive.deleteThread")}
-                        </TooltipContent>
-                      </Tooltip>
+                    </div>
+                    <div className="pointer-events-none absolute right-2 top-8 flex flex-col gap-2 opacity-0 transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setEditArchiveId(archive.id);
+                        }}
+                      >
+                        <SquarePen className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setDeleteArchiveId(archive.id);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                ))
-              ) : (
-                <EmptyState message={t("Archive.noThreadsInArchive")} />
-              )
-            ) : (
-              <EmptyState message={t("Archive.selectArchiveToViewThreads")} />
-            )}
-          </div>
-        </CardContent>
-      </Card>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
 
+        <Card className="border border-border bg-background flex flex-1 min-h-[320px] flex-col lg:h-full lg:min-h-0">
+          <CardContent className="flex-1 overflow-y-auto px-0">
+            <div className="flex flex-col gap-3 px-4 pb-4">
+              {archives.length === 0 ? (
+                <EmptyState message={t("Archive.noArchivesAvailable")} />
+              ) : selectedArchive ? (
+                selectedArchive.threads.length > 0 ? (
+                  selectedArchive.threads.map((thread) => (
+                    <div
+                      key={thread.id}
+                      className="group relative rounded-xl border border-border bg-background p-4 transition-all duration-200 hover:border-primary hover:bg-primary/5"
+                    >
+                      <Link
+                        href={`/chat/${thread.id}`}
+                        className="flex items-start justify-between gap-3"
+                      >
+                        <div className="flex-1">
+                          <h3 className="truncate text-base font-medium">
+                            {thread.title || t("Archive.untitledThread")}
+                          </h3>
+                        </div>
+                        <span className="shrink-0 text-xs text-muted-foreground opacity-100 transition-opacity duration-200 group-hover:opacity-0">
+                          {new Date(thread.createdAt).toLocaleString()}
+                        </span>
+                      </Link>
+                      <div className="pointer-events-none absolute right-4 top-4 flex gap-2 opacity-0 transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={(event) => {
+                                event.preventDefault();
+                                handleRemoveFromArchive(thread.id);
+                              }}
+                            >
+                              <ArchiveX className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" align="center">
+                            {t("Archive.removeFromArchive")}
+                          </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:text-destructive"
+                              onClick={(event) => {
+                                event.preventDefault();
+                                setDeleteThreadId(thread.id);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" align="center">
+                            {t("Archive.deleteThread")}
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <EmptyState message={t("Archive.noThreadsInArchive")} />
+                )
+              ) : (
+                <EmptyState message={t("Archive.selectArchiveToViewThreads")} />
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
       <ArchiveDialog
         open={addArchiveDialogOpen}
         onOpenChange={setAddArchiveDialogOpen}

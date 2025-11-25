@@ -1,9 +1,6 @@
 import { archiveRepository, chatRepository } from "lib/db/repository";
 import { getSession } from "auth/server";
 import { redirect } from "next/navigation";
-import { Card, CardContent } from "ui/card";
-import { MessageCircleXIcon } from "lucide-react";
-import { getTranslations } from "next-intl/server";
 import {
   ArchiveExplorer,
   type ArchiveExplorerArchive,
@@ -67,8 +64,6 @@ export default async function ArchivePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const t = await getTranslations("Archive");
-
   const session = await getSession();
 
   if (!session?.user?.id) {
@@ -100,20 +95,7 @@ export default async function ArchivePage({
 
   return (
     <div className="w-full px-6 py-10">
-      {clientArchives.length === 0 ? (
-        <Card className="border-muted/40 border-dashed bg-transparent">
-          <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-            <MessageCircleXIcon className="h-12 w-12 text-muted-foreground" />
-            <div className="space-y-1">
-              <h3 className="text-lg font-medium">
-                {t("noArchivesAvailable")}
-              </h3>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <ArchiveExplorer archives={clientArchives} userId={session.user.id} />
-      )}
+      <ArchiveExplorer archives={clientArchives} userId={session.user.id} />
     </div>
   );
 }
