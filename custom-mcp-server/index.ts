@@ -1,38 +1,49 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z, type ZodRawShape } from "zod";
+import { z } from "zod";
 
 const server = new McpServer({
   name: "custom-mcp-server",
   version: "0.0.1",
 });
 
-const getWeatherParams: ZodRawShape = {
+const getWeatherSchema = z.object({
   latitude: z.number(),
   longitude: z.number(),
+});
+
+type RegisterToolMetadata = Parameters<McpServer["registerTool"]>[1];
+
+const getWeatherToolMetadata: RegisterToolMetadata = {
+  title: "Get Weather",
+  description:
+    "Retrieve current temperature and solar information for given coordinates.",
+  inputSchema: getWeatherSchema.shape as any,
 };
 
-const getWeatherSchema = z.object(getWeatherParams);
-
-server.tool("get_weather", getWeatherParams, async (args, _extra) => {
-  const { latitude, longitude } = getWeatherSchema.parse(args);
-  const response = await fetch(
-    `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`,
-  );
-  const data = await response.json();
-  return {
-    content: [
-      {
-        type: "text",
-        text: `The current temperature in ${latitude}, ${longitude} is ${data.current.temperature_2m}°C.`,
-      },
-      {
-        type: "text",
-        text: `The sunrise in ${latitude}, ${longitude} is ${data.daily.sunrise[0]} and the sunset is ${data.daily.sunset[0]}.`,
-      },
-    ],
-  };
-});
+server.registerTool(
+  "get_weather",
+  getWeatherToolMetadata,
+  async (args, _extra) => {
+    const { latitude, longitude } = getWeatherSchema.parse(args);
+    const response = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`,
+    );
+    const data = await response.json();
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: `The current temperature in ${latitude}, ${longitude} is ${data.current.temperature_2m}°C.`,
+        },
+        {
+          type: "text" as const,
+          text: `The sunrise in ${latitude}, ${longitude} is ${data.daily.sunrise[0]} and the sunset is ${data.daily.sunset[0]}.`,
+        },
+      ],
+    };
+  },
+);
 
 const transport = new StdioServerTransport();
 

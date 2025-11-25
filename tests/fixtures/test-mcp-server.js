@@ -7,14 +7,20 @@ const server = new McpServer({
   version: "0.0.1",
 });
 
-server.tool(
+const getWeatherSchema = z.object({
+  latitude: z.number(),
+  longitude: z.number(),
+});
+
+server.registerTool(
   "get_weather",
-  "Get the current weather at a location.",
   {
-    latitude: z.number(),
-    longitude: z.number(),
+    title: "Get Weather",
+    description: "Get the current weather at a location.",
+    inputSchema: getWeatherSchema.shape,
   },
-  async ({ latitude, longitude }) => {
+  async (args, _extra) => {
+    const { latitude, longitude } = getWeatherSchema.parse(args);
     return {
       content: [
         {
