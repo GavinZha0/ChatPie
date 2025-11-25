@@ -59,8 +59,8 @@ export function ThreadDropdown({
   children,
   beforeTitle,
   onDeleted,
-  side,
-  align,
+  side = "left",
+  align = "end",
 }: Props) {
   const router = useRouter();
   const t = useTranslations();
@@ -134,7 +134,7 @@ export function ThreadDropdown({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
-      <PopoverContent className="p-0 w-[220px]" side={side} align={align}>
+      <PopoverContent className="p-0 w-[240px]" side={side} align={align}>
         <Command>
           <CommandList>
             <CommandGroup>
@@ -167,11 +167,7 @@ export function ThreadDropdown({
                       <ChevronRight className="ml-auto h-4 w-4" />
                     </div>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    side="right"
-                    align="start"
-                    className="w-56"
-                  >
+                  <DropdownMenuContent side="left" align="end" className="w-56">
                     {archiveList.length === 0 ? (
                       <DropdownMenuItem
                         disabled

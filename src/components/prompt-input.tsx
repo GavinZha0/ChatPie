@@ -77,6 +77,8 @@ interface PromptInputProps {
   onFocus?: () => void;
   widthMode?: ChatWidthMode;
   onNewChat?: () => void;
+  onTemporaryReset?: () => void;
+  temporaryResetLabel?: string;
   updateGlobalModel?: boolean;
 }
 
@@ -103,6 +105,8 @@ export default function PromptInput({
   disabledMention,
   widthMode = "centered",
   onNewChat,
+  onTemporaryReset,
+  temporaryResetLabel,
   updateGlobalModel = true,
 }: PromptInputProps) {
   const t = useTranslations("Chat");
@@ -753,6 +757,35 @@ export default function PromptInput({
                         <div className="flex flex-col gap-1">
                           <span className="text-sm font-semibold">
                             {layoutT("Layout.newChat")}
+                          </span>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : null}
+
+                  {onTemporaryReset ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          size={"sm"}
+                          onClick={onTemporaryReset}
+                          aria-label={
+                            temporaryResetLabel ?? t("TemporaryChat.resetChat")
+                          }
+                          className={cn(
+                            "rounded-full p-2!",
+                            onNewChat ? "ml-2" : undefined,
+                          )}
+                        >
+                          <WriteIcon className="size-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" align="center">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-semibold">
+                            {temporaryResetLabel ??
+                              t("TemporaryChat.resetChat")}
                           </span>
                         </div>
                       </TooltipContent>

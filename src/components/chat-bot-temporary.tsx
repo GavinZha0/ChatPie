@@ -3,42 +3,14 @@ import { appStore } from "@/app/store";
 import { useChat, UseChatHelpers } from "@ai-sdk/react";
 import { cn } from "lib/utils";
 
-import {
-  ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { Button } from "ui/button";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-} from "ui/drawer";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import PromptInput from "./prompt-input";
 import { ErrorMessage, PreviewMessage } from "./message";
-import { Settings2, X } from "lucide-react";
-import { Separator } from "ui/separator";
 import { DefaultChatTransport, UIMessage } from "ai";
 import { useShallow } from "zustand/shallow";
 import { isShortcutEvent, Shortcuts } from "lib/keyboard-shortcuts";
 import { useTranslations } from "next-intl";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTrigger,
-} from "ui/dialog";
-import { DialogTitle } from "@radix-ui/react-dialog";
-import { Textarea } from "ui/textarea";
 import { Think } from "ui/think";
 
 export function ChatBotTemporary() {
@@ -47,16 +19,6 @@ export function ChatBotTemporary() {
   const [temporaryChat, appStoreMutate] = appStore(
     useShallow((state) => [state.temporaryChat, state.mutate]),
   );
-  const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
-
-  const setOpen = (bool: boolean) => {
-    appStoreMutate({
-      temporaryChat: {
-        ...temporaryChat,
-        isOpen: bool,
-      },
-    });
-  };
 
   const [input, setInput] = useState("");
 
@@ -123,19 +85,6 @@ export function ChatBotTemporary() {
         e.stopPropagation();
         e.stopImmediatePropagation();
         reset();
-      } else if (
-        temporaryChat.isOpen &&
-        isShortcutEvent(e, {
-          shortcut: {
-            command: true,
-            key: "i",
-          },
-        })
-      ) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        setIsInstructionsOpen((prev) => !prev);
       }
     };
 
@@ -144,80 +93,29 @@ export function ChatBotTemporary() {
   }, [temporaryChat.isOpen]);
 
   return (
-    <Drawer
-      handleOnly
-      direction="right"
-      open={temporaryChat.isOpen}
-      onOpenChange={setOpen}
-    >
-      <DrawerContent
-        style={{
-          userSelect: "text",
-        }}
-        className="w-full md:w-2xl px-2 flex flex-col"
-      >
-        <DrawerHeader>
-          <DrawerTitle className="flex items-center gap-2">
-            <p className="hidden sm:flex">{t("temporaryChat")}</p>
-
-            <div className="flex-1" />
-
-            <Button
-              variant={"secondary"}
-              className="rounded-full"
-              onClick={reset}
-              disabled={isLoading}
-            >
-              {t("resetChat")}
-              <Separator orientation="vertical" />
-              <span className="text-xs text-muted-foreground ml-1">⌘E</span>
-            </Button>
-            <TemporaryChatInstructions
-              isOpen={isInstructionsOpen}
-              setIsOpen={setIsInstructionsOpen}
-              instructions={temporaryChat.instructions ?? ""}
-              onSave={(instructions) => {
-                appStoreMutate({
-                  temporaryChat: { ...temporaryChat, instructions },
-                });
-              }}
-            >
-              <Button variant={"secondary"} className="rounded-full">
-                <Settings2 />
-                <Separator orientation="vertical" />
-                <span className="text-xs text-muted-foreground ml-1">⌘I</span>
-              </Button>
-            </TemporaryChatInstructions>
-            <DrawerClose asChild>
-              <Button
-                variant={"secondary"}
-                className="flex items-center gap-1 rounded-full"
-              >
-                <X />
-                <Separator orientation="vertical" />
-                <span className="text-xs text-muted-foreground ml-1">ESC</span>
-              </Button>
-            </DrawerClose>
-          </DrawerTitle>
-          <DrawerDescription className="sr-only"></DrawerDescription>
-        </DrawerHeader>
-        <DrawerTemporaryContent
-          isLoading={isLoading}
-          messages={messages}
-          error={error}
-          input={input}
-          setInput={setInput}
-          sendMessage={sendMessage}
-          setMessages={setMessages}
-          stop={stop}
-          status={status}
-        />
-      </DrawerContent>
-    </Drawer>
+    <div className="h-full flex flex-col" style={{ userSelect: "text" }}>
+      <div className="flex items-center gap-2 border-b border-border/60 px-3 py-3">
+        <span className="text-sm font-semibold text-foreground">
+          {t("temporaryChat")}
+        </span>
+      </div>
+      <TemporaryChatContent
+        isLoading={isLoading}
+        messages={messages}
+        error={error}
+        input={input}
+        setInput={setInput}
+        sendMessage={sendMessage}
+        setMessages={setMessages}
+        stop={stop}
+        status={status}
+        onTemporaryReset={reset}
+      />
+    </div>
   );
 }
 
-function DrawerTemporaryContent({
+function TemporaryChatContent({
   messages,
   input,
   setInput,
@@ -227,6 +125,7 @@ function DrawerTemporaryContent({
   isLoading,
   setMessages,
   stop,
+  onTemporaryReset,
 }: {
   messages: UIMessage[];
   input: string;
@@ -237,6 +136,7 @@ function DrawerTemporaryContent({
   error: Error | undefined;
   setMessages: UseChatHelpers<UIMessage>["setMessages"];
   stop: UseChatHelpers<UIMessage>["stop"];
+  onTemporaryReset?: () => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const t = useTranslations("Chat");
@@ -359,66 +259,14 @@ function DrawerTemporaryContent({
           isLoading={isLoading}
           onStop={stop}
           updateGlobalModel={false}
+          onTemporaryReset={onTemporaryReset}
+          temporaryResetLabel={t("TemporaryChat.resetChat")}
         />
       </div>
     </div>
   );
 }
 
-function TemporaryChatInstructions({
-  instructions,
-  onSave,
-  children,
-  isOpen,
-  setIsOpen,
-}: {
-  instructions: string;
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  onSave: (instructions: string) => void;
-  children: ReactNode;
-}) {
-  const [input, setInput] = useState(instructions);
-  const t = useTranslations();
-  useEffect(() => {
-    if (isOpen) {
-      setInput(instructions);
-    }
-  }, [isOpen]);
-  return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            {t("Chat.TemporaryChat.temporaryChatInstructions")}
-          </DialogTitle>
-          <DialogDescription>
-            {t("Chat.TemporaryChat.temporaryChatInstructionsDescription")}
-          </DialogDescription>
-        </DialogHeader>
-        <DialogDescription>
-          <Textarea
-            autoFocus
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className="resize-none h-40"
-            placeholder={t(
-              "Chat.TemporaryChat.temporaryChatInstructionsPlaceholder",
-            )}
-          />
-        </DialogDescription>
-        <DialogFooter>
-          <Button
-            onClick={() => {
-              onSave(input);
-              setIsOpen(false);
-            }}
-          >
-            {t("Common.save")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
+export function TemporaryChatTabContent() {
+  return <ChatBotTemporary />;
 }

@@ -1,21 +1,80 @@
 "use client";
 
-import { appStore } from "@/app/store";
+import { appStore, type TeamTabMode } from "@/app/store";
 import { useShallow } from "zustand/shallow";
 import {
   ResizablePanelGroup,
   ResizablePanel,
   ResizableHandle,
 } from "ui/resizable";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "ui/tabs";
-import { X } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { Button } from "ui/button";
-import { PreviewMessage } from "@/components/message";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
+import {
+  X,
+  Globe,
+  BarChart2,
+  Code,
+  Users,
+  MessageCircleDashed,
+  ClockIcon,
+} from "lucide-react";
+import { PreviewMessage } from "@/components/message";
 import { getEmojiUrl } from "lib/emoji";
 import { UIMessage } from "ai";
 import type { UseChatHelpers } from "@ai-sdk/react";
 import { Think } from "ui/think";
+import { TemporaryChatTabContent } from "@/components/chat-bot-temporary";
+import { HistoryTabContent } from "@/components/history/chat-bot-history";
+import { usePathname } from "next/navigation";
+
+type RightPanelTabConfig = {
+  id: "tempchat" | "history" | "team" | "web" | "code" | "chart";
+  title: string;
+  icon: typeof Users;
+  defaultMode?: TeamTabMode;
+  getInitialContent: () => any;
+};
+
+const RIGHT_PANEL_TAB_CONFIGS: RightPanelTabConfig[] = [
+  {
+    id: "tempchat",
+    title: "Temporary",
+    icon: MessageCircleDashed,
+    getInitialContent: () => ({}),
+  },
+  {
+    id: "history",
+    title: "Recent chats",
+    icon: ClockIcon,
+    getInitialContent: () => ({}),
+  },
+  {
+    id: "team",
+    title: "Team",
+    icon: Users,
+    defaultMode: "comparison",
+    getInitialContent: () => ({ agents: [], status: undefined }),
+  },
+  {
+    id: "web",
+    title: "Web",
+    icon: Globe,
+    getInitialContent: () => ({ url: "" }),
+  },
+  {
+    id: "code",
+    title: "Code",
+    icon: Code,
+    getInitialContent: () => ({ code: "" }),
+  },
+  {
+    id: "chart",
+    title: "Chart",
+    icon: BarChart2,
+    getInitialContent: () => ({ data: [] }),
+  },
+];
 
 // Band tab content component for multi-agent chat display
 function MulticastTabContent({
@@ -116,6 +175,9 @@ export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
   const [rightPanel, appStoreMutate] = appStore(
     useShallow((state) => [state.rightPanel, state.mutate]),
   );
+  const pathname = usePathname();
+  const isChatRoute =
+    pathname === "/" || (pathname?.startsWith("/chat") ?? false);
 
   const handlePanelResize = (sizes: number[]) => {
     if (sizes.length < 2) return;
@@ -135,140 +197,210 @@ export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
           ? newTabs[0]?.id
           : prev.rightPanel.activeTabId;
 
-      return {
+      const updates: Partial<typeof prev> = {
         rightPanel: {
           ...prev.rightPanel,
           tabs: newTabs,
           activeTabId: newActiveTabId,
-          isOpen: newTabs.length > 0,
+          isOpen: newTabs.length > 0 && prev.rightPanel.isOpen,
         },
       };
+
+      if (tabId === "tempchat") {
+        (updates as any).temporaryChat = {
+          ...prev.temporaryChat,
+          isOpen: false,
+        };
+      }
+
+      return updates;
     });
   };
 
-  const setActiveTab = (tabId: string) => {
-    appStoreMutate((prev) => ({
-      rightPanel: {
-        ...prev.rightPanel,
-        activeTabId: tabId,
-      },
-    }));
+  const handleTabIconClick = (tabConfig: RightPanelTabConfig) => {
+    appStoreMutate((prev) => {
+      const existingTab = prev.rightPanel.tabs.find(
+        (tab) => tab.id === tabConfig.id,
+      );
+      const nextTabs = existingTab
+        ? prev.rightPanel.tabs
+        : [
+            ...prev.rightPanel.tabs,
+            {
+              id: tabConfig.id,
+              mode: tabConfig.defaultMode,
+              title: tabConfig.title,
+              content: tabConfig.getInitialContent(),
+            },
+          ];
+
+      const isSameTab = prev.rightPanel.activeTabId === tabConfig.id;
+      const isCurrentlyActive = prev.rightPanel.isOpen && isSameTab;
+      const nextIsOpen = isCurrentlyActive ? false : true;
+
+      const updates: Partial<typeof prev> = {
+        rightPanel: {
+          ...prev.rightPanel,
+          tabs: nextTabs,
+          activeTabId: tabConfig.id,
+          isOpen: nextIsOpen,
+        },
+      };
+
+      if (tabConfig.id === "tempchat") {
+        (updates as any).temporaryChat = {
+          ...prev.temporaryChat,
+          isOpen: nextIsOpen,
+        };
+      }
+
+      return updates;
+    });
   };
 
-  return (
-    <div className="flex-1 overflow-hidden">
-      <ResizablePanelGroup
-        direction="horizontal"
-        className="h-full"
-        onLayout={handlePanelResize}
-      >
-        {/* main chat area */}
-        <ResizablePanel
-          defaultSize={rightPanel.isOpen ? rightPanel.panelSizes[0] : 100}
-          minSize={20}
-          className="overflow-y-auto"
-        >
-          {children}
-        </ResizablePanel>
+  const resolvedActiveTabId =
+    rightPanel.activeTabId ?? rightPanel.tabs[0]?.id ?? null;
+  const activeTab = rightPanel.tabs.find(
+    (tab) => tab.id === resolvedActiveTabId,
+  );
 
-        {/* right-side panel - only show on desktop when opened */}
-        {rightPanel.isOpen && (
-          <>
-            <ResizableHandle withHandle className="hidden md:flex" />
-            <ResizablePanel
-              defaultSize={rightPanel.panelSizes[1]}
-              minSize={20}
-              className="hidden md:block overflow-hidden relative z-30"
-            >
-              <div className="h-full flex flex-col bg-muted/30">
-                {rightPanel.tabs.length > 0 ? (
-                  <Tabs
-                    value={rightPanel.activeTabId}
-                    onValueChange={setActiveTab}
-                    className="h-full flex flex-col"
-                  >
-                    <div className="border-b bg-transparent">
-                      <TabsList className="h-12 w-full justify-start rounded-none bg-transparent p-0">
-                        {rightPanel.tabs.map((tab) => (
-                          <TabsTrigger
-                            key={tab.id}
-                            value={tab.id}
-                            className="relative rounded-none border-b-2 border-transparent px-4 py-3 bg-transparent hover:bg-transparent text-muted-foreground data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:border-primary focus-visible:outline-none focus-visible:ring-0 focus-visible:border-transparent"
-                          >
-                            <span className="mr-2">{tab.title}</span>
-                            {tab.type !== "comparison" && (
-                              <Button
-                                asChild
-                                variant="ghost"
-                                size="icon"
-                                className="size-4 p-0 hover:bg-muted rounded-full"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  closeTab(tab.id);
-                                }}
-                              >
-                                <span>
-                                  <X className="size-3" />
-                                </span>
-                              </Button>
-                            )}
-                          </TabsTrigger>
-                        ))}
-                      </TabsList>
+  return (
+    <div className="flex h-full overflow-hidden">
+      <div className="flex-1 overflow-hidden">
+        <ResizablePanelGroup
+          direction="horizontal"
+          className="h-full"
+          onLayout={handlePanelResize}
+        >
+          <ResizablePanel
+            defaultSize={rightPanel.isOpen ? rightPanel.panelSizes[0] : 100}
+            minSize={20}
+            className="overflow-y-auto"
+          >
+            {children}
+          </ResizablePanel>
+
+          {isChatRoute && rightPanel.isOpen && activeTab && (
+            <>
+              <ResizableHandle withHandle className="hidden md:flex" />
+              <ResizablePanel
+                defaultSize={rightPanel.panelSizes[1]}
+                minSize={20}
+                className="hidden md:block overflow-hidden relative z-30"
+              >
+                <div className="h-full flex flex-col bg-muted/30">
+                  {activeTab.id === "team" &&
+                  activeTab.mode === "comparison" ? (
+                    <div className="flex-1 overflow-y-auto p-4">
+                      <MulticastTabContent
+                        agents={activeTab.content.agents || []}
+                        status={activeTab.content.status}
+                      />
                     </div>
-                    <div className="flex-1 overflow-y-auto">
-                      {rightPanel.tabs.map((tab) => (
-                        <TabsContent
-                          key={tab.id}
-                          value={tab.id}
-                          className="h-full m-0 p-4 pt-0"
+                  ) : activeTab.id === "team" ? (
+                    <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+                      No team content yet
+                    </div>
+                  ) : activeTab.id === "tempchat" ? (
+                    <TemporaryChatTabContent />
+                  ) : activeTab.id === "history" ? (
+                    <HistoryTabContent onClose={() => closeTab("history")} />
+                  ) : (
+                    <div className="flex h-full flex-col">
+                      <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+                        <span className="text-sm font-semibold text-foreground">
+                          {activeTab.title}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-6"
+                          onClick={() => closeTab(activeTab.id)}
                         >
-                          {/* Render different content according to tab.type */}
-                          {tab.type === "http" && (
-                            <div className="h-full">
-                              <iframe
-                                src={tab.content.url}
-                                className="w-full h-full border rounded-lg"
-                                title={tab.title}
-                              />
-                            </div>
-                          )}
-                          {tab.type === "chart" && (
-                            <div className="h-full">
-                              {/* Chart content */}
-                              <div className="text-muted-foreground">
-                                Chart: {tab.title}
-                              </div>
-                            </div>
-                          )}
-                          {tab.type === "code" && (
-                            <div className="h-full">
-                              {/* Code content */}
-                              <pre className="text-sm bg-muted p-4 rounded-lg overflow-auto">
-                                {tab.content.code}
-                              </pre>
-                            </div>
-                          )}
-                          {tab.type === "comparison" && (
-                            <MulticastTabContent
-                              agents={tab.content.agents || []}
-                              status={tab.content.status}
-                            />
-                          )}
-                        </TabsContent>
-                      ))}
+                          <X className="size-3" />
+                        </Button>
+                      </div>
+                      <div className="flex-1 overflow-hidden p-4">
+                        {activeTab.id === "web" && activeTab.content?.url ? (
+                          <iframe
+                            src={activeTab.content.url}
+                            className="h-full w-full rounded-lg border"
+                            title={activeTab.title}
+                          />
+                        ) : activeTab.id === "web" ? (
+                          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                            No web content yet
+                          </div>
+                        ) : null}
+                        {activeTab.id === "chart" && (
+                          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                            No chart content yet
+                          </div>
+                        )}
+                        {activeTab.id === "code" && (
+                          <div className="h-full overflow-auto rounded-lg bg-muted p-4 text-sm text-muted-foreground">
+                            {activeTab.content?.code || "No code content yet"}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </Tabs>
-                ) : (
-                  <div className="flex items-center justify-center h-full text-muted-foreground">
-                    No content
-                  </div>
-                )}
+                  )}
+                </div>
+              </ResizablePanel>
+            </>
+          )}
+        </ResizablePanelGroup>
+      </div>
+
+      {isChatRoute && (
+        <div className="hidden h-full w-12 flex-shrink-0 flex-col border-l border-border/60 bg-muted/40 overflow-hidden md:flex">
+          {RIGHT_PANEL_TAB_CONFIGS.map((tabConfig, index) => {
+            const IconComponent = tabConfig.icon;
+            const existingTab = rightPanel.tabs.find(
+              (tab) => tab.id === tabConfig.id,
+            );
+            const isActive =
+              rightPanel.isOpen &&
+              resolvedActiveTabId === tabConfig.id &&
+              existingTab;
+
+            return (
+              <div
+                key={tabConfig.id}
+                className={`relative ${
+                  index !== RIGHT_PANEL_TAB_CONFIGS.length - 1
+                    ? "border-b border-border/40"
+                    : ""
+                }`}
+              >
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={() => handleTabIconClick(tabConfig)}
+                      className={`flex size-12 items-center justify-center transition-colors ${
+                        isActive
+                          ? "bg-background text-foreground"
+                          : existingTab
+                            ? "text-foreground/80 hover:bg-muted"
+                            : "text-muted-foreground hover:bg-muted"
+                      }`}
+                      aria-pressed={Boolean(isActive)}
+                      aria-label={tabConfig.title}
+                      data-has-tab={Boolean(existingTab)}
+                    >
+                      <IconComponent className="size-5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="left" align="center">
+                    {tabConfig.title}
+                  </TooltipContent>
+                </Tooltip>
               </div>
-            </ResizablePanel>
-          </>
-        )}
-      </ResizablePanelGroup>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

@@ -286,45 +286,46 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           const leftPanelWidth = perAgentWidth;
 
           appStoreMutate((prev) => {
-            const comparisonTabIndex = prev.rightPanel.tabs.findIndex(
-              (t) => t.type === "comparison",
+            const teamTabIndex = prev.rightPanel.tabs.findIndex(
+              (tab) => tab.id === "team",
             );
 
-            if (comparisonTabIndex >= 0) {
+            if (teamTabIndex >= 0) {
               const newTabs = [...prev.rightPanel.tabs];
-              newTabs[comparisonTabIndex] = {
-                ...newTabs[comparisonTabIndex],
+              newTabs[teamTabIndex] = {
+                ...newTabs[teamTabIndex],
+                mode: "comparison",
                 content: { agents: agentInfos, status },
               };
 
               return {
                 rightPanel: {
                   ...prev.rightPanel,
-                  isOpen: true, // Force open even if was closed
-                  tabs: newTabs,
-                  activeTabId: "comparison-tab",
-                  panelSizes: [leftPanelWidth, rightPanelWidth],
-                },
-              };
-            } else {
-              return {
-                rightPanel: {
-                  ...prev.rightPanel,
                   isOpen: true,
-                  tabs: [
-                    ...prev.rightPanel.tabs,
-                    {
-                      id: "comparison-tab",
-                      type: "comparison",
-                      title: "Group Chat",
-                      content: { agents: agentInfos, status },
-                    },
-                  ],
-                  activeTabId: "comparison-tab",
+                  tabs: newTabs,
+                  activeTabId: "team",
                   panelSizes: [leftPanelWidth, rightPanelWidth],
                 },
               };
             }
+
+            return {
+              rightPanel: {
+                ...prev.rightPanel,
+                isOpen: true,
+                tabs: [
+                  ...prev.rightPanel.tabs,
+                  {
+                    id: "team",
+                    mode: "comparison",
+                    title: "Team",
+                    content: { agents: agentInfos, status },
+                  },
+                ],
+                activeTabId: "team",
+                panelSizes: [leftPanelWidth, rightPanelWidth],
+              },
+            };
           });
         }
 
@@ -648,14 +649,15 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
       });
 
       appStoreMutate((prev) => {
-        const multicastTabIndex = prev.rightPanel.tabs.findIndex(
-          (t) => t.type === "comparison",
+        const teamTabIndex = prev.rightPanel.tabs.findIndex(
+          (tab) => tab.id === "team",
         );
 
-        if (multicastTabIndex >= 0) {
+        if (teamTabIndex >= 0) {
           const newTabs = [...prev.rightPanel.tabs];
-          newTabs[multicastTabIndex] = {
-            ...newTabs[multicastTabIndex],
+          newTabs[teamTabIndex] = {
+            ...newTabs[teamTabIndex],
+            mode: "comparison",
             content: { agents: agentInfos, status },
           };
 

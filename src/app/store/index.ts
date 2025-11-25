@@ -23,9 +23,11 @@ export interface UploadedFile {
 
 export type ChatWidthMode = "centered" | "wide";
 
+export type TeamTabMode = "comparison" | "task" | "debate" | "discussion";
+
 export interface RightPanelTab {
-  id: string;
-  type: "http" | "chart" | "code" | "comparison";
+  id: "team" | "history" | "web" | "chart" | "code" | "tempchat";
+  mode?: TeamTabMode;
   title: string;
   content: any;
   threadId?: string;
@@ -64,9 +66,6 @@ export interface AppState {
     isOpen: boolean;
     instructions: string;
     chatModel?: ChatModel;
-  };
-  chatHistory: {
-    isOpen: boolean;
   };
   voiceChat: {
     isOpen: boolean;
@@ -118,9 +117,6 @@ const initialState: AppState = {
     isOpen: false,
     instructions: "",
   },
-  chatHistory: {
-    isOpen: false,
-  },
   voiceChat: {
     isOpen: false,
     options: {
@@ -162,11 +158,6 @@ export const appStore = create<AppState & AppDispatch>()(
         temporaryChat: {
           ...initialState.temporaryChat,
           ...state.temporaryChat,
-          isOpen: false,
-        },
-        chatHistory: {
-          ...initialState.chatHistory,
-          ...state.chatHistory,
           isOpen: false,
         },
         toolPresets: state.toolPresets || initialState.toolPresets,

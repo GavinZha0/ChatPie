@@ -5,12 +5,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import {
   GalleryHorizontal,
   ChevronDown,
-  ClockIcon,
-  MessageCircleDashed,
   PanelLeft,
   StretchHorizontal,
-  PanelRightOpen,
-  PanelRightClose,
 } from "lucide-react";
 import { Button } from "ui/button";
 import { Separator } from "ui/separator";
@@ -28,12 +24,8 @@ import { BackButton } from "@/components/layouts/back-button";
 
 export function AppHeader() {
   const t = useTranslations();
-  const [appStoreMutate, chatWidthMode, rightPanel] = appStore(
-    useShallow((state) => [
-      state.mutate,
-      state.chatWidthMode,
-      state.rightPanel,
-    ]),
+  const [appStoreMutate, chatWidthMode] = appStore(
+    useShallow((state) => [state.mutate, state.chatWidthMode]),
   );
   const { toggleSidebar, open } = useSidebar();
   const currentPaths = usePathname();
@@ -113,69 +105,6 @@ export function AppHeader() {
                 variant={"ghost"}
                 className="hidden md:flex bg-secondary/40"
                 onClick={() => {
-                  appStoreMutate((state) => {
-                    const willOpen = !state.rightPanel.isOpen;
-                    if (willOpen) {
-                      const activeTab =
-                        state.rightPanel.tabs.find(
-                          (t) => t.id === state.rightPanel.activeTabId,
-                        ) ||
-                        state.rightPanel.tabs.find(
-                          (t) => t.type === "comparison",
-                        );
-
-                      if (activeTab?.type === "comparison") {
-                        const rightAgentsCount =
-                          activeTab.content?.agents?.length ?? 0;
-                        const totalAgents = Math.min(rightAgentsCount + 1, 5);
-                        const perAgentWidth = 100 / totalAgents;
-                        const rightPanelWidth =
-                          Math.min(Math.max(totalAgents - 1, 0), 4) *
-                          perAgentWidth;
-                        const leftPanelWidth = perAgentWidth;
-
-                        return {
-                          rightPanel: {
-                            ...state.rightPanel,
-                            isOpen: true,
-                            panelSizes: [leftPanelWidth, rightPanelWidth],
-                          },
-                        };
-                      }
-                    }
-
-                    return {
-                      rightPanel: {
-                        ...state.rightPanel,
-                        isOpen: !state.rightPanel.isOpen,
-                      },
-                    };
-                  });
-                }}
-                data-testid="right-panel-toggle"
-                aria-label={t("Chat.toggleRightPanel")}
-              >
-                {rightPanel.isOpen ? (
-                  <PanelRightClose className="size-4" />
-                ) : (
-                  <PanelRightOpen className="size-4" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent align="end" side="bottom">
-              <div className="text-xs flex items-center gap-2">
-                {t("Chat.toggleRightPanel")}
-              </div>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size={"icon"}
-                variant={"ghost"}
-                className="hidden md:flex bg-secondary/40"
-                onClick={() => {
                   appStoreMutate((state) => ({
                     chatWidthMode:
                       state.chatWidthMode === "centered" ? "wide" : "centered",
@@ -194,68 +123,6 @@ export function AppHeader() {
             <TooltipContent align="end" side="bottom">
               <div className="text-xs flex items-center gap-2">
                 {t("Chat.toggleWidthMode")}
-              </div>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size={"icon"}
-                variant={"secondary"}
-                className="bg-secondary/40"
-                onClick={() => {
-                  appStoreMutate((state) => ({
-                    chatHistory: {
-                      ...state.chatHistory,
-                      isOpen: !state.chatHistory.isOpen,
-                    },
-                  }));
-                }}
-              >
-                <ClockIcon className="size-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent align="end" side="bottom">
-              <div className="text-xs flex items-center gap-2">
-                {t("Layout.recentChats")}
-              </div>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size={"icon"}
-                variant={"secondary"}
-                className="hidden md:flex bg-secondary/40"
-                onClick={() => {
-                  appStoreMutate((state) => ({
-                    temporaryChat: {
-                      ...state.temporaryChat,
-                      isOpen: !state.temporaryChat.isOpen,
-                    },
-                  }));
-                }}
-              >
-                <MessageCircleDashed className="size-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent align="end" side="bottom">
-              <div className="text-xs flex items-center gap-2">
-                {t("KeyboardShortcuts.toggleTemporaryChat")}
-                <div className="text-xs text-muted-foreground flex items-center gap-1">
-                  {getShortcutKeyList(Shortcuts.toggleTemporaryChat).map(
-                    (key) => (
-                      <span
-                        className="w-5 h-5 flex items-center justify-center bg-muted rounded "
-                        key={key}
-                      >
-                        {key}
-                      </span>
-                    ),
-                  )}
-                </div>
               </div>
             </TooltipContent>
           </Tooltip>
