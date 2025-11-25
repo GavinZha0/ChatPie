@@ -11,7 +11,7 @@ import {
 import { ChatThread } from "app-types/chat";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import useSWR, { mutate } from "swr";
 import { handleErrorWithToast } from "ui/shared-toast";
 import { Button } from "ui/button";
@@ -24,10 +24,8 @@ import {
 import { TextShimmer } from "ui/text-shimmer";
 import { fetcher, deduplicateByKey, groupBy } from "lib/utils";
 import { toast } from "sonner";
-import { ChevronDown, ChevronUp, MoreHorizontal, Trash, X } from "lucide-react";
+import { MoreHorizontal, Trash } from "lucide-react";
 import Link from "next/link";
-
-const MAX_THREADS_COUNT = 40;
 
 type EnhancedChatThread = ChatThread & { lastMessageAt?: number };
 
@@ -44,8 +42,6 @@ export function HistoryTabContent({ onClose }: { onClose: () => void }) {
   const generatingTitleThreadIds = appStore(
     (state) => state.generatingTitleThreadIds,
   );
-
-  const [isExpanded, setIsExpanded] = useState(false);
 
   useArchives();
 
@@ -90,17 +86,8 @@ export function HistoryTabContent({ onClose }: { onClose: () => void }) {
     },
   );
 
-  const hasExcessThreads = threadList && threadList.length >= MAX_THREADS_COUNT;
-
-  const displayThreadList = useMemo(() => {
-    if (!threadList) return [];
-    return !isExpanded && hasExcessThreads
-      ? threadList.slice(0, MAX_THREADS_COUNT)
-      : threadList;
-  }, [threadList, hasExcessThreads, isExpanded]);
-
   const threadGroupByDate = useMemo(() => {
-    if (!displayThreadList || displayThreadList.length === 0) {
+    if (!threadList || threadList.length === 0) {
       return [];
     }
 
@@ -120,7 +107,7 @@ export function HistoryTabContent({ onClose }: { onClose: () => void }) {
       { label: t("older"), threads: [] },
     ];
 
-    displayThreadList.forEach((thread) => {
+    threadList.forEach((thread) => {
       const threadDate =
         (thread.lastMessageAt
           ? new Date(thread.lastMessageAt)
@@ -139,7 +126,7 @@ export function HistoryTabContent({ onClose }: { onClose: () => void }) {
     });
 
     return groups.filter((group) => group.threads.length > 0);
-  }, [displayThreadList, t]);
+  }, [threadList, t]);
 
   const handleDeleteAllThreads = async () => {
     await toast.promise(deleteThreadsAction(), {
@@ -179,7 +166,7 @@ export function HistoryTabContent({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className="flex h-full flex-col overflow-hidden"
+      className="flex h-full flex-col min-w-0 overflow-y-hidden"
       style={{ userSelect: "text" }}
     >
       <div className="flex items-center gap-2 border-b border-border/60 px-3 py-3">
@@ -187,17 +174,9 @@ export function HistoryTabContent({ onClose }: { onClose: () => void }) {
           {t("recentChats")}
         </span>
         <div className="flex-1" />
-        <Button
-          variant="secondary"
-          className="flex items-center gap-1 rounded-full"
-          onClick={onClose}
-        >
-          <X className="size-4" />
-          <span className="text-xs text-muted-foreground">ESC</span>
-        </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-2 pb-4 min-w-0">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 pb-6 min-w-0">
         {isLoading || threadList?.length === 0 ? (
           <div className="w-full min-w-0">
             <div className="px-2 py-3">
@@ -251,11 +230,7 @@ export function HistoryTabContent({ onClose }: { onClose: () => void }) {
                             <MoreHorizontal />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          side="left"
-                          align="end"
-                          className="w-48"
-                        >
+                        <DropdownMenuContent side="left" align="end">
                           <DropdownMenuItem
                             variant="destructive"
                             onClick={handleDeleteAllThreads}
@@ -276,11 +251,11 @@ export function HistoryTabContent({ onClose }: { onClose: () => void }) {
                   </div>
                 </div>
 
-                <div className="px-2 space-y-1 min-w-0">
+                <div className="px-2 space-y-0.5 min-w-0">
                   {group.threads.map((thread) => (
                     <div
                       key={thread.id}
-                      className="group/thread flex items-center p-2 rounded-lg hover:bg-input transition-colors min-w-0"
+                      className="group/thread flex items-center px-2 py-1 rounded-md hover:bg-input transition-colors min-w-0"
                     >
                       <Link
                         href={`/chat/${thread.id}`}
@@ -306,9 +281,9 @@ export function HistoryTabContent({ onClose }: { onClose: () => void }) {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="opacity-0 group-hover/thread:opacity-100 transition-opacity"
+                          className="opacity-0 group-hover/thread:opacity-100 transition-opacity size-7"
                         >
-                          <MoreHorizontal />
+                          <MoreHorizontal className="size-4" />
                         </Button>
                       </ThreadDropdown>
                     </div>
@@ -319,21 +294,6 @@ export function HistoryTabContent({ onClose }: { onClose: () => void }) {
           })
         )}
       </div>
-
-      {hasExcessThreads && threadList && threadList.length > 0 && (
-        <div className="w-full px-4 pb-4 min-w-0">
-          <Button
-            variant="secondary"
-            size="sm"
-            className="w-full justify-start hover:bg-input! min-w-0"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            <MoreHorizontal className="mr-2" />
-            {isExpanded ? t("showLessChats") : t("showAllChats")}
-            {isExpanded ? <ChevronUp /> : <ChevronDown />}
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

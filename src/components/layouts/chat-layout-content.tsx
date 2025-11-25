@@ -8,10 +8,8 @@ import {
   ResizableHandle,
 } from "ui/resizable";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
-import { Button } from "ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
 import {
-  X,
   Globe,
   BarChart2,
   Code,
@@ -39,7 +37,7 @@ type RightPanelTabConfig = {
 const RIGHT_PANEL_TAB_CONFIGS: RightPanelTabConfig[] = [
   {
     id: "tempchat",
-    title: "Temporary",
+    title: "Temporary chat",
     icon: MessageCircleDashed,
     getInitialContent: () => ({}),
   },
@@ -51,7 +49,7 @@ const RIGHT_PANEL_TAB_CONFIGS: RightPanelTabConfig[] = [
   },
   {
     id: "team",
-    title: "Team",
+    title: "Team chat",
     icon: Users,
     defaultMode: "comparison",
     getInitialContent: () => ({ agents: [], status: undefined }),
@@ -311,14 +309,6 @@ export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
                         <span className="text-sm font-semibold text-foreground">
                           {activeTab.title}
                         </span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-6"
-                          onClick={() => closeTab(activeTab.id)}
-                        >
-                          <X className="size-3" />
-                        </Button>
                       </div>
                       <div className="flex-1 overflow-hidden p-4">
                         {activeTab.id === "web" && activeTab.content?.url ? (
@@ -353,7 +343,7 @@ export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
       </div>
 
       {isChatRoute && (
-        <div className="hidden h-full w-12 flex-shrink-0 flex-col border-l border-border/60 bg-muted/40 overflow-hidden md:flex">
+        <div className="hidden h-full w-12 flex-shrink-0 flex-col justify-center border-l border-border/60 bg-muted/40 overflow-hidden md:flex">
           {RIGHT_PANEL_TAB_CONFIGS.map((tabConfig, index) => {
             const IconComponent = tabConfig.icon;
             const existingTab = rightPanel.tabs.find(
@@ -378,18 +368,20 @@ export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
                     <button
                       type="button"
                       onClick={() => handleTabIconClick(tabConfig)}
-                      className={`flex size-12 items-center justify-center transition-colors ${
-                        isActive
-                          ? "bg-background text-foreground"
-                          : existingTab
-                            ? "text-foreground/80 hover:bg-muted"
-                            : "text-muted-foreground hover:bg-muted"
-                      }`}
+                      className={`flex size-12 items-center justify-center rounded-md transition-colors text-muted-foreground hover:bg-accent hover:text-accent-foreground`}
                       aria-pressed={Boolean(isActive)}
                       aria-label={tabConfig.title}
                       data-has-tab={Boolean(existingTab)}
                     >
-                      <IconComponent className="size-5" />
+                      <div
+                        className={`flex items-center justify-center rounded-md ${
+                          isActive
+                            ? "size-9 bg-primary text-primary-foreground ring-1 ring-primary"
+                            : "size-9"
+                        }`}
+                      >
+                        <IconComponent className="size-5" />
+                      </div>
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="left" align="center">

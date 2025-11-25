@@ -38,15 +38,19 @@ function ToolbarItem({
       <TooltipTrigger asChild>
         <Link
           href={href}
-          className={cn(
-            ITEM_CLASS,
-            isActive &&
-              "bg-primary text-primary-foreground ring-1 ring-primary",
-          )}
+          className={cn(ITEM_CLASS)}
           data-testid={`toolbar-link-${label.toLowerCase()}`}
           aria-label={label}
         >
-          <Icon className="size-6" />
+          <div
+            className={cn(
+              "flex items-center justify-center rounded-md size-10",
+              isActive &&
+                "bg-primary text-primary-foreground ring-1 ring-primary",
+            )}
+          >
+            <Icon className="size-6" />
+          </div>
         </Link>
       </TooltipTrigger>
       <TooltipContent side="right">{label}</TooltipContent>
