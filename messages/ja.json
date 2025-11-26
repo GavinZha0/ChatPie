@@ -239,10 +239,7 @@
       "debateDescription": "Agentが正反対の立場を取って議論します"
     },
     "chatPlaceholder": "何でもお尋ねください、@agent または $tool",
-    "toggleWidthMode": "幅モード",
     "toggleRightPanel": "右パネルを切り替え",
-    "widthModeCentered": "中央配置",
-    "widthModeWide": "全幅レイアウト",
     "Tool": {
       "webSearching": "ウェブを検索中...",
       "searchedTheWeb": "ウェブを検索しました",

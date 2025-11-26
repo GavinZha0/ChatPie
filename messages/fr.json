@@ -239,10 +239,7 @@
       "debateDescription": "Les agents se divisent en pour et contre pour débattre"
     },
     "chatPlaceholder": "Demandez n'importe quoi, @agent ou $tool",
-    "toggleWidthMode": "Mode de largeur",
     "toggleRightPanel": "Basculer le panneau droit",
-    "widthModeCentered": "Disposition centrée",
-    "widthModeWide": "Disposition en pleine largeur",
     "Tool": {
       "webSearching": "Recherche sur le web...",
       "searchedTheWeb": "Recherché sur le web",

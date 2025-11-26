@@ -2,19 +2,14 @@
 
 import { useSidebar } from "ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
-import {
-  GalleryHorizontal,
-  ChevronDown,
-  PanelLeft,
-  StretchHorizontal,
-} from "lucide-react";
+import { ChevronDown, PanelLeft } from "lucide-react";
 import { Button } from "ui/button";
 import { Separator } from "ui/separator";
 
 import { useMemo } from "react";
 import { ThreadDropdown } from "@/components/history/thread-dropdown";
-import { appStore } from "@/app/store";
 import { usePathname, useSearchParams } from "next/navigation";
+import { appStore } from "@/app/store";
 import { useShallow } from "zustand/shallow";
 import { getShortcutKeyList, Shortcuts } from "lib/keyboard-shortcuts";
 import { useTranslations } from "next-intl";
@@ -24,9 +19,6 @@ import { BackButton } from "@/components/layouts/back-button";
 
 export function AppHeader() {
   const t = useTranslations();
-  const [appStoreMutate, chatWidthMode] = appStore(
-    useShallow((state) => [state.mutate, state.chatWidthMode]),
-  );
   const { toggleSidebar, open } = useSidebar();
   const currentPaths = usePathname();
   const searchParams = useSearchParams();
@@ -96,38 +88,7 @@ export function AppHeader() {
 
       {componentByPage}
       <div className="flex-1" />
-      {showActionButtons && (
-        <div className="flex items-center gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size={"icon"}
-                variant={"ghost"}
-                className="hidden md:flex bg-secondary/40"
-                onClick={() => {
-                  appStoreMutate((state) => ({
-                    chatWidthMode:
-                      state.chatWidthMode === "centered" ? "wide" : "centered",
-                  }));
-                }}
-                data-testid="chat-width-toggle"
-                aria-label={t("Chat.toggleWidthMode")}
-              >
-                {chatWidthMode === "wide" ? (
-                  <StretchHorizontal className="size-4" />
-                ) : (
-                  <GalleryHorizontal className="size-4" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent align="end" side="bottom">
-              <div className="text-xs flex items-center gap-2">
-                {t("Chat.toggleWidthMode")}
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      )}
+      {showActionButtons && <div className="flex items-center gap-2" />}
     </header>
   );
 }

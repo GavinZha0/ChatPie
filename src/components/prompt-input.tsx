@@ -22,7 +22,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "ui/button";
 import { UIMessage, UseChatHelpers } from "@ai-sdk/react";
 import { SelectModel } from "./select-model";
-import { appStore, UploadedFile, type ChatWidthMode } from "@/app/store";
+import { appStore, UploadedFile } from "@/app/store";
 import { useShallow } from "zustand/shallow";
 import { ChatMention, ChatModel } from "app-types/chat";
 import dynamic from "next/dynamic";
@@ -75,7 +75,6 @@ interface PromptInputProps {
   threadId?: string;
   disabledMention?: boolean;
   onFocus?: () => void;
-  widthMode?: ChatWidthMode;
   onNewChat?: () => void;
   onTemporaryReset?: () => void;
   temporaryResetLabel?: string;
@@ -103,7 +102,6 @@ export default function PromptInput({
   voiceDisabled,
   threadId,
   disabledMention,
-  widthMode = "centered",
   onNewChat,
   onTemporaryReset,
   temporaryResetLabel,
@@ -590,18 +588,8 @@ export default function PromptInput({
   // Drag overlay handled globally in ChatBot
 
   return (
-    <div
-      className={cn(
-        "fade-in animate-in w-full",
-        widthMode === "wide" ? "px-10" : "max-w-4xl mx-auto",
-      )}
-    >
-      <div
-        className={cn(
-          "z-10 mx-auto w-full relative",
-          widthMode === "wide" ? "max-w-none" : "max-w-4xl",
-        )}
-      >
+    <div className={cn("fade-in animate-in w-full", "max-w-6xl mx-auto")}>
+      <div className={cn("z-10 mx-auto w-full relative", "max-w-6xl")}>
         <div className="flex w-full items-end gap-2">
           <fieldset className="flex flex-1 min-w-0 max-w-full flex-col px-4">
             <div className="shadow-lg overflow-hidden rounded-4xl backdrop-blur-sm transition-all duration-200 bg-muted/60 relative flex w-full flex-col cursor-text z-10 items-stretch focus-within:bg-muted hover:bg-muted focus-within:ring-muted hover:ring-muted">

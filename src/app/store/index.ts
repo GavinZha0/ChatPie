@@ -21,8 +21,6 @@ export interface UploadedFile {
   dataUrl?: string; // Full data URL format: "data:image/png;base64,..."
 }
 
-export type ChatWidthMode = "centered" | "wide";
-
 export type TeamTabMode = "comparison" | "task" | "debate" | "discussion";
 
 export interface RightPanelTab {
@@ -76,7 +74,6 @@ export interface AppState {
     };
   };
   pendingThreadMentions?: ChatMention[];
-  chatWidthMode: ChatWidthMode;
   newChatHandler?: () => void;
   groupChatMode: string; // 'comparison', 'discussion', 'chain', 'task', 'debate'
   rightPanel: {
@@ -127,7 +124,6 @@ const initialState: AppState = {
     },
   },
   pendingThreadMentions: undefined,
-  chatWidthMode: "centered",
   newChatHandler: undefined,
   groupChatMode: "comparison",
   rightPanel: {
@@ -166,7 +162,6 @@ export const appStore = create<AppState & AppDispatch>()(
           ...state.voiceChat,
           isOpen: false,
         },
-        chatWidthMode: state.chatWidthMode ?? initialState.chatWidthMode,
         groupChatMode: state.groupChatMode ?? initialState.groupChatMode,
         rightPanel: {
           ...initialState.rightPanel,

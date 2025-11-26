@@ -146,7 +146,6 @@ function MulticastTabContent({
                     message={message}
                     messageIndex={index}
                     readonly={true}
-                    widthMode="wide"
                     containerWidthClassName="max-w-none px-0"
                     className={"mb-2"}
                     isLastMessage={isLastMessage}

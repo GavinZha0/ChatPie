@@ -237,15 +237,19 @@ function TemporaryChatContent({
             />
           );
         })}
-        {isLoading && (
-          <div className="w-full mx-auto max-w-3xl px-6">
-            <Think />
-          </div>
-        )}
+        {(() => {
+          const showThinking =
+            isLoading && !messages.some((m) => m.role === "assistant");
+          return showThinking ? (
+            <div className={cn("w-full mx-auto", "max-w-6xl px-6")}>
+              <Think />
+            </div>
+          ) : null;
+        })()}
         {error && <ErrorMessage error={error} />}
       </div>
 
-      <div className={"w-full my-6 mt-auto"}>
+      <div className={"w-full mt-auto mb-14"}>
         <PromptInput
           input={input}
           sendMessage={sendMessage}

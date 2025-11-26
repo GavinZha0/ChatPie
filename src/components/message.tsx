@@ -5,7 +5,6 @@ import { memo, useMemo, useState } from "react";
 import equal from "lib/equal";
 
 import { cn } from "lib/utils";
-import type { ChatWidthMode } from "@/app/store";
 import type { UseChatHelpers } from "@ai-sdk/react";
 import {
   UserMessagePart,
@@ -34,7 +33,6 @@ interface Props {
   messageIndex?: number;
   status?: UseChatHelpers<UIMessage>["status"];
   readonly?: boolean;
-  widthMode?: ChatWidthMode;
   containerWidthClassName?: string;
   currentUser?: ChatCurrentUser;
 }
@@ -52,7 +50,6 @@ const PurePreviewMessage = ({
   addToolResult,
   messageIndex,
   sendMessage,
-  widthMode = "centered",
   containerWidthClassName,
   currentUser,
 }: Props) => {
@@ -79,8 +76,7 @@ const PurePreviewMessage = ({
     <div
       className={cn(
         "w-full mx-auto group/message",
-        containerWidthClassName ??
-          (widthMode === "wide" ? "max-w-none px-10" : "max-w-4xl px-6"),
+        containerWidthClassName ?? "max-w-6xl px-6",
       )}
     >
       <div className={cn("flex gap-4 w-full", className)}>
@@ -237,8 +233,6 @@ export const PreviewMessage = memo(
 
     if (prevProps.className !== nextProps.className) return false;
 
-    if (prevProps.widthMode !== nextProps.widthMode) return false;
-
     if (nextProps.isLoading && nextProps.isLastMessage) return false;
 
     if (!equal(prevProps.message.metadata, nextProps.message.metadata))
@@ -273,21 +267,16 @@ const errorVariants = {
 
 export const ErrorMessage = ({
   error,
-  widthMode = "centered",
 }: {
   error: Error;
   message?: UIMessage;
-  widthMode?: ChatWidthMode;
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const t = useTranslations();
 
   return (
     <div
-      className={cn(
-        "w-full mx-auto animate-in fade-in mt-4",
-        widthMode === "wide" ? "max-w-none px-10" : "max-w-4xl px-6",
-      )}
+      className={cn("w-full mx-auto animate-in fade-in mt-4", "max-w-6xl px-6")}
     >
       <div className="flex flex-col gap-2">
         <div className="flex flex-col gap-4 px-2 opacity-70">

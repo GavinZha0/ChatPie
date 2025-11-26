@@ -242,10 +242,7 @@
       "debateDescription": "Agents split into pro & con sides to debate"
     },
     "chatPlaceholder": "Ask anything, @agent or $tool",
-    "toggleWidthMode": "Width mode",
     "toggleRightPanel": "Toggle right panel",
-    "widthModeCentered": "Centered",
-    "widthModeWide": "Full width",
     "Tool": {
       "webSearching": "Searching the Web...",
       "searchedTheWeb": "Searched the Web",

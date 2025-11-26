@@ -239,10 +239,7 @@
       "debateDescription": "Los agentes se dividen en lados pro y contra para debatir"
     },
     "chatPlaceholder": "Pregunta lo que quieras, @agente o $herramienta",
-    "toggleWidthMode": "Modo de ancho",
     "toggleRightPanel": "Alternar panel derecho",
-    "widthModeCentered": "Diseño centrado",
-    "widthModeWide": "Diseño de ancho completo",
     "Tool": {
       "webSearching": "Buscando en la web...",
       "searchedTheWeb": "Buscado en la web",

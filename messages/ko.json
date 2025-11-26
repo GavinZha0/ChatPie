@@ -239,10 +239,7 @@
       "debateDescription": "에이전트가 pro & con 측면으로 토론합니다"
     },
     "chatPlaceholder": "무엇이든 물어보세요, @agent 또는 $tool",
-    "toggleWidthMode": "너비 모드 토글",
     "toggleRightPanel": "오른쪽 패널 토글",
-    "widthModeCentered": "중앙",
-    "widthModeWide": "넓게",
     "Tool": {
       "webSearching": "웹에서 찾아보는 중...",
       "searchedTheWeb": "참고한 웹 사이트",

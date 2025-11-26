@@ -103,7 +103,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     threadList,
     threadMentions,
     threadImageToolModel,
-    chatWidthMode,
     groupChatMode,
   ] = appStore(
     useShallow((state) => [
@@ -115,7 +114,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
       state.threadList,
       state.threadMentions,
       state.threadImageToolModel,
-      state.chatWidthMode,
       state.groupChatMode,
     ]),
   );
@@ -823,7 +821,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           </div>
         )}
         {emptyMessage ? (
-          <ChatGreeting widthMode={chatWidthMode} />
+          <ChatGreeting />
         ) : (
           <>
             <div
@@ -846,7 +844,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
                     isLastMessage={isLastMessage}
                     setMessages={setMessages as any}
                     sendMessage={sendMessage as any}
-                    widthMode={chatWidthMode}
                     className={""}
                     currentUser={session?.user}
                   />
@@ -854,12 +851,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
               })}
               {space && (
                 <div
-                  className={cn(
-                    "w-full mx-auto relative",
-                    chatWidthMode === "wide"
-                      ? "max-w-none px-10"
-                      : "max-w-4xl px-6",
-                  )}
+                  className={cn("w-full mx-auto relative", "max-w-6xl px-6")}
                 >
                   <div className={space == "space" ? "opacity-0" : ""}>
                     <Think />
@@ -867,9 +859,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
                 </div>
               )}
 
-              {error && (
-                <ErrorMessage error={error} widthMode={chatWidthMode} />
-              )}
+              {error && <ErrorMessage error={error} />}
               <div className="min-h-[calc(70dvh-40px)]" />
             </div>
           </>
@@ -884,7 +874,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           <div
             className={cn(
               "mx-auto relative flex justify-center items-center -top-2",
-              chatWidthMode === "wide" ? "max-w-none px-10" : "max-w-4xl px-6",
+              "max-w-6xl px-6",
             )}
           >
             <ScrollToBottomButton
@@ -901,7 +891,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             isLoading={isLoading || isPendingToolCall}
             onStop={stop}
             onFocus={isFirstTime ? undefined : handleFocus}
-            widthMode={chatWidthMode}
             onNewChat={() => {
               // Generate new thread ID
               const newThreadId = generateUUID();

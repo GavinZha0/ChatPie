@@ -242,10 +242,7 @@
       "debateDescription": "群里分为正反两方进行辩论"
     },
     "chatPlaceholder": "Ask anything, @agent or $tool",
-    "toggleWidthMode": "宽度模式",
     "toggleRightPanel": "切换右侧面板",
-    "widthModeCentered": "居中布局",
-    "widthModeWide": "全宽布局",
     "Tool": {
       "webSearching": "正在搜索网络...",
       "searchedTheWeb": "搜索网络",
