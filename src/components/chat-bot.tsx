@@ -753,6 +753,21 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
   }, [threadId]);
 
   useEffect(() => {
+    appStoreMutate((prev) => {
+      const pending = prev.pendingThreadMentions || [];
+      if (!pending.length) return prev as any;
+      const onlyAgents = pending.filter((m: any) => m.type === "agent");
+      return {
+        pendingThreadMentions: undefined,
+        threadMentions: {
+          ...prev.threadMentions,
+          [threadId]: onlyAgents,
+        },
+      } as any;
+    });
+  }, [threadId]);
+
+  useEffect(() => {
     if (isInitialThreadEntry)
       containerRef.current?.scrollTo({
         top: containerRef.current?.scrollHeight,
@@ -892,40 +907,44 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             onStop={stop}
             onFocus={isFirstTime ? undefined : handleFocus}
             onNewChat={() => {
-              // Generate new thread ID
-              const newThreadId = generateUUID();
-
-              // Clear chat messages and reset state
               setMessages([]);
               setInput("");
 
-              // Clear thread-specific states but preserve agent mentions and model
               appStoreMutate((prev) => {
                 const currentMentions = prev.threadMentions[threadId] || [];
+                const agentMentions = currentMentions.filter(
+                  (m: any) => m.type === "agent",
+                );
+                const clearedTabs = prev.rightPanel.tabs.map((tab) => {
+                  if (tab.id === "team") {
+                    return {
+                      ...tab,
+                      content: { agents: [], status: undefined },
+                    };
+                  }
+                  if (tab.id === "code") {
+                    return { ...tab, content: { code: "" } };
+                  }
+                  if (tab.id === "web") {
+                    return { ...tab, content: { url: "" } };
+                  }
+                  if (tab.id === "chart") {
+                    return { ...tab, content: { data: [] } };
+                  }
+                  return tab;
+                });
                 return {
-                  threadFiles: {
-                    ...prev.threadFiles,
-                    [newThreadId]: [], // Clear files for new thread
-                  },
-                  threadImageToolModel: {
-                    ...prev.threadImageToolModel,
-                    [newThreadId]: undefined, // Clear image tool for new thread
-                  },
-                  threadMentions: {
-                    ...prev.threadMentions,
-                    [newThreadId]: currentMentions, // Preserve current mentions
-                  },
+                  pendingThreadMentions: agentMentions,
                   rightPanel: {
                     ...prev.rightPanel,
-                    tabs: [],
-                    activeTabId: undefined,
-                    isOpen: false,
+                    tabs: clearedTabs,
+                    activeTabId: prev.rightPanel.activeTabId,
+                    isOpen: prev.rightPanel.isOpen,
                   },
                 };
               });
 
-              // Update URL without page refresh
-              router.replace(`/chat/${newThreadId}`);
+              router.push("/");
             }}
           />
         </div>
