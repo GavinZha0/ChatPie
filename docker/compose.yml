@@ -1,7 +1,7 @@
 name: chatpie
 services:
   chatpie:
-    container_name: chatpie-app
+    container_name: pieapp
     image: chatpie:latest
     build:
       context: ..
@@ -10,7 +10,7 @@ services:
       - '8300:8300'
     environment:
       - NO_HTTPS=1
-      - POSTGRES_URL=postgres://${POSTGRES_USER:-chatpie}:${POSTGRES_PASSWORD:-chatpie123}@chatpie-db:5432/${POSTGRES_DB:-chatpie}
+      - POSTGRES_URL=postgres://${POSTGRES_USER:-chatpie}:${POSTGRES_PASSWORD:-chatpie123}@piedb:5432/${POSTGRES_DB:-chatpie}
     env_file:
       - .env
     extra_hosts:
@@ -32,7 +32,7 @@ services:
     restart: unless-stopped
 
   postgres:
-    container_name: chatpie-db
+    container_name: piedb
     image: postgres:17
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-chatpie}

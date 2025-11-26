@@ -12,9 +12,7 @@ const getWeatherSchema = z.object({
   longitude: z.number(),
 });
 
-type RegisterToolMetadata = Parameters<McpServer["registerTool"]>[1];
-
-const getWeatherToolMetadata: RegisterToolMetadata = {
+const getWeatherToolMetadata = {
   title: "Get Weather",
   description:
     "Retrieve current temperature and solar information for given coordinates.",
