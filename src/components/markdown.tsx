@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo, PropsWithChildren } from "react";
+import { memo, PropsWithChildren } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
