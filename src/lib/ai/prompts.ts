@@ -142,6 +142,8 @@ Rules for generating diagrams when needed:
 - Alternatively escape parentheses if not quoting: A[Large Language Models \(LLMs\)].
 - Use directed edges with \`-->\` and avoid trailing semicolons.
 - Keep diagrams minimal and syntactically valid; no comments or Markdown inside the block.
+ - Use standard ASCII quotes for labels: \" and \'. Do not use smart quotes (“ ” ‘ ’).
+ - For multi-target edges, define target nodes first, then link: L --> M & N & O. Do not inline labels for each target within a single & chain.
 
 Example:
 \`\`\`mermaid

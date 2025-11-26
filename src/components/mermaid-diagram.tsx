@@ -57,12 +57,17 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
           securityLevel: "loose",
         });
 
-        // // First try to parse to catch syntax errors early
-        await mermaid.parse(chart);
+        // Normalize smart quotes to ASCII to prevent parse errors
+        const normalizedChart = chart
+          .replace(/[“”]/g, '"')
+          .replace(/[‘’]/g, "'");
+
+        // First try to parse to catch syntax errors early
+        await mermaid.parse(normalizedChart);
 
         // Render the diagram
         const id = `mermaid-${Date.now()}`;
-        const { svg } = await mermaid.render(id, chart);
+        const { svg } = await mermaid.render(id, normalizedChart);
 
         setState({ svg, error: null, loading: false });
       } catch (err) {
