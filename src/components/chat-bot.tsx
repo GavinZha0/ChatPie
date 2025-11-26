@@ -127,6 +127,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
   // Set newChatHandler in store for mobile header button
   useEffect(() => {
     const handleNewChat = () => {
+      toast.dismiss();
       router.push("/");
       router.refresh();
     };
@@ -907,6 +908,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             onStop={stop}
             onFocus={isFirstTime ? undefined : handleFocus}
             onNewChat={() => {
+              toast.dismiss();
               setMessages([]);
               setInput("");
 

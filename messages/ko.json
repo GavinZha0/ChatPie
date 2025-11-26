@@ -195,7 +195,7 @@
     }
   },
   "Chat": {
-    "Error": "채팅 오류",
+    "chatError": "채팅 오류",
     "thisMessageWasNotSavedPleaseTryTheChatAgain": "이 메시지는 저장되지 않았습니다. 다시 시도해주세요.",
     "uploadImage": "파일 업로드",
     "generateImage": "이미지 만들기",

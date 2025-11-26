@@ -50,22 +50,22 @@ ChatPie, a modern AI-powered chatbot platform designed to foster seamless human-
   <table>
     <tr>
       <td width="50%">
-        <img src="./public/image/preview/Chat-web-search.png" alt="Web Search Integration"/>
-        <p align="center"><b>Web Search Integration</b></p>
+        <img src="./public/image/preview/Chat-web-search.png" alt="Web search"/>
+        <p align="center"><b>Web search</b></p>
       </td>
       <td width="50%">
-        <img src="./public/image/preview/Agent.png" alt="AI Agent Builder"/>
-        <p align="center"><b>AI Agent Builder</b></p>
+        <img src="./public/image/preview/Chat-team.png" alt="Team chat"/>
+        <p align="center"><b>Team chat</b></p>
       </td>
     </tr>
     <tr>
       <td width="50%">
-        <img src="./public/image/preview/Providers.png" alt="Multi-Model Providers"/>
-        <p align="center"><b>Multi-Model Providers</b></p>
+        <img src="./public/image/preview/Chat-temporary.png" alt="Temporary chat"/>
+        <p align="center"><b>Temporary chat</b></p>
       </td>
       <td width="50%">
-        <img src="./public/image/preview/Users-profile.png" alt="User Profile Management"/>
-        <p align="center"><b>User Profile Management</b></p>
+        <img src="./public/image/preview/Provider.png" alt="Model providers"/>
+        <p align="center"><b>Model providers</b></p>
       </td>
     </tr>
   </table>

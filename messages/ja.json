@@ -195,7 +195,7 @@
     }
   },
   "Chat": {
-    "Error": "チャットエラー",
+    "chatError": "チャットエラー",
     "thisMessageWasNotSavedPleaseTryTheChatAgain": "このメッセージは保存されませんでした。もう一度チャットをお試しください。",
     "uploadImage": "ファイルをアップロード",
     "generateImage": "画像を生成",

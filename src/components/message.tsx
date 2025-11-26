@@ -288,7 +288,7 @@ export const ErrorMessage = ({
               <div className="p-1.5 bg-muted rounded-sm">
                 <TriangleAlertIcon className="size-3.5" />
               </div>
-              <div className="font-medium text-sm">{t("Chat.Error")}</div>
+              <div className="font-medium text-sm">{t("Chat.chatError")}</div>
               <button type="button" className="cursor-pointer">
                 <ChevronDownIcon
                   size={16}

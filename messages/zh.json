@@ -198,7 +198,7 @@
     }
   },
   "Chat": {
-    "Error": "聊天错误",
+    "chatError": "系统错误",
     "thisMessageWasNotSavedPleaseTryTheChatAgain": "此消息未保存。请重试聊天。",
     "uploadImage": "上传文件",
     "generateImage": "生成图片",

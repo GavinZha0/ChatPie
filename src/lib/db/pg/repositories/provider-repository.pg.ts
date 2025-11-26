@@ -110,11 +110,15 @@ export const pgProviderRepository: ProviderRepository = {
   },
 
   async selectByName(name) {
-    const [result] = await db
+    const results = await db
       .select()
       .from(ProviderTable)
-      .where(eq(ProviderTable.name, name));
-    return result;
+      .where(eq(ProviderTable.name, name))
+      .orderBy(desc(ProviderTable.updatedAt));
+    const withKey = results.find(
+      (p) => typeof p.apiKey === "string" && p.apiKey.trim().length > 0,
+    );
+    return withKey ?? results[0];
   },
 
   async save(provider) {

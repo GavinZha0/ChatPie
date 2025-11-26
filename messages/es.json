@@ -195,7 +195,7 @@
     }
   },
   "Chat": {
-    "Error": "Error de Chat",
+    "chatError": "Error de Chat",
     "thisMessageWasNotSavedPleaseTryTheChatAgain": "Este mensaje no se guardó. Por favor, intenta el chat nuevamente.",
     "uploadImage": "Subir archivo",
     "generateImage": "Generar Imagen",

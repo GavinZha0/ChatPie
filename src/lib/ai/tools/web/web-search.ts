@@ -1,6 +1,7 @@
 import { tool as createTool } from "ai";
 import { jsonSchemaToZod } from "lib/json-schema-to-zod";
 import { safe } from "ts-safe";
+import logger from "logger";
 import {
   ExaContentsRequest,
   ExaSearchRequest,
@@ -24,21 +25,24 @@ export async function getExaConfig(): Promise<{
   baseUrl: string;
 }> {
   if (exaConfigCache && Date.now() - exaConfigCache.timestamp < EXA_CACHE_TTL) {
+    logger.debug("exa config cache hit", exaConfigCache);
     return {
       apiKey: exaConfigCache.apiKey || undefined,
-      baseUrl: exaConfigCache.baseUrl || "https://api.exa.ai",
+      baseUrl: exaConfigCache.baseUrl || "",
     };
   }
   const { providerRepository } = await import("lib/db/repository");
   const provider = await providerRepository.selectByName("exa");
+  logger.debug("exa provider fetched", provider);
   exaConfigCache = {
     apiKey: provider?.apiKey ?? null,
     baseUrl: provider?.baseUrl ?? null,
     timestamp: Date.now(),
   };
+  logger.debug("exa config cache set", exaConfigCache);
   return {
     apiKey: exaConfigCache.apiKey || undefined,
-    baseUrl: exaConfigCache.baseUrl || "https://api.exa.ai",
+    baseUrl: exaConfigCache.baseUrl || "",
   };
 }
 
@@ -49,6 +53,10 @@ export function invalidateExaConfigCache() {
 const fetchExa = async (endpoint: string, body: any): Promise<any> => {
   const { apiKey, baseUrl } = await getExaConfig();
   if (!apiKey) {
+    logger.error("exa api key not configured", {
+      endpoint,
+      baseUrl,
+    });
     throw new Error("Exa API key is not configured");
   }
 
@@ -59,6 +67,13 @@ const fetchExa = async (endpoint: string, body: any): Promise<any> => {
       "x-api-key": apiKey,
     },
     body: JSON.stringify(body),
+  });
+
+  logger.debug("exa request", {
+    endpoint,
+    status: response.status,
+    statusText: response.statusText,
+    baseUrl,
   });
 
   if (response.status === 401) {
