@@ -111,6 +111,17 @@ const options = {
       ).filter((key) => socialAuthenticationProviders[key]),
     },
   },
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 5,
+    customRules: {
+      "/sign-in/email": {
+        window: 60,
+        max: 5,
+      },
+    },
+  },
   socialProviders: socialAuthenticationProviders,
 } satisfies BetterAuthOptions;
 

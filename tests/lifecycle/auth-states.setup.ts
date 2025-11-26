@@ -56,6 +56,7 @@ async function signInViaUi(
   await page.locator("#email").fill(email);
   await page.locator("#password").fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.waitForLoadState("networkidle");
 
   // Wait for redirect after successful login
   await page.waitForURL(
@@ -72,8 +73,8 @@ setup.beforeAll(async () => {
 });
 
 // Login with already-seeded admin user and save auth state
-setup("create admin auth state", async ({ page }) => {
-  console.log("🔐 Creating admin auth state...");
+setup("admin login and create auth state", async ({ page }) => {
+  console.log("🔐 Admin login and create auth state...");
 
   // Login as the pre-seeded admin user
   await signInViaUi(page, {
@@ -87,8 +88,8 @@ setup("create admin auth state", async ({ page }) => {
 });
 
 // Login with already-seeded editor user and save auth state
-setup("create editor auth state", async ({ page }) => {
-  console.log("🔐 Creating editor auth state...");
+setup("editor login and create auth state", async ({ page }) => {
+  console.log("🔐 Editor login and create auth state...");
   await signInViaUi(page, {
     email: TEST_USERS.editor.email,
     password: TEST_USERS.editor.password,
@@ -101,8 +102,8 @@ setup("create editor auth state", async ({ page }) => {
 });
 
 // Login with already-seeded editor user and save auth state
-setup("create editor2 auth state", async ({ page }) => {
-  console.log("🔐 Creating editor auth state...");
+setup("editor2 login and create auth state", async ({ page }) => {
+  console.log("🔐 Editor2 login and create auth state...");
   await signInViaUi(page, {
     email: TEST_USERS.editor2.email,
     password: TEST_USERS.editor2.password,
@@ -115,8 +116,8 @@ setup("create editor2 auth state", async ({ page }) => {
 });
 
 // Login with already-seeded regular user and save auth state
-setup("create regular user auth state", async ({ page }) => {
-  console.log("🔐 Creating regular user auth state...");
+setup("regular login and create auth state", async ({ page }) => {
+  console.log("🔐 Regular login and create auth state...");
   await signInViaUi(page, {
     email: TEST_USERS.regular.email,
     password: TEST_USERS.regular.password,
