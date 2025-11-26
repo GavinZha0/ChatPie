@@ -1,19 +1,18 @@
 "use client";
+
 import { appStore } from "@/app/store";
 import { useChat, UseChatHelpers } from "@ai-sdk/react";
 import { cn } from "lib/utils";
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
-import PromptInput from "./prompt-input";
-import { ErrorMessage, PreviewMessage } from "./message";
+import PromptInput from "@/components/prompt-input";
+import { ErrorMessage, PreviewMessage } from "@/components/message";
 import { DefaultChatTransport, UIMessage } from "ai";
 import { useShallow } from "zustand/shallow";
 import { isShortcutEvent, Shortcuts } from "lib/keyboard-shortcuts";
 import { useTranslations } from "next-intl";
 import { Think } from "ui/think";
 
-export function ChatBotTemporary() {
+export function TemporaryChatTab() {
   const t = useTranslations("Chat.TemporaryChat");
 
   const [temporaryChat, appStoreMutate] = appStore(
@@ -208,7 +207,6 @@ function TemporaryChatContent({
       {!messages.length && !error && (
         <div className="flex-1 items-center flex">
           <div className="max-w-3xl mx-auto my-4">
-            {" "}
             <div className="rounded-xl p-6 flex flex-col gap-2 leading-relaxed text-center">
               <h1 className="text-4xl font-semibold ">
                 {t("TemporaryChat.thisChatWontBeSaved")}
@@ -248,7 +246,6 @@ function TemporaryChatContent({
         })()}
         {error && <ErrorMessage error={error} />}
       </div>
-
       <div className={"w-full mt-auto mb-14"}>
         <PromptInput
           input={input}
@@ -269,8 +266,4 @@ function TemporaryChatContent({
       </div>
     </div>
   );
-}
-
-export function TemporaryChatTabContent() {
-  return <ChatBotTemporary />;
 }
