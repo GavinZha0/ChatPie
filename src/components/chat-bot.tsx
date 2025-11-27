@@ -177,6 +177,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     error,
     sendMessage,
     stop,
+    clearError,
   } = useChat<MyUIMessage>({
     id: threadId,
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
@@ -911,6 +912,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
               toast.dismiss();
               setMessages([]);
               setInput("");
+              clearError();
 
               appStoreMutate((prev) => {
                 const currentMentions = prev.threadMentions[threadId] || [];

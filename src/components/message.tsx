@@ -159,7 +159,8 @@ const PurePreviewMessage = ({
               if (isToolUIPart(part)) {
                 const isLast = isLastMessage && isLastPart;
                 const isManualToolInvocation =
-                  (message.metadata as ChatMetadata)?.toolChoice == "manual" &&
+                  (message.metadata as ChatMetadata)?.toolChoice ==
+                    "approval" &&
                   isLastMessage &&
                   isLastPart &&
                   part.state == "input-available" &&

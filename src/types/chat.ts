@@ -26,7 +26,7 @@ export type MyUIMessage = UIMessage<
 export type ChatMetadata = {
   usage?: LanguageModelUsage;
   chatModel?: ChatModel;
-  toolChoice?: "auto" | "none" | "manual";
+  toolChoice?: "auto" | "manual" | "approval";
   toolCount?: number;
   agentId?: string;
   agentName?: string; // New: agent name for frontend display
@@ -137,7 +137,7 @@ export const chatApiSchemaRequestBodySchema = z.object({
     })
     .optional(),
 
-  toolChoice: z.enum(["auto", "none", "manual"]),
+  toolChoice: z.enum(["auto", "manual", "approval"]),
   mentions: z.array(ChatMentionSchema).optional(),
   imageTool: z.object({ model: z.string().optional() }).optional(),
   allowedMcpServers: z.record(z.string(), AllowedMCPServerZodSchema).optional(),

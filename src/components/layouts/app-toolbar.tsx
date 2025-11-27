@@ -16,8 +16,9 @@ import {
 import { UserMenuList } from "./app-sidebar-user";
 import { BasicUser } from "app-types/user";
 import { getIsUserAdmin, getUserAvatar } from "lib/user/utils";
-import { appStore } from "@/app/store";
-import { useShallow } from "zustand/shallow";
+import { resetChatState } from "@/app/store";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 const ITEM_CLASS =
   "flex flex-col items-center justify-center gap-1 px-2 py-3 text-xs hover:bg-accent hover:text-accent-foreground rounded-md transition-colors";
@@ -62,7 +63,7 @@ export function AppToolbar({ user }: { user?: BasicUser }) {
   const pathname = usePathname();
   const t = useTranslations("");
   const isAdmin = getIsUserAdmin(user);
-  const [appStoreMutate] = appStore(useShallow((state) => [state.mutate]));
+  const router = useRouter();
 
   return (
     <aside
@@ -79,15 +80,18 @@ export function AppToolbar({ user }: { user?: BasicUser }) {
           href="/"
           aria-label="Home"
           className="flex items-center justify-center py-2"
-          onClick={() => {
-            appStoreMutate((prev) => ({
-              rightPanel: {
-                ...prev.rightPanel,
-                tabs: [],
-                activeTabId: undefined,
-                isOpen: false,
-              },
-            }));
+          onClick={(e) => {
+            e.preventDefault();
+
+            // Dismiss any existing toasts
+            toast.dismiss();
+
+            // Reset all chat state (messages, agents, files, panels)
+            resetChatState();
+
+            // Navigate to home and refresh to ensure component remount
+            router.push("/");
+            router.refresh();
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}

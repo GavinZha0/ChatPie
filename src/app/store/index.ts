@@ -37,7 +37,7 @@ export interface AppState {
   agentList: AgentSummary[];
   workflowToolList: WorkflowSummary[];
   currentThreadId: ChatThread["id"] | null;
-  toolChoice: "auto" | "none" | "manual";
+  toolChoice: "auto" | "manual" | "approval";
   allowedMcpServers?: Record<string, AllowedMCPServer>;
   allowedAppDefaultToolkit?: AppDefaultToolkit[];
   generatingTitleThreadIds: string[];
@@ -132,6 +132,37 @@ const initialState: AppState = {
     activeTabId: undefined,
     panelSizes: [60, 40],
   },
+};
+
+/**
+ * Reset chat state to initial state (for Logo button)
+ * Clears all chat-related data including messages, agents, files, and panels
+ */
+export const resetChatState = () => {
+  appStore.setState((prev) => ({
+    // Clear all thread-specific data
+    threadMentions: {},
+    threadFiles: {},
+    threadImageToolModel: {},
+    pendingThreadMentions: undefined,
+    currentThreadId: null,
+
+    // Clear right panel
+    rightPanel: {
+      ...prev.rightPanel,
+      tabs: [],
+      activeTabId: undefined,
+      isOpen: false,
+    },
+
+    // Clear internal state for agent model management
+    ...((prev as any)._agentManualModelByThread
+      ? { _agentManualModelByThread: {} }
+      : {}),
+    ...((prev as any)._previousModelByThread
+      ? { _previousModelByThread: {} }
+      : {}),
+  }));
 };
 
 export const appStore = create<AppState & AppDispatch>()(

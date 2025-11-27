@@ -168,7 +168,7 @@ export function handleError(error: any) {
 
 export function extractInProgressToolPart(message: UIMessage): ToolUIPart[] {
   if (message.role != "assistant") return [];
-  if ((message.metadata as ChatMetadata)?.toolChoice != "manual") return [];
+  if ((message.metadata as ChatMetadata)?.toolChoice != "approval") return [];
   return message.parts.filter(
     (part) =>
       isToolUIPart(part) &&

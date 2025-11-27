@@ -213,7 +213,7 @@ async function handleChatModels(
     id: string;
     message: UIMessage;
     messages: UIMessage[];
-    toolChoice: "auto" | "none" | "manual";
+    toolChoice: "auto" | "manual" | "approval";
     allowedAppDefaultToolkit?: string[];
     allowedMcpServers?: Record<string, any>;
     imageTool?: { model?: string };
@@ -274,7 +274,7 @@ async function handleChatModels(
       const useImageTool = Boolean(imageTool?.model);
       const isToolCallAllowed =
         supportToolCall &&
-        (toolChoice != "none" || agentMentions.length > 0) &&
+        (toolChoice != "manual" || agentMentions.length > 0) &&
         !useImageTool;
 
       // pass to frontend for multi-agent support
@@ -382,8 +382,8 @@ async function handleChatModels(
           })
             .map((t) => {
               const bindingTools =
-                toolChoice === "manual" ||
-                (message.metadata as ChatMetadata)?.toolChoice === "manual"
+                toolChoice === "approval" ||
+                (message.metadata as ChatMetadata)?.toolChoice === "approval"
                   ? excludeToolExecution(t)
                   : t;
               return {
@@ -407,7 +407,7 @@ async function handleChatModels(
             experimental_transform: smoothStream({ chunking: "word" }),
             maxRetries: 2,
             tools: vercelAITooles,
-            toolChoice: toolChoice === "none" ? "none" : "auto",
+            toolChoice: toolChoice === "manual" ? "none" : "auto",
             abortSignal: request.signal,
             headers: {
               "user-id": session.user.email,

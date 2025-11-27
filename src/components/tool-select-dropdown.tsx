@@ -148,7 +148,7 @@ export function ToolSelectDropdown({
     if (mentions?.length) {
       return mentions.map((m) => m.name);
     }
-    if (toolChoice == "none") return [];
+    if (toolChoice == "manual") return [];
     const translate = t.raw("defaultToolKit");
     const defaultTools = Object.values(AppDefaultToolkit)
       .filter((t) => allowedAppDefaultToolkit?.includes(t))
@@ -207,7 +207,17 @@ export function ToolSelectDropdown({
         <HammerIcon
           className={cn(
             "size-3.5",
-            isManualMode && "text-primary",
+            // Tool mode color indicators (only for auto and approval, not when mentions are present)
+            !hasAgentMention &&
+              !isManualMode &&
+              toolChoice === "auto" &&
+              "text-green-600",
+            !hasAgentMention &&
+              !isManualMode &&
+              toolChoice === "approval" &&
+              "text-blue-600",
+            // Manual mode with mentions shows primary color
+            // Agent mention shows muted color
             hasAgentMention && "text-muted-foreground",
           )}
         />
@@ -243,6 +253,7 @@ export function ToolSelectDropdown({
     isLoading,
     open,
     isManualMode,
+    toolChoice,
     className,
   ]);
 
@@ -1003,9 +1014,9 @@ function ToolModeSelector() {
     switch (toolChoice) {
       case "auto":
         return <Infinity className="size-3.5" />;
-      case "manual":
+      case "approval":
         return <ClipboardCheck className="size-3.5" />;
-      case "none":
+      case "manual":
         return <PenOff className="size-3.5" />;
       default:
         return <Infinity className="size-3.5" />;
@@ -1043,12 +1054,30 @@ function ToolModeSelector() {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => appStoreMutate({ toolChoice: "manual" })}
+              onClick={() => appStoreMutate({ toolChoice: "approval" })}
               className="cursor-pointer"
             >
               <div className="flex flex-col gap-2 w-full">
                 <div className="flex items-center gap-2">
                   <ClipboardCheck className="size-4" />
+                  <span className="font-bold">Approval</span>
+                  {toolChoice === "approval" && (
+                    <Check className="ml-auto size-4" />
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("approvalToolModeDescription")}
+                </p>
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => appStoreMutate({ toolChoice: "manual" })}
+              className="cursor-pointer"
+            >
+              <div className="flex flex-col gap-2 w-full">
+                <div className="flex items-center gap-2">
+                  <PenOff className="size-4" />
                   <span className="font-bold">Manual</span>
                   {toolChoice === "manual" && (
                     <Check className="ml-auto size-4" />
@@ -1056,24 +1085,6 @@ function ToolModeSelector() {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {t("manualToolModeDescription")}
-                </p>
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => appStoreMutate({ toolChoice: "none" })}
-              className="cursor-pointer"
-            >
-              <div className="flex flex-col gap-2 w-full">
-                <div className="flex items-center gap-2">
-                  <PenOff className="size-4" />
-                  <span className="font-bold">None</span>
-                  {toolChoice === "none" && (
-                    <Check className="ml-auto size-4" />
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("noneToolModeDescription")}
                 </p>
               </div>
             </DropdownMenuItem>

@@ -1022,6 +1022,7 @@ export default function PromptInput({
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
+                          variant="ghost"
                           size={"sm"}
                           onClick={() => {
                             appStoreMutate((state) => ({
@@ -1032,7 +1033,7 @@ export default function PromptInput({
                               },
                             }));
                           }}
-                          className="rounded-full p-2!"
+                          className="bg-input/60 border rounded-full hover:bg-input! p-2! ml-2"
                         >
                           <AudioWaveformIcon size={16} />
                         </Button>
