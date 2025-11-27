@@ -89,18 +89,31 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
     setModelRemovalLoadingKey(null);
   }, [providers]);
 
-  const sortedProviders = useMemo(
-    () =>
-      providers
-        .filter(
-          (provider, index, self) =>
-            self.findIndex((p) => p.name === provider.name) === index,
-        )
-        .sort((a, b) =>
-          a.alias.localeCompare(b.alias, undefined, { sensitivity: "base" }),
-        ),
-    [providers],
-  );
+  const sortedProviders = useMemo(() => {
+    const groups = providers.reduce((map, p) => {
+      const key = p.name;
+      const arr = map.get(key) || [];
+      arr.push(p);
+      map.set(key, arr);
+      return map;
+    }, new Map<string, ProvidersProps["providers"][0][]>());
+
+    const reps = Array.from(groups.values()).map((arr) => {
+      const seed = arr.find((p) => !p.apiKey || p.apiKey.trim() === "");
+      if (seed) return seed;
+      return arr.reduce(
+        (min, p) =>
+          new Date(p.updatedAt).getTime() < new Date(min.updatedAt).getTime()
+            ? p
+            : min,
+        arr[0],
+      );
+    });
+
+    return reps.sort((a, b) =>
+      a.alias.localeCompare(b.alias, undefined, { sensitivity: "base" }),
+    );
+  }, [providers]);
 
   // Get selected provider
   const selectedProvider = useMemo(
@@ -126,9 +139,7 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
     }
 
     return selectedProvider.llm.map((llmConfig) => {
-      // Use lowercase provider name to match llm table format
-      const providerNameLower = selectedProvider.name.toLowerCase();
-      const modelKey = `${providerNameLower}:${llmConfig.id}`;
+      const modelKey = `${selectedProvider.id}:${llmConfig.id}`;
       const fullModelInfo = llmMap.get(modelKey);
 
       return {
@@ -256,11 +267,9 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
         model.id === modelId ? { ...model, enabled: checked } : model,
       );
 
-      // Map minimal model objects to full LLMConfig using llmMap
-      const providerNameLower = selectedProvider.name.toLowerCase();
       const persistModels: LLMConfig[] = updatedModels
         .map((model) => {
-          const full = llmMap.get(`${providerNameLower}:${model.id}`);
+          const full = llmMap.get(`${selectedProvider.id}:${model.id}`);
           if (!full) {
             return undefined;
           }
@@ -301,11 +310,9 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
         (model) => model.id !== modelId,
       );
 
-      // Map minimal model objects to full LLMConfig using llmMap
-      const providerNameLower = selectedProvider.name.toLowerCase();
       const persistModels: LLMConfig[] = updatedModels
         .map((model) => {
-          const full = llmMap.get(`${providerNameLower}:${model.id}`);
+          const full = llmMap.get(`${selectedProvider.id}:${model.id}`);
           if (!full) {
             return undefined;
           }

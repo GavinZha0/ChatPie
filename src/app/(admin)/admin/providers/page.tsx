@@ -26,9 +26,8 @@ export default async function ProvidersPage() {
   // Build llmMap from providers' llm configs
   const llmMap = new Map<string, import("app-types/provider").LLMConfig>();
   for (const p of providers) {
-    const providerNameLower = p.name.toLowerCase();
     for (const m of p.llm ?? []) {
-      llmMap.set(`${providerNameLower}:${m.id}`, m);
+      llmMap.set(`${p.id}:${m.id}`, m);
     }
   }
 
