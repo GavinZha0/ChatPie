@@ -18,14 +18,13 @@ let exaConfigCache: {
   baseUrl: string | null;
   timestamp: number;
 } | null = null;
-const EXA_CACHE_TTL = 24 * 60 * 60 * 1000;
+const EXA_CACHE_TTL = 60 * 60 * 1000;
 
 export async function getExaConfig(): Promise<{
   apiKey?: string;
   baseUrl: string;
 }> {
   if (exaConfigCache && Date.now() - exaConfigCache.timestamp < EXA_CACHE_TTL) {
-    logger.debug("exa config cache hit", exaConfigCache);
     return {
       apiKey: exaConfigCache.apiKey || undefined,
       baseUrl: exaConfigCache.baseUrl || "",
@@ -33,13 +32,11 @@ export async function getExaConfig(): Promise<{
   }
   const { providerRepository } = await import("lib/db/repository");
   const provider = await providerRepository.selectByName("exa");
-  logger.debug("exa provider fetched", provider);
   exaConfigCache = {
     apiKey: provider?.apiKey ?? null,
     baseUrl: provider?.baseUrl ?? null,
     timestamp: Date.now(),
   };
-  logger.debug("exa config cache set", exaConfigCache);
   return {
     apiKey: exaConfigCache.apiKey || undefined,
     baseUrl: exaConfigCache.baseUrl || "",
@@ -53,7 +50,7 @@ export function invalidateExaConfigCache() {
 const fetchExa = async (endpoint: string, body: any): Promise<any> => {
   const { apiKey, baseUrl } = await getExaConfig();
   if (!apiKey) {
-    logger.error("exa api key not configured", {
+    logger.error("Exa API key not configured", {
       endpoint,
       baseUrl,
     });

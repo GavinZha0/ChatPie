@@ -90,6 +90,8 @@ export interface ProviderRepository {
    * Check if provider exists by name
    */
   existsByName(name: string): Promise<boolean>;
+
+  latestUpdatedAt(): Promise<Date | null>;
 }
 
 export const pgProviderRepository: ProviderRepository = {
@@ -178,5 +180,14 @@ export const pgProviderRepository: ProviderRepository = {
       .where(eq(ProviderTable.name, name));
 
     return !!result;
+  },
+
+  async latestUpdatedAt() {
+    const [result] = await db
+      .select({ updatedAt: ProviderTable.updatedAt })
+      .from(ProviderTable)
+      .orderBy(desc(ProviderTable.updatedAt))
+      .limit(1);
+    return result?.updatedAt ?? null;
   },
 };

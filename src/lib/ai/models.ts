@@ -75,6 +75,7 @@ type ModelsCache = {
   providers: Provider[];
   modelCapabilities: Map<LanguageModel, ModelCapability>;
   timestamp: number;
+  lastUpdatedAt: number;
 } | null;
 
 /**
@@ -89,9 +90,9 @@ let modelsCache: ModelsCache = null;
 const UNVALID_PROVIDER_NAME = ["exa"];
 
 /**
- * Cache TTL (1 hour - balance between performance and real-time updates)
+ * Cache TTL (30 minutes - balance between performance and real-time updates)
  */
-const CACHE_TTL = 60 * 60 * 1000;
+const CACHE_TTL = 30 * 60 * 1000;
 
 // ============================================
 // Core Functionality
@@ -205,9 +206,14 @@ function createProviderSDK(
  * Results are cached for 5 minutes to reduce database queries
  */
 export async function loadDynamicModels() {
-  // If cache is valid, return cached result directly
-  if (modelsCache && Date.now() - modelsCache.timestamp < CACHE_TTL) {
-    return modelsCache;
+  const latestUpdatedAt = await providerRepository.latestUpdatedAt();
+  if (modelsCache) {
+    const latestVersion = latestUpdatedAt ? latestUpdatedAt.getTime() : 0;
+    const cacheVersionUpToDate = modelsCache.lastUpdatedAt >= latestVersion;
+    const cacheWithinTTL = Date.now() - modelsCache.timestamp < CACHE_TTL;
+    if (cacheVersionUpToDate && cacheWithinTTL) {
+      return modelsCache;
+    }
   }
 
   try {
@@ -287,13 +293,17 @@ export async function loadDynamicModels() {
       }
     }
 
-    // Cache result
+    const lastUpdated = providers.reduce<number>((acc, p) => {
+      const t = p.updatedAt ? new Date(p.updatedAt).getTime() : 0;
+      return t > acc ? t : acc;
+    }, 0);
     modelsCache = {
       models,
       filePartSupportByModel,
       providers,
       modelCapabilities,
       timestamp: Date.now(),
+      lastUpdatedAt: lastUpdated,
     };
 
     return modelsCache;
@@ -305,6 +315,8 @@ export async function loadDynamicModels() {
       filePartSupportByModel: new Map<LanguageModel, readonly string[]>(),
       providers: [],
       modelCapabilities: new Map<LanguageModel, ModelCapability>(),
+      timestamp: Date.now(),
+      lastUpdatedAt: 0,
     };
   }
 }
@@ -413,8 +425,13 @@ export async function updateProviderInCache(providerName: string) {
       delete modelsCache.models[providerName];
     }
 
-    // Update providers list
     modelsCache.providers = updatedProviders;
+    const lastUpdated = updatedProviders.reduce<number>((acc, p) => {
+      const t = p.updatedAt ? new Date(p.updatedAt).getTime() : 0;
+      return t > acc ? t : acc;
+    }, 0);
+    modelsCache.lastUpdatedAt = lastUpdated;
+    modelsCache.timestamp = Date.now();
 
     logger.info(`Updated provider ${providerName} in cache`);
   } catch (error) {
