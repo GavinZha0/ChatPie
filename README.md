@@ -9,6 +9,10 @@
   <img src="./public/image/preview/Chat.png" alt="ChatPie Preview" width="800"/>
 </div>
 
+<div align="center">
+  <a href="./README.zh.md">中文</a> / <a href="./README.md">English</a>
+</div>
+
 <br/>
 
 ChatPie, a modern AI-powered chatbot platform designed to foster seamless human-AI collaboration. ChatPie transforms AI from a simple tool into a true partner or colleague, enabling users to chat naturally, work efficiently, and accomplish tasks together with AI as a helpful assistant.
@@ -25,6 +29,7 @@ ChatPie, a modern AI-powered chatbot platform designed to foster seamless human-
 - **AI Agent Builder**: Create and customize intelligent agents for specific tasks
 - **Workflow Construction**: Build automated workflows to streamline complex processes
 - **Chat Archive & Management**: Archive conversations with configurable retention policies
+- **Real-Time Voice Chat**: Powered by OpenAI `gpt-4o-realtime-preview` (API key required)
 
 ### 🔌 Model & Integration Support
 - **Multi-Model Support**: Seamlessly integrate with leading AI providers via Vercel AI SDK:
@@ -64,8 +69,18 @@ ChatPie, a modern AI-powered chatbot platform designed to foster seamless human-
         <p align="center"><b>Temporary chat</b></p>
       </td>
       <td width="50%">
+        <img src="./public/image/preview/Chat-voice.png" alt="Voice chat"/>
+        <p align="center"><b>Voice chat</b></p>
+      </td>
+    </tr>
+    <tr>
+      <td width="50%">
         <img src="./public/image/preview/Provider.png" alt="Model providers"/>
         <p align="center"><b>Model providers</b></p>
+      </td>
+      <td width="50%">
+        <img src="./public/image/preview/User-detail.png" alt="User detail"/>
+        <p align="center"><b>User detail</b></p>
       </td>
     </tr>
   </table>
