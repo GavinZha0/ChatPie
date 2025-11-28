@@ -100,7 +100,33 @@ ChatPie, a modern AI-powered chatbot platform designed to foster seamless human-
 npm install -g pnpm
 ```
 
-### Quick Start (Docker Compose Version) 🐳
+### One-Command Start (Docker Compose for Users) 🐳
+
+Use the prebuilt image and the root `docker-compose.yaml` for a simple start. No Node.js or pnpm required.
+
+```bash
+# In the project root
+docker compose up -d
+
+# Open the app in your browser
+open http://localhost:8300
+```
+
+Optional configuration:
+
+- Create a `.env` in the project root to override defaults used by `docker-compose.yaml`:
+  - `BETTER_AUTH_SECRET` (set your own secret)
+  - `BETTER_AUTH_URL` (e.g., `http://localhost:8300` or your LAN IP)
+  - `POSTGRES_URL` (use external DB if you don’t run the bundled Postgres)
+  - `OPENAI_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`, `ANTHROPIC_API_KEY` (model providers)
+  - `CHATPIE_IMAGE` (override image tag; defaults to `ghcr.io/gavinzha0/chatpie:main`)
+
+Notes:
+
+- The developer-focused Compose remains at `docker/compose.yml` and builds from source.
+- `latest` tag will appear after the next container publishing run; `main` is available now.
+
+### Quick Start (Docker Compose from Source) 🐳
 
 ```bash
 # 1. Install dependencies
@@ -111,7 +137,7 @@ pnpm docker-compose:up
 
 ```
 
-### Quick Start (Local Version) 🚀
+### Start development environment (Local Version) 🚀
 
 ```bash
 pnpm i
@@ -153,37 +179,11 @@ Open [http://localhost:8300](http://localhost:8300) in your browser to get start
 
 ### Environment Variables
 
-The `pnpm i` command generates a `.env` file. Fill in the required values.
+For local development, `pnpm i` will generate a `.env` file automatically. Fill in the required values.
 
-```dotenv
-# Secret for Better Auth (generate with: npx @better-auth/cli@latest secret)
-BETTER_AUTH_SECRET=****
+For user Docker Compose (`docker-compose.yaml` in the project root), a `.env` file is optional; add one to override defaults used by the Compose file.
 
-# (Optional)
-# URL for Better Auth (the URL you access the app from)
-BETTER_AUTH_URL=
-
-# === Database ===
-# If you don't have PostgreSQL running locally, start it with: pnpm docker:pg
-POSTGRES_URL=postgres://chatpie:chatpie123@localhost:5432/chatpie
-
-# Whether to use file-based MCP config (default: false)
-FILE_BASED_MCP_CONFIG=false
-
-# === File Storage ===
-# Vercel Blob is the default storage driver (works in both local dev and production)
-# Pull the token locally with `vercel env pull`
-FILE_STORAGE_TYPE=vercel-blob
-FILE_STORAGE_PREFIX=uploads
-BLOB_READ_WRITE_TOKEN=
-
-# Set this to 1 to disable user sign-ups.
-DISABLE_SIGN_UP=
-
-# (Optional)
-# Set this to 1 to disable HTTPS (default: 0)
-NO_HTTPS=1
-```
+Refer to the [.env.example](./.env.example) file for a complete list of environment variables.
 
 <br/>
 

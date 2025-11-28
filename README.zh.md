@@ -20,7 +20,7 @@ ChatPie 是一款现代化的 AI 驱动聊天平台，旨在促进无缝的人�
 ## ✨ 关键特性
 
 ### 🤖 AI 协作平台
-- 经典聊天机器人界面：直观、友好的聊天体验
+- 增强的聊天界面：直观、友好的聊天体验
 - 人机协作：为自然对话和高效协作而设计
 - 多用户支持：完整用户管理能力
 
@@ -100,7 +100,28 @@ ChatPie 是一款现代化的 AI 驱动聊天平台，旨在促进无缝的人�
 npm install -g pnpm
 ```
 
-### 快速开始（Docker Compose 版）🐳
+### 一键启动（面向用户的 Docker Compose）🐳
+
+使用预构建镜像与根目录的 `docker-compose.yaml`，无需安装 Node.js 或 pnpm。
+
+```bash
+# 在项目根目录执行以下命令
+docker compose up -d
+
+# 从浏览器访问
+http://localhost:8300
+```
+
+可选配置：
+
+- 在项目根目录创建 `.env` 覆盖 `docker-compose.yaml` 中的默认值：
+  - `BETTER_AUTH_SECRET`（请设置你自己的密钥）
+  - `BETTER_AUTH_URL`（例如 `http://localhost:8300` 或你的局域网 IP）
+  - `POSTGRES_URL`（若不使用编排内置的 Postgres，可改为外部数据库连接）
+  - `CHATPIE_IMAGE`（覆盖镜像标签；默认 `ghcr.io/gavinzha0/chatpie:latest`）
+
+
+### 快速开始（源码构建的 Docker Compose）🐳
 
 ```bash
 # 1. 安装依赖
@@ -111,7 +132,7 @@ pnpm docker-compose:up
 
 ```
 
-### 快速开始（本地版）🚀
+### 启动开发环境（面向开发者）🚀
 
 ```bash
 pnpm i
@@ -153,37 +174,11 @@ pnpm dev   # 或：pnpm build && pnpm start
 
 ### 环境变量
 
-运行 `pnpm i` 会生成一个 `.env` 文件，请填写必要的值。
+用于本地开发时，运行 `pnpm i` 会自动生成 `.env` 文件，请填写必要值。
 
-```dotenv
-# Better Auth 的密钥（生成方式：npx @better-auth/cli@latest secret）
-BETTER_AUTH_SECRET=****
+对于用户版 Docker Compose（项目根目录的 `docker-compose.yaml`），`.env` 为可选；你可以添加一个 `.env` 用来覆盖 Compose 文件中的默认值。
 
-#（可选）
-# Better Auth 的 URL（你访问应用所用的完整 URL）
-BETTER_AUTH_URL=
-
-# === 数据库 ===
-# 如果你本地没有运行 PostgreSQL，可通过：pnpm docker:pg 启动
-POSTGRES_URL=postgres://chatpie:chatpie123@localhost:5432/chatpie
-
-# 是否使用基于文件的 MCP 配置（默认：false）
-FILE_BASED_MCP_CONFIG=false
-
-# === 文件存储 ===
-# Vercel Blob 为默认存储驱动（本地开发与生产都可用）
-# 可通过 `vercel env pull` 拉取本地 token
-FILE_STORAGE_TYPE=vercel-blob
-FILE_STORAGE_PREFIX=uploads
-BLOB_READ_WRITE_TOKEN=
-
-# 设为 1 以禁用用户注册
-DISABLE_SIGN_UP=
-
-# (（可选）)
-# 设置为 1 以禁用 HTTPS（默认：0）
-NO_HTTPS=1
-```
+详细的环境变量说明请参阅 [.env.example](./.env.example)。
 
 <br/>
 

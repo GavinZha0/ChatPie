@@ -1,0 +1,51 @@
+name: chatpie
+services:
+  chatpie:
+    image: ${CHATPIE_IMAGE:-ghcr.io/gavinzha0/chatpie:main}
+    ports:
+      - "8300:8300"
+    environment:
+      NO_HTTPS: ${NO_HTTPS:-1}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-local-dev-secret}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:8300}
+      POSTGRES_URL: ${POSTGRES_URL:-postgres://chatpie:chatpie123@piedb:5432/chatpie}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      REDIS_URL: ${REDIS_URL:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'node -e "http=require(''http'');req=http.request({host:''127.0.0.1'',port:8300,path:''/''},res=>{process.exit(res.statusCode>=200&&res.statusCode<500?0:1)});req.on(''error'',()=>process.exit(1));req.end()"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-chatpie}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-chatpie123}
+      POSTGRES_DB: ${POSTGRES_DB:-chatpie}
+    volumes:
+      - chatpie_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h 127.0.0.1',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  chatpie_pg_data:
