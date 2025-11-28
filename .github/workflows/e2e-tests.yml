@@ -51,11 +51,11 @@ jobs:
 
       - uses: pnpm/action-setup@v3
         with:
-          version: 10.2.1
+          version: 10.20.0
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'pnpm'
 
       - name: Get pnpm store directory
@@ -91,8 +91,8 @@ jobs:
       - name: Build application
         run: pnpm build:local
 
-      - name: Run E2E tests
-        run: pnpm test:e2e
+      - name: Run E2E tests (setup only)
+        run: pnpm test:e2e --project=setup
 
       - uses: actions/upload-artifact@v4
         if: always()

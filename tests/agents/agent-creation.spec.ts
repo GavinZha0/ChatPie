@@ -1,38 +1,77 @@
 import { test, expect, Page } from "@playwright/test";
-import {
-  uniqueTestName,
-  clickAndWaitForNavigation,
-  openDropdown,
-  selectDropdownOption,
-} from "../utils/test-helpers";
+import { uniqueTestName } from "../utils/test-helpers";
 import { TEST_USERS } from "../constants/test-users";
 
 async function createAgent(
   page: Page,
   name: string,
   description: string,
+  options?: { skipModelSelection?: boolean },
 ): Promise<void> {
-  await page.goto("/agent/new");
+  // Navigate to agents page
+  await page.goto("/agents");
+  await page.waitForLoadState("networkidle");
 
+  // Click create agent button to open dialog
+  await page.getByTestId("create-agent-button").click();
+
+  // Wait for dialog to open
+  await expect(page.getByRole("dialog")).toBeVisible();
+
+  // Fill in agent details in the dialog
   await page.getByTestId("agent-name-input").fill(name);
   await page.getByTestId("agent-description-input").fill(description);
 
-  await clickAndWaitForNavigation(page, "agent-save-button", "**/agents");
+  // Verify model is selected (the dialog should have a default model from appStore)
+  if (!options?.skipModelSelection) {
+    // Wait for the model selector to be ready and have a selected model
+    const modelSelectorButton = page.getByTestId("model-selector-button");
+    await expect(modelSelectorButton).toBeVisible({ timeout: 3000 });
+
+    // Verify that a model name is displayed (not just placeholder text)
+    const selectedModelName = page.getByTestId("selected-model-name");
+    const modelText = await selectedModelName.textContent();
+
+    // If no model is selected (shows "model" placeholder), select the first available model
+    if (!modelText || modelText.trim() === "model") {
+      // Open model selector
+      await modelSelectorButton.click();
+
+      // Wait for popover to open
+      await expect(page.getByTestId("model-selector-popover")).toBeVisible();
+
+      // Select the first available model
+      const firstModel = page.locator('[data-testid^="model-option-"]').first();
+      await firstModel.click();
+
+      // Wait for popover to close
+      await expect(
+        page.getByTestId("model-selector-popover"),
+      ).not.toBeVisible();
+    }
+  }
+
+  // Save the agent
+  await page.getByTestId("agent-save-button").click();
+
+  // Wait for dialog to close (success) or check for error toast
+  await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 5000 });
 }
 
 test.describe("Agent Creation and Sharing Workflow", () => {
   test.use({ storageState: TEST_USERS.editor.authFile });
 
   test("should create a new agent successfully", async ({ page }) => {
-    await page.goto("/agent/new");
-    await createAgent(
-      page,
-      "Test Agent for Sharing",
-      "This agent tests the sharing workflow",
-    );
+    const agentName = "Test Agent for Sharing";
+    await createAgent(page, agentName, "This agent tests the sharing workflow");
 
-    // Verify we're on agents list
+    // Verify we're on agents page
     expect(page.url()).toContain("/agents");
+
+    // Verify agent appears in the list
+    await expect(
+      page.locator(`[data-testid*="agent-card-name"]:has-text("${agentName}")`),
+    ).toBeVisible({ timeout: 5000 });
   });
 
   test("should show created agent on agents page", async ({ page }) => {
@@ -64,11 +103,20 @@ test.describe("Agent Creation and Sharing Workflow", () => {
     ).toBeVisible({ timeout: 5000 });
   });
 
-  test("should navigate to agent from agents list", async ({ page }) => {
+  test("should open agent editor from agents list", async ({ page }) => {
     const agentName = uniqueTestName("Clickable Agent");
     await createAgent(page, agentName, "Click to open");
 
-    await page.locator(`main a:has-text("${agentName}")`).first().click();
+    // Click on the agent card to open the edit dialog
+    await page
+      .locator(`[data-testid*="agent-card"]:has-text("${agentName}")`)
+      .first()
+      .click();
+
+    // Wait for dialog to open
+    await expect(page.getByRole("dialog")).toBeVisible();
+
+    // Verify agent name is displayed in the dialog
     await expect(page.getByTestId("agent-name-input")).toHaveValue(agentName);
   });
 
@@ -78,8 +126,14 @@ test.describe("Agent Creation and Sharing Workflow", () => {
     const updatedName = uniqueTestName("Updated Agent");
     await createAgent(page, originalName, "Will be edited");
 
-    // Click on the agent from the list using a simpler selector
-    await page.locator(`main a:has-text("${originalName}")`).first().click();
+    // Click on the agent card to open edit dialog
+    await page
+      .locator(`[data-testid*="agent-card"]:has-text("${originalName}")`)
+      .first()
+      .click();
+
+    // Wait for dialog to open
+    await expect(page.getByRole("dialog")).toBeVisible();
 
     // Edit the name with a unique name
     await page.getByTestId("agent-name-input").fill(updatedName);
@@ -90,7 +144,10 @@ test.describe("Agent Creation and Sharing Workflow", () => {
       .fill("Updated description after editing");
 
     // Save changes
-    await clickAndWaitForNavigation(page, "agent-save-button", "**/agents");
+    await page.getByTestId("agent-save-button").click();
+
+    // Wait for dialog to close
+    await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 5000 });
 
     // Check the updated agent appears using the unique name
     await expect(
@@ -100,59 +157,63 @@ test.describe("Agent Creation and Sharing Workflow", () => {
     ).toBeVisible({ timeout: 5000 });
   });
 
-  // Commenting out due to rate limiting issues with free OpenRouter API
-  // This test is flaky in CI due to 429 errors from the free tier
-  test.skip("should generate an agent with AI", async ({ page }) => {
-    await page.goto("/agent/new");
-
-    // Click Generate With AI button
-    await page.getByTestId("agent-generate-with-ai-button").click();
-
-    // Should open a dialog - wait for it to appear
-    await expect(
-      page.getByTestId("agent-generate-agent-prompt-textarea"),
-    ).toBeVisible({
-      timeout: 5000,
-    });
-    await page
-      .getByTestId("agent-generate-agent-prompt-textarea")
-      .fill("Help me come up with a dog names.");
-    await page.getByTestId("agent-generate-agent-prompt-submit-button").click();
-    await expect(page.getByTestId("agent-name-input")).toHaveValue(/Dog/i, {
-      timeout: 10000,
-    });
-  });
-
-  test("should create an agent with example", async ({ page }) => {
-    await page.goto("/agent/new");
-
-    // Click Create With Example button
-    await openDropdown(page, "agent-create-with-example-button");
-    await selectDropdownOption(
-      page,
-      "agent-create-with-example-weather-button",
-    );
-    await expect(page.getByTestId("agent-name-input")).toHaveValue(/Weather/i, {
-      timeout: 5000,
-    });
-  });
-
   test("should add instructions to agent", async ({ page }) => {
-    await page.goto("/agent/new");
+    const agentName = uniqueTestName("Agent with Instructions");
+
+    await page.goto("/agents");
+    await page.waitForLoadState("networkidle");
+
+    // Click create agent button to open dialog
+    await page.getByTestId("create-agent-button").click();
+
+    // Wait for dialog to open
+    await expect(page.getByRole("dialog")).toBeVisible();
 
     // Fill basic info
-    await page.getByTestId("agent-name-input").fill("Agent with Instructions");
+    await page.getByTestId("agent-name-input").fill(agentName);
     await page
       .getByTestId("agent-description-input")
       .fill("Has custom instructions");
 
+    // Add instructions
     await page
       .getByTestId("agent-prompt-textarea")
       .fill(
         "You are a helpful assistant that specializes in testing and quality assurance.",
       );
 
-    await clickAndWaitForNavigation(page, "agent-save-button", "**/agents");
+    // Verify and select model if needed
+    const modelSelectorButton = page.getByTestId("model-selector-button");
+    await expect(modelSelectorButton).toBeVisible({ timeout: 3000 });
+
+    const selectedModelName = page.getByTestId("selected-model-name");
+    const modelText = await selectedModelName.textContent();
+
+    // If no model is selected, select the first available model
+    if (!modelText || modelText.trim() === "model") {
+      await modelSelectorButton.click();
+      await expect(page.getByTestId("model-selector-popover")).toBeVisible();
+
+      const firstModel = page.locator('[data-testid^="model-option-"]').first();
+      await firstModel.click();
+
+      await expect(
+        page.getByTestId("model-selector-popover"),
+      ).not.toBeVisible();
+    }
+
+    // Save the agent
+    await page.getByTestId("agent-save-button").click();
+
+    // Wait for dialog to close
+    await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 5000 });
+
+    // Verify we're still on agents page
     expect(page.url()).toContain("/agents");
+
+    // Verify agent appears in the list
+    await expect(
+      page.locator(`[data-testid*="agent-card-name"]:has-text("${agentName}")`),
+    ).toBeVisible({ timeout: 5000 });
   });
 });

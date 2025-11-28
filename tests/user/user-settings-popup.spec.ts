@@ -1,19 +1,15 @@
 import { test, expect } from "@playwright/test";
-import { ensureSidebarOpen } from "../helpers/sidebar-helper";
 
 // Use regular user auth state for user settings tests
 test.use({ storageState: "tests/.auth/regular-user.json" });
 
 test.describe("User Settings Popup", () => {
-  test("should open user settings popup from sidebar", async ({ page }) => {
+  test("should open user settings popup from toolbar", async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
 
-    // Ensure sidebar is open
-    await ensureSidebarOpen(page);
-
-    // Open user menu in sidebar
-    const userMenuButton = page.getByTestId("sidebar-user-button");
+    // Open user menu in toolbar
+    const userMenuButton = page.getByTestId("toolbar-user-button");
     await userMenuButton.click();
 
     // Wait for dropdown menu to appear
@@ -48,11 +44,8 @@ test.describe("User Settings Popup", () => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
 
-    // Ensure sidebar is open
-    await ensureSidebarOpen(page);
-
     // Open user settings
-    const userMenuButton = page.getByTestId("sidebar-user-button");
+    const userMenuButton = page.getByTestId("toolbar-user-button");
     await userMenuButton.click();
 
     const settingsOption = page.getByTestId("user-settings-menu-item");
@@ -83,11 +76,8 @@ test.describe("User Settings Popup", () => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
 
-    // Ensure sidebar is open
-    await ensureSidebarOpen(page);
-
     // Open user settings
-    const userMenuButton = page.getByTestId("sidebar-user-button");
+    const userMenuButton = page.getByTestId("toolbar-user-button");
     await userMenuButton.click();
 
     const settingsOption = page.getByTestId("user-settings-menu-item");
@@ -121,11 +111,8 @@ test.describe("User Settings Popup", () => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
 
-    // Ensure sidebar is open
-    await ensureSidebarOpen(page);
-
     // Open user settings
-    const userMenuButton = page.getByTestId("sidebar-user-button");
+    const userMenuButton = page.getByTestId("toolbar-user-button");
     await userMenuButton.click();
 
     const settingsOption = page.getByTestId("user-settings-menu-item");

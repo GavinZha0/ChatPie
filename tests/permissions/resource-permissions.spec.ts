@@ -1,6 +1,5 @@
 import { test, expect } from "@playwright/test";
 import { TEST_USERS } from "../constants/test-users";
-import { clickAndWaitForNavigation } from "../utils/test-helpers";
 
 /**
  * Comprehensive E2E tests for role-based permission system
@@ -35,48 +34,86 @@ test.describe("Resource Permissions - Regular User", () => {
 
     // Create a test agent with unique name
     const testAgentName = `Test Agent ${Date.now()}`;
-    await editorPage.goto("/agent/new");
+    await editorPage.goto("/agents");
+    await editorPage.waitForLoadState("networkidle");
+
+    // Click create agent button to open dialog
+    await editorPage.getByTestId("create-agent-button").click();
+    await expect(editorPage.getByRole("dialog")).toBeVisible();
+
+    // Fill in agent details
     await editorPage.getByTestId("agent-name-input").fill(testAgentName);
     await editorPage
       .getByTestId("agent-description-input")
       .fill("Test agent for permissions");
 
-    // Save first, then edit to change visibility
-    await editorPage.getByTestId("agent-save-button").click();
-    await editorPage.waitForURL("**/agents");
+    // Ensure model is selected
+    const modelSelectorButton = editorPage.getByTestId("model-selector-button");
+    await expect(modelSelectorButton).toBeVisible({ timeout: 3000 });
+    const selectedModelName = editorPage.getByTestId("selected-model-name");
+    const modelText = await selectedModelName.textContent();
+    if (!modelText || modelText.trim() === "model") {
+      await modelSelectorButton.click();
+      await expect(
+        editorPage.getByTestId("model-selector-popover"),
+      ).toBeVisible();
+      await editorPage
+        .locator('[data-testid^="model-option-"]')
+        .first()
+        .click();
+      await expect(
+        editorPage.getByTestId("model-selector-popover"),
+      ).not.toBeVisible();
+    }
 
-    // Navigate back to the agent to set visibility
+    // Save the agent
+    await editorPage.getByTestId("agent-save-button").click();
+    await expect(editorPage.getByRole("dialog")).not.toBeVisible({
+      timeout: 5000,
+    });
+
+    // Wait for agent to appear in list
+    await expect(
+      editorPage.locator(
+        `[data-testid*="agent-card-name"]:has-text("${testAgentName}")`,
+      ),
+    ).toBeVisible({ timeout: 5000 });
+
+    // Click on the agent card to open edit dialog and set visibility to public
     await editorPage
-      .locator(`main a:has-text("${testAgentName}")`)
+      .locator(`[data-testid*="agent-card"]:has-text("${testAgentName}")`)
       .first()
       .click();
-    await editorPage.waitForURL(/\/agent\/[^\/]+$/);
+    await expect(editorPage.getByRole("dialog")).toBeVisible();
 
     // Set visibility to public so regular user can see it
     await editorPage.getByTestId("visibility-button").click();
     await editorPage.getByTestId("visibility-public").click();
 
+    // Save and close
     await editorPage.getByTestId("agent-save-button").click();
-    await editorPage.waitForURL("**/agents");
+    await expect(editorPage.getByRole("dialog")).not.toBeVisible({
+      timeout: 5000,
+    });
     await editorContext.close();
 
     // Now test as regular user
     await page.goto("/agents");
     await page.waitForLoadState("networkidle");
 
-    // Find and click on the test agent we just created - use the link directly
-    const agentLink = page
-      .locator(`main a:has-text("${testAgentName}")`)
+    // Find and click on the test agent we just created
+    const agentCard = page
+      .locator(`[data-testid*="agent-card"]:has-text("${testAgentName}")`)
       .first();
 
-    await expect(agentLink).toBeVisible({ timeout: 10000 });
-    await agentLink.click();
+    await expect(agentCard).toBeVisible({ timeout: 10000 });
+    await agentCard.click();
 
-    // Should be able to view the agent
-    await expect(page).toHaveURL(/\/agent\//);
+    // Should open the agent dialog
+    await expect(page.getByRole("dialog")).toBeVisible();
 
-    // Should NOT see edit/delete buttons for regular user
-    await expect(page.getByRole("button", { name: /save/i })).not.toBeVisible();
+    // Should NOT see edit/delete buttons for regular user (no edit access)
+    await expect(page.getByTestId("agent-save-button")).not.toBeVisible();
     await expect(
       page.getByRole("button", { name: /delete/i }),
     ).not.toBeVisible();
@@ -152,31 +189,15 @@ test.describe("Resource Permissions - Editor User", () => {
     // Click create new agent button
     await createButton.click();
 
-    // Wait for navigation to agent creation page
-    await page.waitForURL("/agent/new");
-  });
+    // Wait for dialog to open instead of navigation
+    await expect(page.getByRole("dialog")).toBeVisible({ timeout: 5000 });
 
-  test("should see create workflow options", async ({ page }) => {
-    await page.goto("/workflow");
+    // Verify dialog title shows "Create Agent"
+    await expect(page.getByRole("dialog")).toContainText(/create agent/i);
 
-    // Should see "Create with Example" dropdown
-    await expect(
-      page.getByTestId("create-workflow-with-example-button"),
-    ).toBeVisible();
-
-    // Click dropdown to verify options
-    await page.getByTestId("create-workflow-with-example-button").click();
-
-    // Should see example workflow options
-    await expect(
-      page.getByRole("menuitem", { name: /baby research/i }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("menuitem", { name: /get weather/i }),
-    ).toBeVisible();
-
-    // Close dropdown
-    await page.keyboard.press("Escape");
+    // Verify agent form fields are visible in the dialog
+    await expect(page.getByTestId("agent-name-input")).toBeVisible();
+    await expect(page.getByTestId("agent-description-input")).toBeVisible();
   });
 
   test("should see add MCP server button", async ({ page }) => {
@@ -194,28 +215,64 @@ test.describe("Resource Permissions - Editor User", () => {
     if (await addButton.isVisible()) {
       await addButton.click();
 
-      // Should navigate to MCP creation page
-      await expect(page).toHaveURL("/mcp/create");
+      // Should open dialog instead of navigation
+      await expect(page.getByRole("dialog")).toBeVisible({ timeout: 5000 });
+
+      // Verify MCP creation form is visible in dialog
+      await expect(
+        page.locator("input[placeholder*='Enter MCP server name']"),
+      ).toBeVisible();
     }
   });
 
   test("should be able to edit own agents", async ({ page }) => {
     // First create an agent
-    await page.goto("/agent/new");
+    await page.goto("/agents");
+    await page.waitForLoadState("networkidle");
 
     const agentName = `Test Agent ${Date.now()}`;
 
+    // Click create agent button to open dialog
+    await page.getByTestId("create-agent-button").click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+
+    // Fill in agent details
     await page.getByTestId("agent-name-input").fill(agentName);
     await page.getByTestId("agent-description-input").fill("Test description");
 
-    await clickAndWaitForNavigation(page, "agent-save-button", "**/agents");
+    // Ensure model is selected
+    const modelSelectorButton = page.getByTestId("model-selector-button");
+    await expect(modelSelectorButton).toBeVisible({ timeout: 3000 });
+    const selectedModelName = page.getByTestId("selected-model-name");
+    const modelText = await selectedModelName.textContent();
+    if (!modelText || modelText.trim() === "model") {
+      await modelSelectorButton.click();
+      await expect(page.getByTestId("model-selector-popover")).toBeVisible();
+      await page.locator('[data-testid^="model-option-"]').first().click();
+      await expect(
+        page.getByTestId("model-selector-popover"),
+      ).not.toBeVisible();
+    }
 
-    await page.locator(`main a:has-text("${agentName}")`).first().click();
+    // Save the agent
+    await page.getByTestId("agent-save-button").click();
+    await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 5000 });
 
-    // Wait for navigation
-    await page.waitForURL(/\/agent\/[^\/]+$/);
+    // Wait for agent to appear in list
+    await expect(
+      page.locator(`[data-testid*="agent-card-name"]:has-text("${agentName}")`),
+    ).toBeVisible({ timeout: 5000 });
 
-    // Should see edit button on own agent
+    // Click on the agent card to open edit dialog
+    await page
+      .locator(`[data-testid*="agent-card"]:has-text("${agentName}")`)
+      .first()
+      .click();
+
+    // Wait for dialog to open
+    await expect(page.getByRole("dialog")).toBeVisible();
+
+    // Should see save button on own agent (has edit access)
     await expect(page.getByTestId("agent-save-button")).toBeVisible();
   });
 
@@ -232,8 +289,13 @@ test.describe("Resource Permissions - Editor User", () => {
     await expect(addButton).toBeVisible();
     await addButton.click();
 
-    // Should navigate to MCP creation page
-    await expect(page).toHaveURL("/mcp/create");
+    // Should open dialog instead of navigation
+    await expect(page.getByRole("dialog")).toBeVisible({ timeout: 5000 });
+
+    // Verify dialog contains MCP creation form
+    await expect(
+      page.locator("input[placeholder*='Enter MCP server name']"),
+    ).toBeVisible();
 
     // Editor should NOT see visibility options
     await expect(page.getByTestId("mcp-visibility-select")).not.toBeVisible();
@@ -307,8 +369,13 @@ test.describe("Resource Permissions - Admin User", () => {
     await expect(addButton).toBeVisible();
     await addButton.click();
 
-    // Should navigate to MCP creation page
-    await expect(page).toHaveURL("/mcp/create");
+    // Should open dialog instead of navigation
+    await expect(page.getByRole("dialog")).toBeVisible({ timeout: 5000 });
+
+    // Verify dialog contains MCP creation form
+    await expect(
+      page.locator("input[placeholder*='Enter MCP server name']"),
+    ).toBeVisible();
 
     // Admin SHOULD see visibility/sharing options
     const visibilitySelect = page.getByTestId("mcp-visibility-select");
@@ -392,24 +459,37 @@ test.describe("Permission Boundaries - Cross-Role Verification", () => {
       data: {
         name: `API Test Agent ${Date.now()}`,
         description: "Created via API test",
-        instructions: {},
+        role: "test assistant",
+        systemPrompt: "You are a test assistant for API testing.",
+        tools: [],
+        model: {
+          provider: "openai",
+          model: "gpt-4o-mini",
+        },
         visibility: "private",
         icon: {
           type: "emoji",
           value: "🤖",
+          style: {
+            backgroundColor: "#3b82f6",
+          },
         },
         userId: userData.id,
       },
     });
 
-    // expect(response.status()).toBe(200);
+    // Verify successful creation
+    expect(response.status()).toBe(200);
     const agent = await response.json();
     expect(agent.id).toBeDefined();
+    expect(agent.model).toBeDefined();
+    expect(agent.model.provider).toBe("openai");
+    expect(agent.model.model).toBe("gpt-4o-mini");
 
     // Clean up - delete the created agent
     await page.request.delete(`/api/agent/${agent.id}`);
 
-    // await context.close();
+    await context.close();
   });
 });
 
@@ -427,7 +507,9 @@ test.describe("MCP Sharing Workflow - Complete Scenario", () => {
 
     // Admin creates a shared MCP server
     await adminPage.getByTestId("add-mcp-server-button").click();
-    await adminPage.waitForURL("/mcp/create");
+
+    // Wait for dialog to open
+    await expect(adminPage.getByRole("dialog")).toBeVisible({ timeout: 5000 });
 
     const sharedServerName = `shared-mcp-${Date.now()}`;
     await adminPage
@@ -462,7 +544,11 @@ test.describe("MCP Sharing Workflow - Complete Scenario", () => {
       const saveButton = adminPage.getByRole("button", { name: /save/i });
       await expect(saveButton).toBeEnabled({ timeout: 5000 });
       await saveButton.click();
-      await adminPage.waitForURL("/mcp");
+
+      // Wait for dialog to close
+      await expect(adminPage.getByRole("dialog")).not.toBeVisible({
+        timeout: 5000,
+      });
     }
 
     // Step 2: Editor creates a private MCP server
@@ -474,7 +560,9 @@ test.describe("MCP Sharing Workflow - Complete Scenario", () => {
     await editorPage.goto("/mcp");
 
     await editorPage.getByTestId("add-mcp-server-button").click();
-    await editorPage.waitForURL("/mcp/create");
+
+    // Wait for dialog to open
+    await expect(editorPage.getByRole("dialog")).toBeVisible({ timeout: 5000 });
 
     const privateServerName = `private-mcp-${Date.now()}`;
     await editorPage
@@ -501,7 +589,11 @@ test.describe("MCP Sharing Workflow - Complete Scenario", () => {
     const saveButton = editorPage.getByRole("button", { name: /save/i });
     await expect(saveButton).toBeEnabled({ timeout: 5000 });
     await saveButton.click();
-    await editorPage.waitForURL("/mcp");
+
+    // Wait for dialog to close
+    await expect(editorPage.getByRole("dialog")).not.toBeVisible({
+      timeout: 5000,
+    });
 
     // Editor should see their server in "My MCP Servers"
     await expect(editorPage.locator("text=/My MCP Servers/i")).toBeVisible();

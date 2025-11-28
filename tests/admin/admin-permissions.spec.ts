@@ -1,6 +1,5 @@
 import { test, expect } from "@playwright/test";
 import { TEST_USERS } from "../constants/test-users";
-import { ensureSidebarOpen } from "../helpers/sidebar-helper";
 
 test.describe("Permissions", () => {
   test("regular user can access basic functionality", async ({ browser }) => {
@@ -39,7 +38,9 @@ test.describe("Permissions", () => {
     // But should not have access to admin panel
     await page.goto("/admin/users");
     await page.waitForLoadState("networkidle");
-    await expect(page.getByText("401")).toBeVisible();
+    await expect(
+      page.getByText("You are unauthorized", { exact: false }),
+    ).toBeVisible();
   });
 
   test("regular user cannot access admin panel", async ({ browser }) => {
@@ -51,22 +52,28 @@ test.describe("Permissions", () => {
     // But should not have access to admin panel
     await page.goto("/admin/users");
     await page.waitForLoadState("networkidle");
-    await expect(page.getByText("401")).toBeVisible();
+    await expect(
+      page.getByText("You are unauthorized", { exact: false }),
+    ).toBeVisible();
 
     await context.close();
   });
-  test("ensure admin sidebar link is visible to admin", async ({ browser }) => {
+  test("ensure admin toolbar links are visible to admin", async ({
+    browser,
+  }) => {
     const context = await browser.newContext({
       storageState: TEST_USERS.admin.authFile,
     });
     const page = await context.newPage();
     await page.goto("/");
     await page.waitForLoadState("networkidle");
-    await ensureSidebarOpen(page);
-    await expect(page.getByTestId("admin-sidebar-link")).toBeVisible();
+
+    // Check both admin links in toolbar
+    await expect(page.getByTestId("toolbar-link-providers")).toBeVisible();
+    await expect(page.getByTestId("toolbar-link-users")).toBeVisible();
     await context.close();
   });
-  test("ensure admin sidebar link is not visible to editor", async ({
+  test("ensure admin toolbar links are not visible to editor", async ({
     browser,
   }) => {
     const context = await browser.newContext({
@@ -75,11 +82,13 @@ test.describe("Permissions", () => {
     const page = await context.newPage();
     await page.goto("/");
     await page.waitForLoadState("networkidle");
-    await ensureSidebarOpen(page);
-    await expect(page.getByTestId("admin-sidebar-link")).not.toBeVisible();
+
+    // Check that admin links are not visible in toolbar
+    await expect(page.getByTestId("toolbar-link-providers")).not.toBeVisible();
+    await expect(page.getByTestId("toolbar-link-users")).not.toBeVisible();
     await context.close();
   });
-  test("ensure admin sidebar link is not visible to regular user", async ({
+  test("ensure admin toolbar links are not visible to regular user", async ({
     browser,
   }) => {
     const context = await browser.newContext({
@@ -88,24 +97,30 @@ test.describe("Permissions", () => {
     const page = await context.newPage();
     await page.goto("/");
     await page.waitForLoadState("networkidle");
-    await ensureSidebarOpen(page);
-    await expect(page.getByTestId("admin-sidebar-link")).not.toBeVisible();
+
+    // Check that admin links are not visible in toolbar
+    await expect(page.getByTestId("toolbar-link-providers")).not.toBeVisible();
+    await expect(page.getByTestId("toolbar-link-users")).not.toBeVisible();
     await context.close();
   });
-  test("ensure admin sidebar link goes to users page and shows user menu", async ({
-    browser,
-  }) => {
+  test("ensure admin toolbar links navigate correctly", async ({ browser }) => {
     const context = await browser.newContext({
       storageState: TEST_USERS.admin.authFile,
     });
     const page = await context.newPage();
     await page.goto("/");
     await page.waitForLoadState("networkidle");
-    await ensureSidebarOpen(page);
-    await page.getByTestId("admin-sidebar-link").click();
+
+    // Test users link
+    await page.getByTestId("toolbar-link-users").click();
     await page.waitForLoadState("networkidle");
-    await expect(page.getByTestId("admin-sidebar-link-users")).toBeVisible();
     expect(page.url()).toContain("/admin/users");
+
+    // Test providers link
+    await page.getByTestId("toolbar-link-providers").click();
+    await page.waitForLoadState("networkidle");
+    expect(page.url()).toContain("/admin/providers");
+
     await context.close();
   });
 });

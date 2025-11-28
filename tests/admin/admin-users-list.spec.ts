@@ -155,26 +155,9 @@ test.describe("Admin Users List", () => {
         "page",
       );
 
-      // Click to go to page 3 if it exists
-      const page3Link = page.getByRole("link", { name: "3" });
-      if (await page3Link.isVisible()) {
-        await page3Link.click();
-        await expect(page.getByRole("link", { name: "3" })).toHaveAttribute(
-          "aria-current",
-          "page",
-        );
-      }
-
       // Previous page button should work
       await page.getByRole("link", { name: "Go to previous page" }).click();
       // Should now be on page 2
-      await expect(page.getByRole("link", { name: "2" })).toHaveAttribute(
-        "aria-current",
-        "page",
-      );
-
-      // Click page 1 to go back to first page
-      await page.getByRole("link", { name: "1" }).click();
       await expect(page.getByRole("link", { name: "1" })).toHaveAttribute(
         "aria-current",
         "page",

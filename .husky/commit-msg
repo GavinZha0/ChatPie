@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# Get the commit message
+commit_msg=$(cat "$1")
+
+# Check if commit message follows Conventional Commits format
+if ! echo "$commit_msg" | grep -qE "^(feat|fix|chore|docs|style|refactor|test|perf|build|ci|revert)(\(.+\))?!?: .+"; then
+  echo "❌ Error: Commit message does not follow Conventional Commits format"
+  echo ""
+  echo "Format: <type>: <description>"
+  echo ""
+  echo "Allowed types:"
+  echo "  - feat:     New feature"
+  echo "  - fix:      Bug fix"
+  echo "  - chore:    Maintenance"
+  echo "  - docs:     Documentation"
+  echo "  - style:    Formatting"
+  echo "  - refactor: Code refactoring"
+  echo "  - test:     Tests"
+  echo "  - perf:     Performance"
+  echo "  - build:    Build system"
+  echo "  - ci:       CI configuration"
+  echo "  - revert:   Revert changes"
+  echo ""
+  echo "Your message: $commit_msg"
+  exit 1
+fi

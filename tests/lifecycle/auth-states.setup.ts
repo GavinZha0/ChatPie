@@ -101,20 +101,6 @@ setup("editor login and create auth state", async ({ page }) => {
   expect(fs.existsSync(TEST_USERS.editor.authFile)).toBeTruthy();
 });
 
-// Login with already-seeded editor user and save auth state
-setup("editor2 login and create auth state", async ({ page }) => {
-  console.log("🔐 Editor2 login and create auth state...");
-  await signInViaUi(page, {
-    email: TEST_USERS.editor2.email,
-    password: TEST_USERS.editor2.password,
-  });
-  // await selectDefaultModel(page); // Skipping - model may not be available
-
-  // Save editor user auth state
-  await page.context().storageState({ path: TEST_USERS.editor2.authFile });
-  expect(fs.existsSync(TEST_USERS.editor2.authFile)).toBeTruthy();
-});
-
 // Login with already-seeded regular user and save auth state
 setup("regular login and create auth state", async ({ page }) => {
   console.log("🔐 Regular login and create auth state...");

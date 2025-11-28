@@ -1,5 +1,4 @@
 import { test, expect } from "@playwright/test";
-import { ensureSidebarOpen } from "../helpers/sidebar-helper";
 
 test.describe("User Name Synchronization", () => {
   test.use({ storageState: "tests/.auth/regular-user.json" });
@@ -10,11 +9,8 @@ test.describe("User Name Synchronization", () => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
 
-    // Ensure sidebar is open
-    await ensureSidebarOpen(page);
-
-    // Get original name from sidebar
-    const userMenuButton = page.getByTestId("sidebar-user-button");
+    // Click on toolbar user button to open dropdown
+    const userMenuButton = page.getByTestId("toolbar-user-button");
     await userMenuButton.click();
 
     // Wait for dropdown to be visible
@@ -52,7 +48,7 @@ test.describe("User Name Synchronization", () => {
     await page.waitForTimeout(500);
 
     // Verify sidebar updated
-    await page.getByTestId("sidebar-user-button").click();
+    await page.getByTestId("toolbar-user-button").click();
     await page.waitForSelector("[data-testid='sidebar-user-name']", {
       state: "visible",
       timeout: 5000,
@@ -89,11 +85,8 @@ test.describe("User Name Synchronization", () => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
 
-    // Ensure sidebar is open
-    await ensureSidebarOpen(page);
-
-    // Get original name from sidebar
-    const userMenuButton = page.getByTestId("sidebar-user-button");
+    // Click on toolbar user button to open dropdown
+    const userMenuButton = page.getByTestId("toolbar-user-button");
     await userMenuButton.click();
 
     // Wait for dropdown to be visible
@@ -131,7 +124,7 @@ test.describe("User Name Synchronization", () => {
     await page.waitForTimeout(500);
 
     // Verify sidebar updated
-    await page.getByTestId("sidebar-user-button").click();
+    await page.getByTestId("toolbar-user-button").click();
     await page.waitForSelector("[data-testid='sidebar-user-name']", {
       state: "visible",
       timeout: 5000,

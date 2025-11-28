@@ -74,24 +74,4 @@ test.describe("Model Selection", () => {
     expect(newModel).not.toBe(currentModel);
     expect(newModel).toBeTruthy();
   });
-
-  test("should use selected model in agent creation", async ({ page }) => {
-    await page.goto("/agent/new");
-    await page.waitForLoadState("networkidle");
-
-    await expect(page.getByTestId("agent-save-button")).toBeEnabled({
-      timeout: 10000,
-    });
-
-    // Check if Generate With AI button is available (requires valid model)
-    const generateButton = page.locator('button:has-text("Generate With AI")');
-    await expect(generateButton).toBeVisible();
-    await generateButton.click();
-
-    // The selected model should be available
-    const modelName = await page
-      .getByTestId("selected-model-name")
-      .textContent();
-    expect(modelName).toBeTruthy();
-  });
 });

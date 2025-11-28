@@ -141,7 +141,10 @@ export function AppToolbar({ user }: { user?: BasicUser }) {
       {user && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex flex-col items-center gap-1 px-2 py-2 rounded-md hover:bg-accent">
+            <button
+              className="flex flex-col items-center gap-1 px-2 py-2 rounded-md hover:bg-accent"
+              data-testid="toolbar-user-button"
+            >
               <Avatar className="size-9 border">
                 <AvatarImage
                   src={getUserAvatar(user)}
