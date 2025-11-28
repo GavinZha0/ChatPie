@@ -29,7 +29,8 @@ ChatPie 是一款现代化的 AI 驱动聊天平台，旨在促进无缝的人�
 - AI 代理构建器：为特定任务创建并定制智能代理
 - 工作流构建：搭建自动化流程以简化复杂任务
 - 聊天归档与管理：支持可配置的保留策略
-- 实时语音聊天：基于 OpenAI `gpt-4o-realtime-preview`（需要 API Key）
+- 实时语音聊天：基于 OpenAI `gpt-realtime`（需要 API Key）
+- 网络搜索：基于Exa API的增强的搜索能力（需要 API Key）
 
 ### 🔌 模型与集成支持
 - 多模型支持：通过 Vercel AI SDK 无缝集成

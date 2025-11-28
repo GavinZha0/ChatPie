@@ -36,7 +36,7 @@ services:
     networks:
       - chatpie-networks
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - chatpie_pg_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\" -h 127.0.0.1"]
       interval: 5s
@@ -45,7 +45,7 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  chatpie_pg_data:
 
 networks:
   chatpie-networks:

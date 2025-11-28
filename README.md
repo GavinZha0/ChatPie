@@ -29,7 +29,8 @@ ChatPie, a modern AI-powered chatbot platform designed to foster seamless human-
 - **AI Agent Builder**: Create and customize intelligent agents for specific tasks
 - **Workflow Construction**: Build automated workflows to streamline complex processes
 - **Chat Archive & Management**: Archive conversations with configurable retention policies
-- **Real-Time Voice Chat**: Powered by OpenAI `gpt-4o-realtime-preview` (API key required)
+- **Real-Time Voice Chat**: Powered by OpenAI `gpt-realtime` (API key required)
+- **Web Search**: Enhanced search capabilities powered by Exa API (API key required)
 
 ### 🔌 Model & Integration Support
 - **Multi-Model Support**: Seamlessly integrate with leading AI providers via Vercel AI SDK:
