@@ -37,7 +37,7 @@ jobs:
         env:
           POSTGRES_USER: testuser
           POSTGRES_PASSWORD: testpass
-          POSTGRES_DB: better_chatbot_test
+          POSTGRES_DB: chatpie
         options: >-
           --health-cmd pg_isready
           --health-interval 10s

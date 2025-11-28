@@ -1,6 +1,30 @@
 # Docker Deployment Guide
 
-## Quick Start
+## Using Pre-built Image from GitHub Container Registry
+
+You can use the pre-built image instead of building locally:
+
+```yaml
+# In docker/compose.yml, replace:
+services:
+  chatpie:
+    image: ghcr.io/gavinzha0/chatpie:latest
+    # Remove the 'build:' section
+```
+
+Or run directly:
+```bash
+docker run -p 8300:8300 \
+  -e POSTGRES_URL=postgres://user:pass@host:5432/chatpie \
+  -e BETTER_AUTH_SECRET=your-secret \
+  -e BETTER_AUTH_URL=http://localhost:8300 \
+  -e NO_HTTPS=1 \
+  ghcr.io/gavinzha0/chatpie:latest
+```
+
+---
+
+## Quick Start (Building Locally)
 
 ### 1. Prepare Environment File
 
