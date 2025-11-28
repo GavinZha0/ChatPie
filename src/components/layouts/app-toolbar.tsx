@@ -21,7 +21,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 const ITEM_CLASS =
-  "flex flex-col items-center justify-center gap-1 px-2 py-3 text-xs hover:bg-accent hover:text-accent-foreground rounded-md transition-colors";
+  "flex flex-col items-center justify-center gap-2 px-2 py-2 text-xs hover:bg-accent hover:text-accent-foreground rounded-md transition-colors";
 
 function ToolbarItem({
   href,
@@ -74,7 +74,7 @@ export function AppToolbar({ user }: { user?: BasicUser }) {
       }}
       data-testid="app-toolbar"
     >
-      <div className="flex flex-col items-stretch gap-2">
+      <div className="flex flex-col items-stretch gap-1">
         {/* Logo moved from sidebar header */}
         <Link
           href="/"
