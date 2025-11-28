@@ -93,14 +93,7 @@ ChatPie, a modern AI-powered chatbot platform designed to foster seamless human-
 
 ## Getting Started
 
-> This project uses [pnpm](https://pnpm.io/) as the recommended package manager.
-
-```bash
-# If you don't have pnpm:
-npm install -g pnpm
-```
-
-### One-Command Start (Docker Compose for Users) 🐳
+### One-Command Start (Prebuilt docker image) 🐳
 
 Use the prebuilt image and the root `docker-compose.yaml` for a simple start. No Node.js or pnpm required.
 
@@ -126,7 +119,7 @@ Notes:
 - The developer-focused Compose remains at `docker/compose.yml` and builds from source.
 - `latest` tag will appear after the next container publishing run; `main` is available now.
 
-### Quick Start (Docker Compose from Source) 🐳
+### Quick Start from Source (Build local image) 🐳
 
 ```bash
 # 1. Install dependencies
@@ -137,7 +130,7 @@ pnpm docker-compose:up
 
 ```
 
-### Start development environment (Local Version) 🚀
+### Start development environment (Local version) 🚀
 
 ```bash
 pnpm i

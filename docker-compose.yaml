@@ -14,7 +14,7 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       REDIS_URL: ${REDIS_URL:-}
     depends_on:
-      postgres:
+      piedb:
         condition: service_healthy
     healthcheck:
       test:
@@ -28,7 +28,7 @@ services:
       start_period: 30s
     restart: unless-stopped
 
-  postgres:
+  piedb:
     image: postgres:17
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-chatpie}
@@ -40,7 +40,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h 127.0.0.1',
+          'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -h 127.0.0.1',
         ]
       interval: 5s
       timeout: 5s

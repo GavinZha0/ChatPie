@@ -1,13 +1,12 @@
 name: chatpie
 services:
   chatpie:
-    container_name: pieapp
     image: chatpie:latest
     build:
       context: ..
       dockerfile: ./docker/Dockerfile
     ports:
-      - '8300:8300'
+      - "8300:8300"
     env_file:
       - ../.env
     extra_hosts:
@@ -18,18 +17,21 @@ services:
     networks:
       - chatpie-networks
     depends_on:
-      postgres:
+      piedb:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"http=require('http');req=http.request({host:'127.0.0.1',port:8300,path:'/'},res=>{process.exit(res.statusCode>=200&&res.statusCode<500?0:1)});req.on('error',()=>process.exit(1));req.end()\""]
+      test:
+        [
+          "CMD-SHELL",
+          'node -e "http=require(''http'');req=http.request({host:''127.0.0.1'',port:8300,path:''/''},res=>{process.exit(res.statusCode>=200&&res.statusCode<500?0:1)});req.on(''error'',()=>process.exit(1));req.end()"',
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 30s
     restart: unless-stopped
 
-  postgres:
-    container_name: piedb
+  piedb:
     image: postgres:17
     env_file:
       - ../.env
@@ -38,7 +40,11 @@ services:
     volumes:
       - chatpie_pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\" -h 127.0.0.1"]
+      test:
+        [
+          "CMD-SHELL",
+          'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -h 127.0.0.1',
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
