@@ -8,11 +8,8 @@ services:
       dockerfile: ./docker/Dockerfile
     ports:
       - '8300:8300'
-    environment:
-      - NO_HTTPS=1
-      - POSTGRES_URL=postgres://${POSTGRES_USER:-chatpie}:${POSTGRES_PASSWORD:-chatpie123}@piedb:5432/${POSTGRES_DB:-chatpie}
     env_file:
-      - .env
+      - ../.env
     extra_hosts:
       - "host.docker.internal:host-gateway"
     dns:
@@ -34,12 +31,8 @@ services:
   postgres:
     container_name: piedb
     image: postgres:17
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER:-chatpie}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-chatpie123}
-      - POSTGRES_DB=${POSTGRES_DB:-chatpie}
     env_file:
-      - .env
+      - ../.env
     networks:
       - chatpie-networks
     volumes:

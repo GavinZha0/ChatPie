@@ -178,6 +178,10 @@ BLOB_READ_WRITE_TOKEN=
 
 # Set this to 1 to disable user sign-ups.
 DISABLE_SIGN_UP=
+
+# (Optional)
+# Set this to 1 to disable HTTPS (default: 0)
+NO_HTTPS=1
 ```
 
 <br/>

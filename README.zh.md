@@ -178,6 +178,10 @@ BLOB_READ_WRITE_TOKEN=
 
 # 设为 1 以禁用用户注册
 DISABLE_SIGN_UP=
+
+# (（可选）)
+# 设置为 1 以禁用 HTTPS（默认：0）
+NO_HTTPS=1
 ```
 
 <br/>
