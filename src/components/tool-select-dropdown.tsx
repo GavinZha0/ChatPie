@@ -123,7 +123,9 @@ export function ToolSelectDropdown({
   const t = useTranslations("Chat.Tool");
   const { isLoading } = useMcpList();
   const { data: providers } = useChatModels();
-  const [globalModel] = appStore(useShallow((state) => [state.chatModel]));
+  const [globalModel, appStoreMutate] = appStore(
+    useShallow((state) => [state.chatModel, state.mutate]),
+  );
 
   const modelInfo = useMemo(() => {
     const provider = providers?.find(
@@ -139,10 +141,17 @@ export function ToolSelectDropdown({
     refreshInterval: 1000 * 60 * 5,
   });
 
-  // Check if there's an agent in mentions to disable the button
+  // Check if there's an agent in mentions
   const hasAgentMention = useMemo(() => {
     return mentions?.some((m) => m.type === "agent") ?? false;
   }, [mentions]);
+
+  // Auto-set toolChoice to "auto" when agent is mentioned
+  useEffect(() => {
+    if (hasAgentMention && toolChoice !== "auto") {
+      appStoreMutate({ toolChoice: "auto" });
+    }
+  }, [hasAgentMention, toolChoice, appStoreMutate]);
 
   const bindingTools = useMemo<string[]>(() => {
     if (mentions?.length) {
@@ -177,21 +186,15 @@ export function ToolSelectDropdown({
   }, [hasAgentMention, mentions]);
 
   const triggerButton = useMemo(() => {
-    // Button is disabled when there's an agent in mentions
-    const isDisabled = hasAgentMention;
-
     return (
       <Button
         variant="ghost"
         size={"sm"}
-        disabled={isDisabled}
         className={cn(
           "gap-0.5 bg-input/60 border rounded-full data-[state=open]:bg-input! hover:bg-input!",
           // Manual mode - highlight with primary color
           isManualMode &&
             "bg-primary/10 border-primary text-primary hover:bg-primary/20!",
-          // Agent mode - disabled styling
-          hasAgentMention && "opacity-50 cursor-not-allowed",
           // Empty state
           !bindingTools.length &&
             !isLoading &&
@@ -207,23 +210,14 @@ export function ToolSelectDropdown({
         <HammerIcon
           className={cn(
             "size-3.5",
-            // Tool mode color indicators (only for auto and approval, not when mentions are present)
-            !hasAgentMention &&
-              !isManualMode &&
-              toolChoice === "auto" &&
-              "text-green-600",
-            !hasAgentMention &&
-              !isManualMode &&
-              toolChoice === "approval" &&
-              "text-blue-600",
-            // Manual mode with mentions shows primary color
-            // Agent mention shows muted color
-            hasAgentMention && "text-muted-foreground",
+            // Tool mode color indicators
+            !isManualMode && toolChoice === "auto" && "text-green-600",
+            !isManualMode && toolChoice === "approval" && "text-blue-600",
           )}
         />
 
-        {/* Show tool count or loading state */}
-        {(bindingTools.length > 0 || isLoading) && (
+        {/* Show tool count or loading state - hide when agent is mentioned */}
+        {!hasAgentMention && (bindingTools.length > 0 || isLoading) && (
           <>
             <div className="h-4 hidden sm:block mx-1">
               <Separator orientation="vertical" />
@@ -235,11 +229,7 @@ export function ToolSelectDropdown({
               ) : (
                 <CountAnimation
                   number={bindingTools.length}
-                  className={cn(
-                    "text-xs",
-                    isManualMode && "text-primary",
-                    hasAgentMention && "text-muted-foreground",
-                  )}
+                  className={cn("text-xs", isManualMode && "text-primary")}
                 />
               )}
             </div>
@@ -248,7 +238,6 @@ export function ToolSelectDropdown({
       </Button>
     );
   }, [
-    hasAgentMention,
     bindingTools.length,
     isLoading,
     open,
@@ -265,7 +254,14 @@ export function ToolSelectDropdown({
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>{triggerButton}</DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>{triggerButton}</DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" align="center">
+          <span className="text-sm">{toolChoice}</span>
+        </TooltipContent>
+      </Tooltip>
       <DropdownMenuContent className="md:w-72" align={align} side={side}>
         <ToolModeSelector />
         <div className="py-1">
@@ -1042,7 +1038,7 @@ function ToolModeSelector() {
               <div className="flex flex-col gap-2 w-full">
                 <div className="flex items-center gap-2">
                   <Infinity className="size-4" />
-                  <span className="font-bold">Auto</span>
+                  <span className="font-bold">{t("toolModeAuto")}</span>
                   {toolChoice === "auto" && (
                     <Check className="ml-auto size-4" />
                   )}
@@ -1060,7 +1056,7 @@ function ToolModeSelector() {
               <div className="flex flex-col gap-2 w-full">
                 <div className="flex items-center gap-2">
                   <ClipboardCheck className="size-4" />
-                  <span className="font-bold">Approval</span>
+                  <span className="font-bold">{t("toolModeApproval")}</span>
                   {toolChoice === "approval" && (
                     <Check className="ml-auto size-4" />
                   )}
@@ -1078,7 +1074,7 @@ function ToolModeSelector() {
               <div className="flex flex-col gap-2 w-full">
                 <div className="flex items-center gap-2">
                   <PenOff className="size-4" />
-                  <span className="font-bold">Manual</span>
+                  <span className="font-bold">{t("toolModeManual")}</span>
                   {toolChoice === "manual" && (
                     <Check className="ml-auto size-4" />
                   )}
