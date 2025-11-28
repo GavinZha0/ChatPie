@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  baseline-browser-mapping: 2.8.32
-
 importers:
   .:
     dependencies:
@@ -314,9 +311,6 @@ importers:
       "@types/react-dom":
         specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.7)
-      baseline-browser-mapping:
-        specifier: 2.8.32
-        version: 2.8.32
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
@@ -340,7 +334,7 @@ importers:
         version: 16.2.7
       prettier:
         specifier: ^3.7.1
-        version: 3.7.1
+        version: 3.7.2
       rimraf:
         specifier: ^6.1.2
         version: 6.1.2
@@ -9684,10 +9678,10 @@ packages:
       }
     engines: { node: ">= 0.8.0" }
 
-  prettier@3.7.1:
+  prettier@3.7.2:
     resolution:
       {
-        integrity: sha512-RWKXE4qB3u5Z6yz7omJkjWwmTfLdcbv44jUVHC5NpfXwFGzvpQM798FGv/6WNK879tc+Cn0AAyherCl1KjbyZQ==,
+        integrity: sha512-n3HV2J6QhItCXndGa3oMWvWFAgN1ibnS7R9mt6iokScBOC0Ul9/iZORmU2IWUMcyAQaMPjTlY3uT34TqocUxMA==,
       }
     engines: { node: ">=14" }
     hasBin: true
@@ -18942,7 +18936,7 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier@3.7.1: {}
+  prettier@3.7.2: {}
 
   prompts@2.4.2:
     dependencies:

@@ -19,11 +19,16 @@ if (process.env.CI) {
 
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 import { UserTable } from "../src/lib/db/pg/schema.pg";
 import { like } from "drizzle-orm";
+import { getPostgresUrl } from "../src/lib/db/pg/db.pg";
 
 // Create database connection
-const db = drizzle(process.env.POSTGRES_URL!);
+const pool = new Pool({
+  connectionString: getPostgresUrl(),
+});
+const db = drizzle(pool);
 
 async function cleanupAllTestData() {
   console.log("🧹 Cleaning up ALL test data including seeded users...");

@@ -1,4 +1,5 @@
 import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 import {
   UserTable,
   SessionTable,
@@ -11,7 +12,11 @@ import { config } from "dotenv";
 
 config();
 
-const db = drizzle(process.env.POSTGRES_URL!);
+import { getPostgresUrl } from "../../src/lib/db/pg/db.pg";
+const pool = new Pool({
+  connectionString: getPostgresUrl(),
+});
+const db = drizzle(pool);
 
 async function cleanup() {
   console.log("Cleaning up test data...");

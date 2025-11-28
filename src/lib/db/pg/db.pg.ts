@@ -6,7 +6,7 @@ import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
 //     console.log({ query, params });
 //   }
 // }
-function getPostgresUrl(): string {
+export function getPostgresUrl(): string {
   const url = process.env.POSTGRES_URL;
   if (url && url.trim()) return url;
   const user = process.env.POSTGRES_USER || "chatpie";
