@@ -110,7 +110,7 @@ Optional configuration:
 - Create a `.env` in the project root to override defaults used by `docker-compose.yaml`:
   - `BETTER_AUTH_SECRET` (set your own secret)
   - `BETTER_AUTH_URL` (e.g., `http://localhost:8300` or your LAN IP)
-  - `POSTGRES_URL` (use external DB if you don’t run the bundled Postgres)
+  - Database config: set `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` (and optional `POSTGRES_PORT`); or set `POSTGRES_URL` to override
   - `OPENAI_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`, `ANTHROPIC_API_KEY` (model providers)
   - `CHATPIE_IMAGE` (override image tag; defaults to `ghcr.io/gavinzha0/chatpie:main`)
 
@@ -157,8 +157,8 @@ Alternative: Use Docker Compose for DB only (run app via pnpm)
 
 ```bash
 # Start Postgres only via compose
-# Ensure your .env includes: POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB matching POSTGRES_URL
-docker compose -f docker/compose.yml up -d postgres
+# Ensure your .env includes: POSTGRES_HOST, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB (or set POSTGRES_URL)
+docker compose -f docker/compose.yml up -d piedb
 
 # Apply migrations
 pnpm db:migrate

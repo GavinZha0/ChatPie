@@ -6,6 +6,15 @@ import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
 //     console.log({ query, params });
 //   }
 // }
-export const pgDb = drizzlePg(process.env.POSTGRES_URL!, {
-  //   logger: new MyLogger(),
-});
+function getPostgresUrl(): string {
+  const url = process.env.POSTGRES_URL;
+  if (url && url.trim()) return url;
+  const user = process.env.POSTGRES_USER || "chatpie";
+  const password = process.env.POSTGRES_PASSWORD || "chatpie123";
+  const host = process.env.POSTGRES_HOST || "localhost";
+  const port = process.env.POSTGRES_PORT || "5432";
+  const db = process.env.POSTGRES_DB || "chatpie";
+  return `postgres://${user}:${password}@${host}:${port}/${db}`;
+}
+
+export const pgDb = drizzlePg(getPostgresUrl(), {});

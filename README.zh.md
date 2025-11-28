@@ -110,7 +110,7 @@ http://localhost:8300
 - 在项目根目录创建 `.env` 覆盖 `docker-compose.yaml` 中的默认值：
   - `BETTER_AUTH_SECRET`（请设置你自己的密钥）
   - `BETTER_AUTH_URL`（例如 `http://localhost:8300` 或你的局域网 IP）
-  - `POSTGRES_URL`（若不使用编排内置的 Postgres，可改为外部数据库连接）
+  - 数据库配置：设置 `POSTGRES_HOST`、`POSTGRES_USER`、`POSTGRES_PASSWORD`、`POSTGRES_DB`（可选 `POSTGRES_PORT`）；或设置 `POSTGRES_URL` 进行覆盖
   - `CHATPIE_IMAGE`（覆盖镜像标签；默认 `ghcr.io/gavinzha0/chatpie:latest`）
 
 
@@ -152,8 +152,8 @@ pnpm build:local && pnpm start
 
 ```bash
 # 仅通过 compose 启动 Postgres
-# 确保 .env 包含：POSTGRES_USER、POSTGRES_PASSWORD、POSTGRES_DB 与 POSTGRES_URL 匹配
-docker compose -f docker/compose.yml up -d postgres
+# 确保 .env 包含：POSTGRES_HOST、POSTGRES_USER、POSTGRES_PASSWORD、POSTGRES_DB（或设置 POSTGRES_URL）
+docker compose -f docker/compose.yml up -d piedb
 
 # 应用数据库迁移
 pnpm db:migrate
