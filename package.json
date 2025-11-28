@@ -162,6 +162,7 @@
     "eslint-config-next": "15.5.6",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
+    "prettier": "^3.7.1",
     "rimraf": "^6.1.2",
     "tailwindcss": "^4.1.17",
     "tsx": "^4.20.6",
@@ -170,7 +171,8 @@
     "vitest": "^3.2.4"
   },
   "lint-staged": {
-    "*.{js,json,mjs,ts,yaml,tsx,css}": ["pnpm format", "pnpm lint:fix"]
+    "*.{js,json,mjs,ts,tsx,css}": ["pnpm format", "pnpm lint:fix"],
+    "*.{yml,yaml}": ["prettier --write"]
   },
   "packageManager": "pnpm@10.20.0",
   "engines": {
