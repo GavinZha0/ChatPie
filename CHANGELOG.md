@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/GavinZha0/ChatPie/compare/v0.6.0...v0.6.1) (2025-11-29)
+
+
+### Bug Fixes
+
+* default configuration for docker ([bae6df4](https://github.com/GavinZha0/ChatPie/commit/bae6df4e73571bbdefd606c60b4eca1ece51f5f8))
+
 ## [0.6.0](https://github.com/GavinZha0/ChatPie/compare/0.5.4...v0.6.0) (2025-11-29)
 
 
