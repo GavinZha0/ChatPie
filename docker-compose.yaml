@@ -9,9 +9,6 @@ services:
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-local-dev-secret}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:8300}
       POSTGRES_HOST: ${POSTGRES_HOST:-piedb}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY:-}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       REDIS_URL: ${REDIS_URL:-}
     depends_on:
       piedb:

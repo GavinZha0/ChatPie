@@ -105,19 +105,21 @@ docker compose up -d
 open http://localhost:8300
 ```
 
+Image sources:
+
+- ChatPie: `ghcr.io/gavinzha0/chatpie:latest`
+- PostgreSQL: `postgres:17`
+
 Optional configuration:
 
 - Create a `.env` in the project root to override defaults used by `docker-compose.yaml`:
   - `BETTER_AUTH_SECRET` (set your own secret)
   - `BETTER_AUTH_URL` (e.g., `http://localhost:8300` or your LAN IP)
-  - Database config: set `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` (and optional `POSTGRES_PORT`); or set `POSTGRES_URL` to override
-  - `OPENAI_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`, `ANTHROPIC_API_KEY` (model providers)
-  - `CHATPIE_IMAGE` (override image tag; defaults to `ghcr.io/gavinzha0/chatpie:main`)
+  - Database config: set `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` (and optional `POSTGRES_PORT`)
 
 Notes:
 
 - The developer-focused Compose remains at `docker/compose.yml` and builds from source.
-- `latest` tag will appear after the next container publishing run; `main` is available now.
 
 ### Quick Start from Source (Build local image) 🐳
 

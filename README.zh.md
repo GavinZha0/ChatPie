@@ -105,13 +105,17 @@ docker compose up -d
 http://localhost:8300
 ```
 
+镜像来源：
+
+- ChatPie：`ghcr.io/gavinzha0/chatpie:latest`
+- PostgreSQL：`postgres:17`
+
 可选配置：
 
 - 在项目根目录创建 `.env` 覆盖 `docker-compose.yaml` 中的默认值：
   - `BETTER_AUTH_SECRET`（请设置你自己的密钥）
   - `BETTER_AUTH_URL`（例如 `http://localhost:8300` 或你的局域网 IP）
-  - 数据库配置：设置 `POSTGRES_HOST`、`POSTGRES_USER`、`POSTGRES_PASSWORD`、`POSTGRES_DB`（可选 `POSTGRES_PORT`）；或设置 `POSTGRES_URL` 进行覆盖
-  - `CHATPIE_IMAGE`（覆盖镜像标签；默认 `ghcr.io/gavinzha0/chatpie:latest`）
+  - 数据库配置：设置 `POSTGRES_HOST`、`POSTGRES_USER`、`POSTGRES_PASSWORD`、`POSTGRES_DB`（可选 `POSTGRES_PORT`）
 
 
 ### 本地构建（源码构建的 Docker Compose）🐳
