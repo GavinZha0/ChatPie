@@ -5,4 +5,4 @@
 
 ### Features
 
-* build image for  both arm and amd ([de8f1b4](https://github.com/GavinZha0/ChatPie/commit/de8f1b4e82bc1b03459bca9fcaa1c9fbb870edf2))
+* build image for  both arm and amd ([de8f1b4](https://github.com/GavinZha0/ChatPie/commit/de8f1b4e82bc1b03459bca9fcaa1c9fbb870edf2)) by @GavinZha0
