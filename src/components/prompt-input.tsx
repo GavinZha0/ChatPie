@@ -1025,13 +1025,37 @@ export default function PromptInput({
                           variant="ghost"
                           size={"sm"}
                           onClick={() => {
-                            appStoreMutate((state) => ({
-                              voiceChat: {
-                                ...state.voiceChat,
-                                isOpen: true,
-                                agentId: undefined,
-                              },
-                            }));
+                            appStoreMutate((state) => {
+                              const existingTab = state.rightPanel.tabs.find(
+                                (t) => t.id === "voice",
+                              );
+                              if (existingTab) {
+                                return {
+                                  rightPanel: {
+                                    ...state.rightPanel,
+                                    isOpen: true,
+                                    activeTabId: "voice",
+                                  },
+                                };
+                              }
+                              return {
+                                rightPanel: {
+                                  ...state.rightPanel,
+                                  isOpen: true,
+                                  activeTabId: "voice",
+                                  tabs: [
+                                    ...state.rightPanel.tabs,
+                                    {
+                                      id: "voice",
+                                      title: t("VoiceChat.title"),
+                                      icon: AudioWaveformIcon,
+                                      getInitialContent: () => ({}),
+                                      content: {},
+                                    },
+                                  ],
+                                },
+                              };
+                            });
                           }}
                           className="bg-input/60 border rounded-full hover:bg-input! p-2! ml-2"
                         >

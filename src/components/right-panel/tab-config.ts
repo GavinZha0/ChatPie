@@ -7,11 +7,12 @@ import {
   Users,
   MessageCircleDashed,
   ClockIcon,
+  Speech,
 } from "lucide-react";
 import type { TeamTabMode } from "@/app/store";
 
 export type RightPanelTabConfig = {
-  id: "tempchat" | "history" | "team" | "web" | "code" | "chart";
+  id: "tempchat" | "history" | "team" | "web" | "code" | "chart" | "voice";
   title: string;
   icon: typeof Users;
   defaultMode?: TeamTabMode;
@@ -20,15 +21,21 @@ export type RightPanelTabConfig = {
 
 export const RIGHT_PANEL_TAB_CONFIGS: RightPanelTabConfig[] = [
   {
+    id: "history",
+    title: "Recent chats",
+    icon: ClockIcon,
+    getInitialContent: () => ({}),
+  },
+  {
     id: "tempchat",
     title: "Temporary chat",
     icon: MessageCircleDashed,
     getInitialContent: () => ({}),
   },
   {
-    id: "history",
-    title: "Recent chats",
-    icon: ClockIcon,
+    id: "voice",
+    title: "Voice Chat",
+    icon: Speech,
     getInitialContent: () => ({}),
   },
   {
@@ -40,7 +47,7 @@ export const RIGHT_PANEL_TAB_CONFIGS: RightPanelTabConfig[] = [
   },
   {
     id: "web",
-    title: "Web",
+    title: "Web view",
     icon: Globe,
     getInitialContent: () => ({ url: "" }),
   },

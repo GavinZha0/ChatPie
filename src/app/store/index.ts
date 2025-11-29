@@ -24,7 +24,7 @@ export interface UploadedFile {
 export type TeamTabMode = "comparison" | "task" | "debate" | "discussion";
 
 export interface RightPanelTab {
-  id: "team" | "history" | "web" | "chart" | "code" | "tempchat";
+  id: "team" | "history" | "web" | "chart" | "code" | "tempchat" | "voice";
   mode?: TeamTabMode;
   title: string;
   content: any;

@@ -6,6 +6,7 @@ import { ResizableHandle, ResizablePanel } from "ui/resizable";
 import { TemporaryChatTab } from "./tabs/TemporaryChatTab";
 import { HistoryTabContent } from "@/components/history/chat-bot-history";
 import { TeamComparisonTab } from "./tabs/TeamComparisonTab";
+import { VoiceTab } from "./tabs/VoiceTab";
 
 export function RightPanel({ isChatRoute }: { isChatRoute: boolean }) {
   const [rightPanel, appStoreMutate] = appStore(
@@ -33,6 +34,12 @@ export function RightPanel({ isChatRoute }: { isChatRoute: boolean }) {
       if (tabId === "tempchat") {
         (updates as any).temporaryChat = {
           ...prev.temporaryChat,
+          isOpen: false,
+        };
+      }
+      if (tabId === "voice") {
+        (updates as any).voiceChat = {
+          ...prev.voiceChat,
           isOpen: false,
         };
       }
@@ -83,6 +90,16 @@ export function RightPanel({ isChatRoute }: { isChatRoute: boolean }) {
                   className={`${isActive ? "" : "hidden"} h-full`}
                 >
                   <TemporaryChatTab />
+                </div>
+              );
+            }
+            if (tab.id === "voice") {
+              return (
+                <div
+                  key={tab.id}
+                  className={`${isActive ? "" : "hidden"} h-full`}
+                >
+                  <VoiceTab />
                 </div>
               );
             }
