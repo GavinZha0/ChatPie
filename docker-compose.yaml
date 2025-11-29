@@ -1,7 +1,7 @@
 name: chatpie
 services:
   chatpie:
-    image: ${CHATPIE_IMAGE:-ghcr.io/gavinzha0/chatpie:main}
+    image: ${CHATPIE_IMAGE:-ghcr.io/gavinzha0/chatpie:latest}
     ports:
       - "8300:8300"
     environment:
