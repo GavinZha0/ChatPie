@@ -5,7 +5,7 @@
 
 ### Bug Fixes
 
-* default configuration for docker ([bae6df4](https://github.com/GavinZha0/ChatPie/commit/bae6df4e73571bbdefd606c60b4eca1ece51f5f8))
+* default configuration for docker ([bae6df4](https://github.com/GavinZha0/ChatPie/commit/bae6df4e73571bbdefd606c60b4eca1ece51f5f8)) by @GavinZha0
 
 ## [0.6.0](https://github.com/GavinZha0/ChatPie/compare/0.5.4...v0.6.0) (2025-11-29)
 
