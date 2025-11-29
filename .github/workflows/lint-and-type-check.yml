@@ -2,7 +2,7 @@ name: Lint and Type Check
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 jobs:
   lint_and_type_check:
@@ -15,7 +15,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '24'
+          node-version: "24"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
