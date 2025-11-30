@@ -91,6 +91,7 @@ export function useOpenAIVoiceChat(props?: VoiceChatOptions): VoiceChatSession {
   const dataChannel = useRef<RTCDataChannel | null>(null);
   const audioElement = useRef<HTMLAudioElement | null>(null);
   const audioStream = useRef<MediaStream | null>(null);
+  const endAudio = useRef<HTMLAudioElement | null>(null);
 
   const { setTheme } = useTheme();
   const tracks = useRef<RTCRtpSender[]>([]);
@@ -202,6 +203,10 @@ export function useOpenAIVoiceChat(props?: VoiceChatOptions): VoiceChatSession {
             break;
           case "endConversation":
             await stop();
+            if (!endAudio.current) {
+              endAudio.current = new Audio("/sounds/end_voice.ogg");
+            }
+            endAudio.current?.play().catch(() => {});
             setError(null);
             setMessages([]);
             appStore.setState((prev) => ({

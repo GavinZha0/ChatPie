@@ -123,6 +123,7 @@ export default function PromptInput({
     threadImageToolModel,
     groupChatMode,
     appStoreMutate,
+    rightPanelRuntime,
   ] = appStore(
     useShallow((state) => [
       state.chatModel,
@@ -131,6 +132,7 @@ export default function PromptInput({
       state.threadImageToolModel,
       state.groupChatMode,
       state.mutate,
+      state.rightPanelRuntime,
     ]),
   );
 
@@ -1029,6 +1031,13 @@ export default function PromptInput({
                               const existingTab = state.rightPanel.tabs.find(
                                 (t) => t.id === "voice",
                               );
+                              const isActive = (state.rightPanelRuntime || {})
+                                .voice?.isActive;
+                              const isListening = (
+                                state.rightPanelRuntime || {}
+                              ).voice?.isListening;
+                              const shouldQuickStart =
+                                !isActive || !isListening;
                               if (existingTab) {
                                 return {
                                   rightPanel: {
@@ -1046,7 +1055,9 @@ export default function PromptInput({
                                     voice: {
                                       ...((state.rightPanelRuntime || {})
                                         .voice || {}),
-                                      startRequestedAt: Date.now(),
+                                      ...(shouldQuickStart
+                                        ? { startRequestedAt: Date.now() }
+                                        : {}),
                                     },
                                   },
                                 };
@@ -1077,7 +1088,9 @@ export default function PromptInput({
                                   voice: {
                                     ...((state.rightPanelRuntime || {}).voice ||
                                       {}),
-                                    startRequestedAt: Date.now(),
+                                    ...(shouldQuickStart
+                                      ? { startRequestedAt: Date.now() }
+                                      : {}),
                                   },
                                 },
                               };
@@ -1085,7 +1098,16 @@ export default function PromptInput({
                           }}
                           className="bg-input/60 border rounded-full hover:bg-input! p-2! ml-2"
                         >
-                          <AudioWaveformIcon size={16} />
+                          <AudioWaveformIcon
+                            size={16}
+                            className={cn(
+                              (rightPanelRuntime || {}).voice?.isActive
+                                ? (rightPanelRuntime || {}).voice?.isListening
+                                  ? "text-green-500"
+                                  : "text-yellow-500"
+                                : "",
+                            )}
+                          />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>{t("VoiceChat.title")}</TooltipContent>
