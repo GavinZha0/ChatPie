@@ -15,8 +15,12 @@ import { Think } from "ui/think";
 export function TemporaryChatTab() {
   const t = useTranslations("Chat.TemporaryChat");
 
-  const [temporaryChat, appStoreMutate] = appStore(
-    useShallow((state) => [state.temporaryChat, state.mutate]),
+  const [temporaryChat, rightPanelRuntime, appStoreMutate] = appStore(
+    useShallow((state) => [
+      state.temporaryChat,
+      state.rightPanelRuntime,
+      state.mutate,
+    ]),
   );
 
   const [input, setInput] = useState("");
@@ -49,6 +53,41 @@ export function TemporaryChatTab() {
     },
   });
 
+  useEffect(() => {
+    const runtime = (rightPanelRuntime || {}) as Record<string, any>;
+    const saved = runtime["tempchat"] || {};
+    const savedMessages = saved.messages as UIMessage[] | undefined;
+    const savedInput = saved.input as string | undefined;
+    if (
+      Array.isArray(savedMessages) &&
+      savedMessages.length > 0 &&
+      messages.length === 0
+    ) {
+      setMessages(savedMessages);
+    }
+    if (
+      typeof savedInput === "string" &&
+      savedInput.length > 0 &&
+      input.length === 0
+    ) {
+      setInput(savedInput);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    appStoreMutate((prev) => ({
+      rightPanelRuntime: {
+        ...(prev.rightPanelRuntime || {}),
+        tempchat: {
+          ...((prev.rightPanelRuntime || {}).tempchat || {}),
+          messages,
+          input,
+        },
+      },
+    }));
+  }, [messages, input, appStoreMutate]);
+
   const isLoading = useMemo(
     () => status === "streaming" || status === "submitted",
     [status],
@@ -57,6 +96,16 @@ export function TemporaryChatTab() {
   const reset = useCallback(() => {
     setMessages([]);
     clearError();
+    appStoreMutate((prev) => ({
+      rightPanelRuntime: {
+        ...(prev.rightPanelRuntime || {}),
+        tempchat: {
+          ...((prev.rightPanelRuntime || {}).tempchat || {}),
+          messages: [],
+          input: "",
+        },
+      },
+    }));
   }, []);
 
   useEffect(() => {

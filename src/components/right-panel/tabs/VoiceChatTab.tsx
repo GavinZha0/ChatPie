@@ -139,9 +139,8 @@ export function VoiceTab() {
     });
   }, [start]);
 
-  // Auto-start when component mounts
+  // Cleanup on unmount (if a session was started)
   useEffect(() => {
-    startWithSound();
     return () => {
       stop();
     };

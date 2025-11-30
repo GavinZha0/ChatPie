@@ -7,7 +7,7 @@ import { Button } from "ui/button";
 import { Separator } from "ui/separator";
 
 import { useMemo } from "react";
-import { ThreadDropdown } from "@/components/history/thread-dropdown";
+import { ThreadDropdown } from "@/components/thread/thread-dropdown";
 import { usePathname, useSearchParams } from "next/navigation";
 import { appStore } from "@/app/store";
 import { useShallow } from "zustand/shallow";
@@ -116,6 +116,8 @@ function ThreadDropdownComponent() {
       <ThreadDropdown
         threadId={currentThread.id}
         beforeTitle={currentThread.title}
+        side="right"
+        align="start"
       >
         <div>
           <Tooltip>

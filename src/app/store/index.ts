@@ -29,6 +29,7 @@ export interface RightPanelTab {
   title: string;
   content: any;
   threadId?: string;
+  hidden?: boolean;
 }
 
 export interface AppState {
@@ -82,6 +83,7 @@ export interface AppState {
     activeTabId?: string;
     panelSizes: [number, number]; // [left%, right%]
   };
+  rightPanelRuntime?: Record<string, any>;
 }
 
 export interface AppDispatch {
@@ -132,6 +134,7 @@ const initialState: AppState = {
     activeTabId: undefined,
     panelSizes: [60, 40],
   },
+  rightPanelRuntime: {},
 };
 
 /**

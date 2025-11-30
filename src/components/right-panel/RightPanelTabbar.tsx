@@ -18,7 +18,9 @@ export function RightPanelTabbar({ isChatRoute }: { isChatRoute: boolean }) {
         (tab) => tab.id === tabConfig.id,
       );
       const nextTabs = existingTab
-        ? prev.rightPanel.tabs
+        ? prev.rightPanel.tabs.map((t) =>
+            t.id === tabConfig.id ? { ...t, hidden: false } : t,
+          )
         : [
             ...prev.rightPanel.tabs,
             {
@@ -26,6 +28,7 @@ export function RightPanelTabbar({ isChatRoute }: { isChatRoute: boolean }) {
               mode: tabConfig.defaultMode,
               title: tabConfig.title,
               content: tabConfig.getInitialContent(),
+              hidden: false,
             },
           ];
 
