@@ -638,9 +638,12 @@ function CompactMessageView({
   messages: UIMessageWithCompleted[];
 }) {
   const { toolParts, textPart } = useMemo(() => {
-    const toolParts = messages
+    const allToolParts = messages
       .filter((msg) => msg.parts.some(isToolUIPart))
       .map((msg) => msg.parts.find(isToolUIPart));
+
+    // In compact mode, only show the latest 6 tools to avoid covering text
+    const toolParts = allToolParts.slice(-6);
 
     const textPart = messages.findLast((msg) => msg.role === "assistant")
       ?.parts[0] as TextPart;

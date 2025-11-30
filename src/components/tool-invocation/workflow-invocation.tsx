@@ -31,8 +31,8 @@ function PureWorkflowInvocation({ result }: WorkflowInvocationProps) {
     if (!result.result) return null;
 
     return (
-      <div className="w-full bg-card p-4 border text-xs rounded-lg text-muted-foreground">
-        <div className="flex items-center">
+      <div className="w-full bg-card py-2 px-4 border text-xs rounded-lg text-muted-foreground">
+        <div className="flex items-center h-6">
           <h5 className="text-muted-foreground font-medium select-none">
             Response
           </h5>
