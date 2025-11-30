@@ -225,7 +225,7 @@
       "temporaryChatInstructionsPlaceholder": "지침을 입력하세요",
       "temporaryChatInstructionsDescription": "임시 채팅에 대한 지침을 설정할 수 있습니다. 이것은 임시 채팅에 대한 시스템 프롬프트로 사용됩니다."
     },
-    "GroupChat": {
+    "TeamChat": {
       "teamMode": "팀 모드",
       "comparison": "비교",
       "comparisonDescription": "한 번 물어보고 여러 답변을 비교합니다.",
@@ -236,7 +236,8 @@
       "task": "작업",
       "taskDescription": "에이전트가 다른 에이전트에게 작업을 할당합니다",
       "debate": "토론",
-      "debateDescription": "에이전트가 pro & con 측면으로 토론합니다"
+      "debateDescription": "에이전트가 pro & con 측면으로 토론합니다",
+      "noTeam": "팀 없음"
     },
     "chatPlaceholder": "무엇이든 물어보세요, @agent 또는 $tool",
     "toggleRightPanel": "오른쪽 패널 토글",
@@ -442,6 +443,7 @@
     "newAgent": "새 에이전트",
     "editAgent": "에이전트 수정",
     "generatingAgent": "에이전트 생성 중...",
+    "addToTeam": "팀에 추가",
     "agentNameAndIconLabel": "에이전트에게 이름과 아이콘을 붙여주세요.",
     "agentDescriptionLabel": "이 에이전트의 용도에 대한 짧은 설명을 추가해주세요.",
     "agentDescriptionPlaceholder": "이 내용은 에이전트에 대한 설명일 뿐, 중요하지 않아요.",

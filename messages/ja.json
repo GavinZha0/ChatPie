@@ -225,7 +225,7 @@
       "temporaryChatInstructionsPlaceholder": "こちらに指示を入力してください",
       "temporaryChatInstructionsDescription": "一時チャットの指示を設定できます。これは一時チャットのシステムプロンプトとして使用されます。"
     },
-    "GroupChat": {
+    "TeamChat": {
       "teamMode": "チームモード",
       "comparison": "比較",
       "comparisonDescription": "一度に複数の回答を比較します。",
@@ -236,7 +236,8 @@
       "task": "タスク",
       "taskDescription": "一人のエージェントが他のエージェントにタスクを割り当てます",
       "debate": "Debate",
-      "debateDescription": "Agentが正反対の立場を取って議論します"
+      "debateDescription": "Agentが正反対の立場を取って議論します",
+      "noTeam": "チームなし"
     },
     "chatPlaceholder": "何でもお尋ねください、@agent または $tool",
     "toggleRightPanel": "右パネルを切り替え",
@@ -442,6 +443,7 @@
     "newAgent": "新しいエージェント",
     "editAgent": "エージェント編集",
     "generatingAgent": "エージェント生成中...",
+    "addToTeam": "チームに追加",
     "agentNameAndIconLabel": "エージェントに名前とアイコンを付けてください。",
     "agentDescriptionLabel": "このエージェントの用途についての簡単な説明を追加してください。",
     "agentDescriptionPlaceholder": "これはエージェントに関する説明であり、重要ではありません。",

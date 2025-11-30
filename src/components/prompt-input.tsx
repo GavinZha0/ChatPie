@@ -887,7 +887,7 @@ export default function PromptInput({
                         </TooltipTrigger>
                         <TooltipContent side="bottom" align="center">
                           <span className="text-sm">
-                            {t("GroupChat.teamMode")}
+                            {t("TeamChat.teamMode")}
                           </span>
                         </TooltipContent>
                       </Tooltip>
@@ -907,14 +907,14 @@ export default function PromptInput({
                             <div className="flex items-center gap-2">
                               <Users className="size-4" />
                               <span className="font-bold">
-                                {t("GroupChat.comparison")}
+                                {t("TeamChat.comparison")}
                               </span>
                               {groupChatMode === "comparison" && (
                                 <Check className="ml-auto size-4" />
                               )}
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              {t("GroupChat.comparisonDescription")}
+                              {t("TeamChat.comparisonDescription")}
                             </p>
                           </div>
                         </DropdownMenuItem>
@@ -929,14 +929,14 @@ export default function PromptInput({
                             <div className="flex items-center gap-2">
                               <MessagesSquare className="size-4" />
                               <span className="font-bold">
-                                {t("GroupChat.discussion")}
+                                {t("TeamChat.discussion")}
                               </span>
                               {groupChatMode === "discussion" && (
                                 <Check className="ml-auto size-4" />
                               )}
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              {t("GroupChat.discussionDescription")}
+                              {t("TeamChat.discussionDescription")}
                             </p>
                           </div>
                         </DropdownMenuItem>
@@ -951,14 +951,14 @@ export default function PromptInput({
                             <div className="flex items-center gap-2">
                               <Repeat1 className="size-4" />
                               <span className="font-bold">
-                                {t("GroupChat.chain")}
+                                {t("TeamChat.chain")}
                               </span>
                               {groupChatMode === "chain" && (
                                 <Check className="ml-auto size-4" />
                               )}
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              {t("GroupChat.chainDescription")}
+                              {t("TeamChat.chainDescription")}
                             </p>
                           </div>
                         </DropdownMenuItem>
@@ -973,14 +973,14 @@ export default function PromptInput({
                             <div className="flex items-center gap-2">
                               <Target className="size-4" />
                               <span className="font-bold">
-                                {t("GroupChat.task")}
+                                {t("TeamChat.task")}
                               </span>
                               {groupChatMode === "task" && (
                                 <Check className="ml-auto size-4" />
                               )}
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              {t("GroupChat.taskDescription")}
+                              {t("TeamChat.taskDescription")}
                             </p>
                           </div>
                         </DropdownMenuItem>
@@ -995,14 +995,14 @@ export default function PromptInput({
                             <div className="flex items-center gap-2">
                               <Scale className="size-4" />
                               <span className="font-bold">
-                                {t("GroupChat.debate")}
+                                {t("TeamChat.debate")}
                               </span>
                               {groupChatMode === "debate" && (
                                 <Check className="ml-auto size-4" />
                               )}
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              {t("GroupChat.debateDescription")}
+                              {t("TeamChat.debateDescription")}
                             </p>
                           </div>
                         </DropdownMenuItem>

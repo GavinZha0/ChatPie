@@ -228,7 +228,7 @@
       "temporaryChatInstructionsPlaceholder": "在此输入您的说明",
       "temporaryChatInstructionsDescription": "您可以为临时聊天设置说明。这将用作临时聊天的系统提示。"
     },
-    "GroupChat": {
+    "TeamChat": {
       "teamMode": "团队模式",
       "comparison": "比较模式",
       "comparisonDescription": "一问多答，并排比较各个agent的回答",
@@ -239,7 +239,8 @@
       "task": "任务模式",
       "taskDescription": "一个agent规划分配任务给其他agent",
       "debate": "辩论模式",
-      "debateDescription": "群里分为正反两方进行辩论"
+      "debateDescription": "群里分为正反两方进行辩论",
+      "noTeam": "没有团队"
     },
     "chatPlaceholder": "Ask anything, @agent or $tool",
     "toggleRightPanel": "切换右侧面板",
@@ -456,6 +457,7 @@
     "newAgent": "创建智能体",
     "editAgent": "编辑智能体",
     "generatingAgent": "正在生成智能体...",
+    "addToTeam": "添加到团队",
     "agentNameAndIconLabel": "名称",
     "agentDescriptionLabel": "简短描述",
     "agentDescriptionPlaceholder": "对智能体的描述",

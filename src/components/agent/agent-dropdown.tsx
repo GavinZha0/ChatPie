@@ -72,6 +72,18 @@ export function AgentDropdown({ agent, children, side, align }: Props) {
         <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
         <DropdownMenuContent className="w-[200px]" side={side} align={align}>
           <DropdownMenuGroup>
+            {canEdit && (
+              <DropdownMenuItem
+                onClick={() => {
+                  setShowEditDialog(true);
+                  setOpen(false);
+                }}
+              >
+                <PencilLine className="mr-2" />
+                {t("Common.edit")}
+              </DropdownMenuItem>
+            )}
+
             <DropdownMenuItem
               onClick={() => {
                 appStore.setState((state) => ({
@@ -92,7 +104,7 @@ export function AgentDropdown({ agent, children, side, align }: Props) {
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
                 <UserPlus className="mr-2" />
-                <span>Add to group</span>
+                <span>{t("Agent.addToTeam")}</span>
               </DropdownMenuSubTrigger>
               <DropdownMenuPortal>
                 <DropdownMenuSubContent>
@@ -103,24 +115,14 @@ export function AgentDropdown({ agent, children, side, align }: Props) {
                   ))}
                   {groups.length === 0 && (
                     <div className="px-2 py-1.5">
-                      <p className="text-xs text-muted-foreground">No groups</p>
+                      <p className="text-xs text-muted-foreground">
+                        {t("Chat.TeamChat.noTeam")}
+                      </p>
                     </div>
                   )}
                 </DropdownMenuSubContent>
               </DropdownMenuPortal>
             </DropdownMenuSub>
-
-            {canEdit && (
-              <DropdownMenuItem
-                onClick={() => {
-                  setShowEditDialog(true);
-                  setOpen(false);
-                }}
-              >
-                <PencilLine className="mr-2" />
-                {t("Common.edit")}
-              </DropdownMenuItem>
-            )}
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>

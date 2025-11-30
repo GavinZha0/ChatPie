@@ -225,7 +225,7 @@
       "temporaryChatInstructionsPlaceholder": "Ingresa tus instrucciones aquí",
       "temporaryChatInstructionsDescription": "Puedes establecer instrucciones para el chat temporal. Esto se usará como prompt del sistema para el chat temporal."
     },
-    "GroupChat": {
+    "TeamChat": {
       "teamMode": "Modo de Equipo",
       "comparison": "Comparación",
       "comparisonDescription": "Pregunta una vez, compara múltiples respuestas.",
@@ -236,7 +236,8 @@
       "task": "Tarea",
       "taskDescription": "Un agente asigna tareas a otros",
       "debate": "Debate",
-      "debateDescription": "Los agentes se dividen en lados pro y contra para debatir"
+      "debateDescription": "Los agentes se dividen en lados pro y contra para debatir",
+      "noTeam": "No hay equipo"
     },
     "chatPlaceholder": "Pregunta lo que quieras, @agente o $herramienta",
     "toggleRightPanel": "Alternar panel derecho",
@@ -443,6 +444,7 @@
     "newAgent": "Nuevo Agente",
     "editAgent": "Editar Agente",
     "generatingAgent": "Generando Agente...",
+    "addToTeam": "Agregar al equipo",
     "agentNameAndIconLabel": "Dale a tu agente un nombre y un icono.",
     "agentDescriptionLabel": "Añade una breve descripción de lo que hace este agente.",
     "agentDescriptionPlaceholder": "Esto es solo una descripción del agente, no es crítico.",

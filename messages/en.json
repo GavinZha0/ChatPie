@@ -228,7 +228,7 @@
       "temporaryChatInstructionsPlaceholder": "Enter your instructions here",
       "temporaryChatInstructionsDescription": "You can set instructions for the temporary chat. This will be used as a system prompt for the temporary chat."
     },
-    "GroupChat": {
+    "TeamChat": {
       "teamMode": "Team Mode",
       "comparison": "Comparison",
       "comparisonDescription": "Ask once, compare multiple answers.",
@@ -239,7 +239,8 @@
       "task": "Task",
       "taskDescription": "One agent assigns tasks to others",
       "debate": "Debate",
-      "debateDescription": "Agents split into pro & con sides to debate"
+      "debateDescription": "Agents split into pro & con sides to debate",
+      "noTeam": "No team"
     },
     "chatPlaceholder": "Ask anything, @agent or $tool",
     "toggleRightPanel": "Toggle right panel",
@@ -453,9 +454,10 @@
   },
   "Agent": {
     "title": "Agent",
-    "newAgent": "Create Agent",
-    "editAgent": "Edit Agent",
-    "generatingAgent": "Generating Agent...",
+    "newAgent": "Create agent",
+    "editAgent": "Edit agent",
+    "generatingAgent": "Generating agent...",
+    "addToTeam": "Add to team",
     "agentNameAndIconLabel": "Name",
     "agentDescriptionLabel": "Description",
     "agentDescriptionPlaceholder": "This is just a description of the agent.",

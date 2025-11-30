@@ -33,12 +33,20 @@ export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const api = groupRef.current;
-    if (!api) return;
+    if (!api || !isChatRoute) return;
     const nextLayout = rightPanel.isOpen
       ? [rightPanel.panelSizes[0], rightPanel.panelSizes[1]]
       : [100, 0];
     api.setLayout(nextLayout);
-  }, [rightPanel.isOpen]);
+  }, [rightPanel.isOpen, isChatRoute]);
+
+  if (!isChatRoute) {
+    return (
+      <div className="flex h-full overflow-hidden">
+        <div className="flex-1 overflow-y-auto">{children}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full overflow-hidden">
