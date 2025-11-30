@@ -6,8 +6,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { RIGHT_PANEL_TAB_CONFIGS } from "./tab-config";
 
 export function RightPanelTabbar({ isChatRoute }: { isChatRoute: boolean }) {
-  const [rightPanel, appStoreMutate] = appStore(
-    useShallow((state) => [state.rightPanel, state.mutate]),
+  const [rightPanel, rightPanelRuntime, appStoreMutate] = appStore(
+    useShallow((state) => [
+      state.rightPanel,
+      state.rightPanelRuntime,
+      state.mutate,
+    ]),
   );
 
   const handleTabIconClick = (
@@ -73,6 +77,17 @@ export function RightPanelTabbar({ isChatRoute }: { isChatRoute: boolean }) {
           resolvedActiveTabId === tabConfig.id &&
           existingTab;
 
+        const voiceRuntime = rightPanelRuntime?.voice;
+        const voiceIconColorClass = (() => {
+          if (tabConfig.id !== "voice") return "";
+          if (voiceRuntime?.isActive) {
+            return voiceRuntime.isListening
+              ? "text-green-500"
+              : "text-yellow-500";
+          }
+          return "";
+        })();
+
         return (
           <div
             key={tabConfig.id}
@@ -95,7 +110,9 @@ export function RightPanelTabbar({ isChatRoute }: { isChatRoute: boolean }) {
                         : "size-9"
                     }`}
                   >
-                    <IconComponent className="size-5" />
+                    <IconComponent
+                      className={`size-5 ${voiceIconColorClass}`}
+                    />
                   </div>
                 </button>
               </TooltipTrigger>

@@ -14,12 +14,14 @@ import {
   MicIcon,
   MicOffIcon,
   PhoneIcon,
+  PhoneOffIcon,
   Settings2Icon,
   TriangleAlertIcon,
   MessagesSquareIcon,
   MessageSquareMoreIcon,
   WrenchIcon,
   ChevronRight,
+  XIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -67,22 +69,30 @@ const prependTools: EnabledTools[] = [
   },
 ];
 
-export function VoiceTab() {
+export function VoiceChatTab() {
   const t = useTranslations("Chat");
-  const [agentId, appStoreMutate, voiceChat, allowedMcpServers, mcpList] =
-    appStore(
-      useShallow((state) => [
-        state.voiceChat.agentId,
-        state.mutate,
-        state.voiceChat,
-        state.allowedMcpServers,
-        state.mcpList,
-      ]),
-    );
+  const [
+    agentId,
+    appStoreMutate,
+    voiceChat,
+    allowedMcpServers,
+    mcpList,
+    rightPanelRuntime,
+  ] = appStore(
+    useShallow((state) => [
+      state.voiceChat.agentId,
+      state.mutate,
+      state.voiceChat,
+      state.allowedMcpServers,
+      state.mcpList,
+      state.rightPanelRuntime,
+    ]),
+  );
 
   const { agent } = useAgent(agentId);
 
   const startAudio = useRef<HTMLAudioElement>(null);
+  const endAudio = useRef<HTMLAudioElement>(null);
   const [useCompactView, setUseCompactView] = useState(true);
 
   const toolMentions = useMemo<ChatMention[]>(() => {
@@ -130,14 +140,58 @@ export function VoiceTab() {
     ...voiceChat.options.providerOptions,
   });
 
+  useEffect(() => {
+    appStoreMutate((prev) => ({
+      rightPanelRuntime: {
+        ...(prev.rightPanelRuntime || {}),
+        voice: {
+          ...((prev.rightPanelRuntime || {}).voice || {}),
+          isActive,
+          isListening,
+        },
+      },
+    }));
+  }, [isActive, isListening]);
+
   const startWithSound = useCallback(() => {
     if (!startAudio.current) {
       startAudio.current = new Audio("/sounds/start_voice.ogg");
     }
     start().then(() => {
       startAudio.current?.play().catch(() => {});
+      startListening();
     });
-  }, [start]);
+  }, [start, startListening]);
+
+  const stopWithSound = useCallback(() => {
+    if (!endAudio.current) {
+      endAudio.current = new Audio("/sounds/end_voice.ogg");
+    }
+    stop().then(() => {
+      endAudio.current?.play().catch(() => {});
+    });
+  }, [stop]);
+
+  const lastQuickStartRef = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    const ts = (rightPanelRuntime || {})?.voice?.startRequestedAt as
+      | number
+      | undefined;
+    if (!ts) return;
+    if (lastQuickStartRef.current === ts) return;
+    lastQuickStartRef.current = ts;
+    if (!isActive) {
+      startWithSound();
+    } else if (!isListening) {
+      startListening();
+    }
+  }, [
+    rightPanelRuntime,
+    isActive,
+    isListening,
+    startWithSound,
+    startListening,
+  ]);
 
   // Cleanup on unmount (if a session was started)
   useEffect(() => {
@@ -229,62 +283,86 @@ export function VoiceTab() {
           userSelect: "text",
         }}
       >
-        {agent && (
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-semibold text-foreground">
+            {t("VoiceChat.title")}
+          </span>
+          {agent && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  style={agent.icon?.style}
+                  className="relative group size-8 items-center justify-center flex rounded-lg ring ring-secondary"
+                >
+                  <Avatar className="size-5">
+                    <AvatarImage
+                      src={
+                        agent.icon?.value
+                          ? getEmojiUrl(agent.icon.value, "apple", 64)
+                          : undefined
+                      }
+                    />
+                    <AvatarFallback>{agent.name.slice(0, 1)}</AvatarFallback>
+                  </Avatar>
+
+                  <button
+                    type="button"
+                    className="absolute -top-1 -right-1 size-4 rounded-full bg-destructive text-destructive-foreground border border-background opacity-0 group-hover:opacity-100 flex items-center justify-center"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      appStoreMutate((prev) => ({
+                        voiceChat: {
+                          ...prev.voiceChat,
+                          agentId: undefined,
+                        },
+                      }));
+                    }}
+                    aria-label="Remove agent"
+                  >
+                    <XIcon className="size-3" />
+                  </button>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="p-3 max-w-xs">
+                <div className="space-y-2">
+                  <div className="font-semibold text-sm">{agent.name}</div>
+                  {agent.description && (
+                    <div className="text-xs text-muted-foreground leading-relaxed">
+                      {agent.description}
+                    </div>
+                  )}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+
+        <div className="ml-auto flex items-center gap-2">
+          <EnabledToolsDropdown align="end" side="bottom" tools={tools} />
+
           <Tooltip>
             <TooltipTrigger asChild>
-              <div
-                style={agent.icon?.style}
-                className="size-8 items-center justify-center flex rounded-lg ring ring-secondary"
+              <Button
+                variant={"secondary"}
+                size={"icon"}
+                className="size-8"
+                onClick={() => setUseCompactView(!useCompactView)}
               >
-                <Avatar className="size-5">
-                  <AvatarImage
-                    src={
-                      agent.icon?.value
-                        ? getEmojiUrl(agent.icon.value, "apple", 64)
-                        : undefined
-                    }
-                  />
-                  <AvatarFallback>{agent.name.slice(0, 1)}</AvatarFallback>
-                </Avatar>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="p-3 max-w-xs">
-              <div className="space-y-2">
-                <div className="font-semibold text-sm">{agent.name}</div>
-                {agent.description && (
-                  <div className="text-xs text-muted-foreground leading-relaxed">
-                    {agent.description}
-                  </div>
+                {useCompactView ? (
+                  <MessageSquareMoreIcon className="size-4" />
+                ) : (
+                  <MessagesSquareIcon className="size-4" />
                 )}
-              </div>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {useCompactView
+                ? t("VoiceChat.compactDisplayMode")
+                : t("VoiceChat.conversationDisplayMode")}
             </TooltipContent>
           </Tooltip>
-        )}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant={"secondary"}
-              size={"icon"}
-              className="size-8"
-              onClick={() => setUseCompactView(!useCompactView)}
-            >
-              {useCompactView ? (
-                <MessageSquareMoreIcon className="size-4" />
-              ) : (
-                <MessagesSquareIcon className="size-4" />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            {useCompactView
-              ? t("VoiceChat.compactDisplayMode")
-              : t("VoiceChat.conversationDisplayMode")}
-          </TooltipContent>
-        </Tooltip>
 
-        <EnabledToolsDropdown align="start" side="bottom" tools={tools} />
-
-        <div className="ml-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant={"ghost"} size={"icon"} className="size-8">
@@ -398,47 +476,72 @@ export function VoiceTab() {
                 onClick={() => {
                   if (!isActive) {
                     startWithSound();
-                  } else if (isListening) {
-                    stopListening();
                   } else {
-                    startListening();
+                    stopWithSound();
                   }
                 }}
                 className={cn(
                   "rounded-full p-6 transition-colors duration-300",
-
                   isLoading
                     ? "bg-accent-foreground text-accent animate-pulse"
                     : !isActive
                       ? "bg-green-500/10 text-green-500 hover:bg-green-500/30"
-                      : !isListening
-                        ? "bg-destructive/30 text-destructive hover:bg-destructive/10"
-                        : isUserSpeaking
-                          ? "bg-input text-foreground"
-                          : "",
+                      : "bg-destructive/30 text-destructive hover:bg-destructive/10",
                 )}
               >
                 {isLoading ? (
                   <Loader className="size-6 animate-spin" />
                 ) : !isActive ? (
                   <PhoneIcon className="size-6 fill-green-500 stroke-none" />
-                ) : isListening ? (
-                  <MicIcon
-                    className={`size-6 ${isUserSpeaking ? "text-primary" : "text-muted-foreground transition-colors duration-300"}`}
-                  />
                 ) : (
-                  <MicOffIcon className="size-6" />
+                  <PhoneOffIcon className="size-6" />
                 )}
               </Button>
             </TooltipTrigger>
             <TooltipContent>
               {!isActive
                 ? t("VoiceChat.startConversation")
-                : isListening
-                  ? t("VoiceChat.closeMic")
-                  : t("VoiceChat.openMic")}
+                : t("VoiceChat.endConversation")}
             </TooltipContent>
           </Tooltip>
+
+          {isActive && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={"secondary"}
+                  size={"icon"}
+                  disabled={isLoading}
+                  onClick={() => {
+                    if (isListening) {
+                      stopListening();
+                    } else {
+                      startListening();
+                    }
+                  }}
+                  className={cn(
+                    "rounded-full p-6 transition-colors duration-300",
+                    !isListening
+                      ? "bg-destructive/30 text-destructive hover:bg-destructive/10"
+                      : isUserSpeaking
+                        ? "bg-input text-foreground"
+                        : "",
+                  )}
+                >
+                  {isListening ? (
+                    <MicIcon
+                      className={`size-6 ${isUserSpeaking ? "text-primary" : "text-muted-foreground transition-colors duration-300"}`}
+                    />
+                  ) : (
+                    <MicOffIcon className="size-6" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isListening ? t("VoiceChat.closeMic") : t("VoiceChat.openMic")}
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
       </div>
     </div>

@@ -4,11 +4,11 @@ import { appStore } from "@/app/store";
 import { useShallow } from "zustand/shallow";
 import { ResizableHandle, ResizablePanel } from "ui/resizable";
 import { TemporaryChatTab } from "./tabs/TemporaryChatTab";
-import { HistoryTab } from "./tabs/HistoryChatTab";
+import { HistoryChatTab } from "./tabs/HistoryChatTab";
 import { TeamComparisonTab } from "./tabs/TeamComparisonTab";
-import { VoiceTab } from "./tabs/VoiceChatTab";
+import { VoiceChatTab } from "./tabs/VoiceChatTab";
 
-export function RightPanel({ isChatRoute }: { isChatRoute: boolean }) {
+export function RightTabPanel({ isChatRoute }: { isChatRoute: boolean }) {
   const [rightPanel, appStoreMutate] = appStore(
     useShallow((state) => [state.rightPanel, state.mutate]),
   );
@@ -62,8 +62,6 @@ export function RightPanel({ isChatRoute }: { isChatRoute: boolean }) {
       />
       <ResizablePanel
         defaultSize={rightPanel.isOpen ? rightPanel.panelSizes[1] : 0}
-        collapsible
-        collapsedSize={0}
         minSize={rightPanel.isOpen ? 20 : 0}
         className="hidden md:block overflow-hidden relative z-30"
       >
@@ -110,7 +108,7 @@ export function RightPanel({ isChatRoute }: { isChatRoute: boolean }) {
                   key={tab.id}
                   className={`${isHidden ? "hidden" : isActive ? "" : "hidden"} h-full`}
                 >
-                  <VoiceTab />
+                  <VoiceChatTab />
                 </div>
               );
             }
@@ -120,7 +118,7 @@ export function RightPanel({ isChatRoute }: { isChatRoute: boolean }) {
                   key={tab.id}
                   className={`${isHidden ? "hidden" : isActive ? "" : "hidden"} h-full`}
                 >
-                  <HistoryTab onClose={() => closeTab("history")} />
+                  <HistoryChatTab onClose={() => closeTab("history")} />
                 </div>
               );
             }

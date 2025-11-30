@@ -34,7 +34,7 @@ type ThreadGroup = {
   threads: EnhancedChatThread[];
 };
 
-export function HistoryTab({ onClose }: { onClose: () => void }) {
+export function HistoryChatTab({ onClose }: { onClose: () => void }) {
   const mounted = useMounted();
   const router = useRouter();
   const t = useTranslations("Layout");

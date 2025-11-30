@@ -1036,6 +1036,19 @@ export default function PromptInput({
                                     isOpen: true,
                                     activeTabId: "voice",
                                   },
+                                  voiceChat: {
+                                    ...state.voiceChat,
+                                    isOpen: true,
+                                    agentId: selectedAgentId,
+                                  },
+                                  rightPanelRuntime: {
+                                    ...(state.rightPanelRuntime || {}),
+                                    voice: {
+                                      ...((state.rightPanelRuntime || {})
+                                        .voice || {}),
+                                      startRequestedAt: Date.now(),
+                                    },
+                                  },
                                 };
                               }
                               return {
@@ -1053,6 +1066,19 @@ export default function PromptInput({
                                       content: {},
                                     },
                                   ],
+                                },
+                                voiceChat: {
+                                  ...state.voiceChat,
+                                  isOpen: true,
+                                  agentId: selectedAgentId,
+                                },
+                                rightPanelRuntime: {
+                                  ...(state.rightPanelRuntime || {}),
+                                  voice: {
+                                    ...((state.rightPanelRuntime || {}).voice ||
+                                      {}),
+                                    startRequestedAt: Date.now(),
+                                  },
                                 },
                               };
                             });

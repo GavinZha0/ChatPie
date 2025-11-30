@@ -274,9 +274,9 @@
       }
     },
     "VoiceChat": {
-      "title": "语音聊天模式",
-      "compactDisplayMode": "紧凑显示模式",
-      "conversationDisplayMode": "对话显示模式",
+      "title": "语音聊天",
+      "compactDisplayMode": "紧凑模式",
+      "conversationDisplayMode": "对话模式",
       "pleaseCloseTheVoiceChatAndTryAgain": "请关闭语音聊天并重试。",
       "startConversation": "开始对话",
       "closeMic": "关闭麦克风",

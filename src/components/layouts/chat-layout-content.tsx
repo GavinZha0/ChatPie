@@ -5,7 +5,7 @@ import { useShallow } from "zustand/shallow";
 import { ResizablePanelGroup, ResizablePanel } from "ui/resizable";
 import { useEffect, useRef } from "react";
 import type { ImperativePanelGroupHandle } from "react-resizable-panels";
-import { RightPanel, RightPanelTabbar } from "@/components/right-panel";
+import { RightTabPanel, RightPanelTabbar } from "@/components/right-panel";
 import { usePathname } from "next/navigation";
 
 export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
@@ -56,7 +56,7 @@ export function ChatLayoutContent({ children }: { children: React.ReactNode }) {
           >
             {children}
           </ResizablePanel>
-          <RightPanel isChatRoute={isChatRoute} />
+          <RightTabPanel isChatRoute={isChatRoute} />
         </ResizablePanelGroup>
       </div>
       <RightPanelTabbar isChatRoute={isChatRoute} />
