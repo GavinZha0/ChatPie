@@ -273,6 +273,8 @@
     },
     "VoiceChat": {
       "title": "音声チャットモード",
+      "displayMode": "表示モード",
+      "tune": "チューニング",
       "compactDisplayMode": "コンパクト表示モード",
       "conversationDisplayMode": "会話表示モード",
       "pleaseCloseTheVoiceChatAndTryAgain": "音声チャットを閉じて、もう一度お試しください。",

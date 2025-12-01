@@ -77,8 +77,7 @@ const createUIMessage = (m: {
 };
 
 export function useOpenAIVoiceChat(props?: VoiceChatOptions): VoiceChatSession {
-  const { model = "gpt-4o-realtime-preview", voice = OPENAI_VOICE.Ash } =
-    props || {};
+  const { model = "gpt-realtime", voice = OPENAI_VOICE.Ash } = props || {};
 
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
   const [isAssistantSpeaking, setIsAssistantSpeaking] = useState(false);
@@ -213,7 +212,6 @@ export function useOpenAIVoiceChat(props?: VoiceChatOptions): VoiceChatSession {
               voiceChat: {
                 ...prev.voiceChat,
                 agentId: undefined,
-                isOpen: false,
               },
             }));
             break;

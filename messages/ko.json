@@ -273,6 +273,8 @@
     },
     "VoiceChat": {
       "title": "음성 채팅 모드",
+      "displayMode": "표시 모드",
+      "tune": "튜닝",
       "compactDisplayMode": "간략한 모드",
       "conversationDisplayMode": "대화 모드",
       "pleaseCloseTheVoiceChatAndTryAgain": "음성 채팅을 닫고 다시 시도해주세요.",

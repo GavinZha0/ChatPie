@@ -67,7 +67,6 @@ export interface AppState {
     chatModel?: ChatModel;
   };
   voiceChat: {
-    isOpen: boolean;
     agentId?: string;
     options: {
       provider: string;
@@ -117,7 +116,6 @@ const initialState: AppState = {
     instructions: "",
   },
   voiceChat: {
-    isOpen: false,
     options: {
       provider: "openai",
       providerOptions: {
@@ -194,7 +192,6 @@ export const appStore = create<AppState & AppDispatch>()(
         voiceChat: {
           ...initialState.voiceChat,
           ...state.voiceChat,
-          isOpen: false,
         },
         groupChatMode: state.groupChatMode ?? initialState.groupChatMode,
         rightPanel: {

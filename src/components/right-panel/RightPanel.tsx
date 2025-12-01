@@ -42,12 +42,6 @@ export function RightTabPanel({ isChatRoute }: { isChatRoute: boolean }) {
           isOpen: false,
         };
       }
-      if (tabId === "voice") {
-        (updates as any).voiceChat = {
-          ...prev.voiceChat,
-          isOpen: false,
-        };
-      }
       return updates;
     });
   };

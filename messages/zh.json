@@ -276,6 +276,8 @@
     },
     "VoiceChat": {
       "title": "语音聊天",
+      "displayMode": "显示模式",
+      "tune": "音色",
       "compactDisplayMode": "紧凑模式",
       "conversationDisplayMode": "对话模式",
       "pleaseCloseTheVoiceChatAndTryAgain": "请关闭语音聊天并重试。",

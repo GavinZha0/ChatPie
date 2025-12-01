@@ -276,6 +276,8 @@
     },
     "VoiceChat": {
       "title": "Voice chat",
+      "displayMode": "Display mode",
+      "tune": "Tune",
       "compactDisplayMode": "Compact mode",
       "conversationDisplayMode": "Conversation mode",
       "pleaseCloseTheVoiceChatAndTryAgain": "Please close the voice chat and try again.",

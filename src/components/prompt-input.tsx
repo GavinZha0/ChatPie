@@ -1047,7 +1047,6 @@ export default function PromptInput({
                                   },
                                   voiceChat: {
                                     ...state.voiceChat,
-                                    isOpen: true,
                                     agentId: selectedAgentId,
                                   },
                                   rightPanelRuntime: {
@@ -1080,7 +1079,6 @@ export default function PromptInput({
                                 },
                                 voiceChat: {
                                   ...state.voiceChat,
-                                  isOpen: true,
                                   agentId: selectedAgentId,
                                 },
                                 rightPanelRuntime: {

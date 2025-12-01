@@ -1,13 +1,13 @@
 "use client";
 
 import { getToolName, isToolUIPart, TextPart } from "ai";
-import { DEFAULT_VOICE_TOOLS, UIMessageWithCompleted } from "lib/ai/speech";
+import { UIMessageWithCompleted } from "lib/ai/speech";
 
 import {
   OPENAI_VOICE,
   useOpenAIVoiceChat as OpenAIVoiceChat,
 } from "lib/ai/speech/open-ai/use-voice-chat.openai";
-import { cn, groupBy } from "lib/utils";
+import { cn } from "lib/utils";
 import {
   CheckIcon,
   Loader,
@@ -15,7 +15,7 @@ import {
   MicOffIcon,
   PhoneIcon,
   PhoneOffIcon,
-  Settings2Icon,
+  PianoIcon,
   TriangleAlertIcon,
   MessagesSquareIcon,
   MessageSquareMoreIcon,
@@ -31,24 +31,13 @@ import { Button } from "ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "ui/dropdown-menu";
-import { GeminiIcon } from "ui/gemini-icon";
+
 import { MessageLoading } from "ui/message-loading";
-import { OpenAIIcon } from "ui/openai-icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { ToolMessagePart } from "@/components/message-parts";
-
-import {
-  EnabledTools,
-  EnabledToolsDropdown,
-} from "@/components/enabled-tools-dropdown";
 import { appStore } from "@/app/store";
 import { useShallow } from "zustand/shallow";
 import { useTranslations } from "next-intl";
@@ -58,16 +47,6 @@ import { useAgent } from "@/hooks/queries/use-agent";
 import { ChatMention } from "app-types/chat";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
 import { getEmojiUrl } from "lib/emoji";
-
-const prependTools: EnabledTools[] = [
-  {
-    groupName: "Browser",
-    tools: DEFAULT_VOICE_TOOLS.map((tool) => ({
-      name: tool.name,
-      description: tool.description,
-    })),
-  },
-];
 
 export function VoiceChatTab() {
   const t = useTranslations("Chat");
@@ -247,27 +226,6 @@ export function VoiceChatTab() {
     useCompactView,
   ]);
 
-  const mcpTools = useMemo<EnabledTools[]>(() => {
-    const mcpMentions = toolMentions.filter(
-      (v) => v.type === "mcpTool",
-    ) as Extract<ChatMention, { type: "mcpTool" }>[];
-
-    const groupByServer = groupBy(mcpMentions, "serverName");
-    return Object.entries(groupByServer).map(([serverName, tools]) => {
-      return {
-        groupName: serverName,
-        tools: tools.map((v) => ({
-          name: v.name,
-          description: v.description,
-        })),
-      };
-    });
-  }, [toolMentions]);
-
-  const tools = useMemo<EnabledTools[]>(() => {
-    return [...prependTools, ...mcpTools];
-  }, [mcpTools]);
-
   useEffect(() => {
     if (error && isActive) {
       toast.error(error.message);
@@ -278,159 +236,74 @@ export function VoiceChatTab() {
   return (
     <div className="w-full h-full flex flex-col bg-card">
       <div
-        className="w-full flex p-4 gap-2 items-center border-b"
+        className="w-full flex p-2 gap-2 items-center border-b"
         style={{
           userSelect: "text",
         }}
       >
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-semibold text-foreground">
-            {t("VoiceChat.title")}
-          </span>
+        <span className="text-sm font-semibold text-foreground">
+          {t("VoiceChat.title")}
+        </span>
+
+        <div className="ml-auto flex items-center gap-2">
+          {/* Hidden for now - keep for future debugging */}
+          {/* <EnabledToolsDropdown align="end" side="bottom" tools={tools} /> */}
+
           {agent && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <div
-                  style={agent.icon?.style}
-                  className="relative group size-8 items-center justify-center flex rounded-lg ring ring-secondary"
-                >
-                  <Avatar className="size-5">
-                    <AvatarImage
-                      src={
-                        agent.icon?.value
-                          ? getEmojiUrl(agent.icon.value, "apple", 64)
-                          : undefined
-                      }
-                    />
-                    <AvatarFallback>{agent.name.slice(0, 1)}</AvatarFallback>
-                  </Avatar>
-
-                  <button
-                    type="button"
-                    className="absolute -top-1 -right-1 size-4 rounded-full bg-destructive text-destructive-foreground border border-background opacity-0 group-hover:opacity-100 flex items-center justify-center"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      appStoreMutate((prev) => ({
-                        voiceChat: {
-                          ...prev.voiceChat,
-                          agentId: undefined,
-                        },
-                      }));
-                    }}
-                    aria-label="Remove agent"
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    {agent.name}
+                  </span>
+                  <div
+                    style={agent.icon?.style}
+                    className="relative group size-7 items-center justify-center flex rounded-md ring-1 ring-secondary"
                   >
-                    <XIcon className="size-3" />
-                  </button>
+                    <Avatar className="size-6">
+                      <AvatarImage
+                        src={
+                          agent.icon?.value
+                            ? getEmojiUrl(agent.icon.value, "apple", 64)
+                            : undefined
+                        }
+                      />
+                      <AvatarFallback className="text-xs">
+                        {agent.name.slice(0, 1)}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <button
+                      type="button"
+                      className="absolute -top-0.5 -right-0.5 size-3.5 rounded-full bg-destructive text-destructive-foreground border border-background opacity-0 group-hover:opacity-100 flex items-center justify-center"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        appStoreMutate((prev) => ({
+                          voiceChat: {
+                            ...prev.voiceChat,
+                            agentId: undefined,
+                          },
+                        }));
+                      }}
+                      aria-label="Remove agent"
+                    >
+                      <XIcon className="size-3" />
+                    </button>
+                  </div>
                 </div>
               </TooltipTrigger>
-              <TooltipContent side="bottom" className="p-3 max-w-xs">
+              <TooltipContent side="bottom" className="p-2 max-w-xs">
                 <div className="space-y-2">
-                  <div className="font-semibold text-sm">{agent.name}</div>
-                  {agent.description && (
+                  {(agent.role || agent.description) && (
                     <div className="text-xs text-muted-foreground leading-relaxed">
-                      {agent.description}
+                      {agent.role || agent.description}
                     </div>
                   )}
                 </div>
               </TooltipContent>
             </Tooltip>
           )}
-        </div>
-
-        <div className="ml-auto flex items-center gap-2">
-          <EnabledToolsDropdown align="end" side="bottom" tools={tools} />
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant={"secondary"}
-                size={"icon"}
-                className="size-8"
-                onClick={() => setUseCompactView(!useCompactView)}
-              >
-                {useCompactView ? (
-                  <MessageSquareMoreIcon className="size-4" />
-                ) : (
-                  <MessagesSquareIcon className="size-4" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {useCompactView
-                ? t("VoiceChat.compactDisplayMode")
-                : t("VoiceChat.conversationDisplayMode")}
-            </TooltipContent>
-          </Tooltip>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant={"ghost"} size={"icon"} className="size-8">
-                <Settings2Icon className="text-foreground size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="left" className="min-w-40" align="start">
-              <DropdownMenuGroup className="cursor-pointer">
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger
-                    className="flex items-center gap-2 cursor-pointer"
-                    icon=""
-                  >
-                    <OpenAIIcon className="size-3.5 stroke-none fill-foreground" />
-                    Open AI
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuPortal>
-                    <DropdownMenuSubContent>
-                      {Object.entries(OPENAI_VOICE).map(([key, value]) => (
-                        <DropdownMenuItem
-                          className="cursor-pointer flex items-center justify-between"
-                          onClick={() =>
-                            appStoreMutate({
-                              voiceChat: {
-                                ...voiceChat,
-                                options: {
-                                  provider: "openai",
-                                  providerOptions: {
-                                    voice: value,
-                                  },
-                                },
-                              },
-                            })
-                          }
-                          key={key}
-                        >
-                          {key}
-
-                          {value ===
-                            voiceChat.options.providerOptions?.voice && (
-                            <CheckIcon className="size-3.5" />
-                          )}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuSubContent>
-                  </DropdownMenuPortal>
-                </DropdownMenuSub>
-                <DropdownMenuSub>
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger
-                      className="flex items-center gap-2 text-muted-foreground"
-                      icon=""
-                    >
-                      <GeminiIcon className="size-3.5" />
-                      Gemini
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuPortal>
-                      <DropdownMenuSubContent>
-                        <div className="text-xs text-muted-foreground p-6">
-                          Not Implemented Yet
-                        </div>
-                      </DropdownMenuSubContent>
-                    </DropdownMenuPortal>
-                  </DropdownMenuSub>
-                </DropdownMenuSub>
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
       <div className="flex-1 min-h-0 mx-auto w-full relative">
@@ -462,86 +335,162 @@ export function VoiceChatTab() {
         )}
       </div>
       <div className="relative w-full p-4 flex flex-col items-center justify-center gap-4 border-t">
-        <div className="text-sm text-muted-foreground w-full justify-center flex items-center min-h-[1.5rem]">
-          {statusMessage}
+        <div className="w-full relative flex justify-center">
+          <div className="text-sm text-muted-foreground flex items-center justify-center min-h-[1.5rem]">
+            {statusMessage}
+          </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant={"secondary"}
-                size={"icon"}
-                disabled={isLoading}
-                onClick={() => {
-                  if (!isActive) {
-                    startWithSound();
-                  } else {
-                    stopWithSound();
-                  }
-                }}
-                className={cn(
-                  "rounded-full p-6 transition-colors duration-300",
-                  isLoading
-                    ? "bg-accent-foreground text-accent animate-pulse"
-                    : !isActive
-                      ? "bg-green-500/10 text-green-500 hover:bg-green-500/30"
-                      : "bg-destructive/30 text-destructive hover:bg-destructive/10",
-                )}
-              >
-                {isLoading ? (
-                  <Loader className="size-6 animate-spin" />
-                ) : !isActive ? (
-                  <PhoneIcon className="size-6 fill-green-500 stroke-none" />
-                ) : (
-                  <PhoneOffIcon className="size-6" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {!isActive
-                ? t("VoiceChat.startConversation")
-                : t("VoiceChat.endConversation")}
-            </TooltipContent>
-          </Tooltip>
+        <div className="w-full relative flex justify-between items-center">
+          <div className="flex-1 flex justify-center">
+            <div className="flex items-center gap-4">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={"secondary"}
+                    size={"icon"}
+                    disabled={isLoading}
+                    onClick={() => {
+                      if (!isActive) {
+                        startWithSound();
+                      } else {
+                        stopWithSound();
+                      }
+                    }}
+                    className={cn(
+                      "rounded-full p-6 transition-colors duration-300",
+                      isLoading
+                        ? "bg-accent-foreground text-accent animate-pulse"
+                        : !isActive
+                          ? "bg-green-500/10 text-green-500 hover:bg-green-500/30"
+                          : "bg-destructive/30 text-destructive hover:bg-destructive/10",
+                    )}
+                  >
+                    {isLoading ? (
+                      <Loader className="size-6 animate-spin" />
+                    ) : !isActive ? (
+                      <PhoneIcon className="size-6 fill-green-500 stroke-none" />
+                    ) : (
+                      <PhoneOffIcon className="size-6" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {!isActive
+                    ? t("VoiceChat.startConversation")
+                    : t("VoiceChat.endConversation")}
+                </TooltipContent>
+              </Tooltip>
 
-          {isActive && (
+              {isActive && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={"secondary"}
+                      size={"icon"}
+                      disabled={isLoading}
+                      onClick={() => {
+                        if (isListening) {
+                          stopListening();
+                        } else {
+                          startListening();
+                        }
+                      }}
+                      className={cn(
+                        "rounded-full p-6 transition-colors duration-300",
+                        !isListening
+                          ? "bg-destructive/30 text-destructive hover:bg-destructive/10"
+                          : isUserSpeaking
+                            ? "bg-input text-foreground"
+                            : "",
+                      )}
+                    >
+                      {isListening ? (
+                        <MicIcon
+                          className={`size-6 ${isUserSpeaking ? "text-primary" : "text-muted-foreground transition-colors duration-300"}`}
+                        />
+                      ) : (
+                        <MicOffIcon className="size-6" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {isListening
+                      ? t("VoiceChat.closeMic")
+                      : t("VoiceChat.openMic")}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center gap-3">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant={"secondary"}
                   size={"icon"}
-                  disabled={isLoading}
-                  onClick={() => {
-                    if (isListening) {
-                      stopListening();
-                    } else {
-                      startListening();
-                    }
-                  }}
-                  className={cn(
-                    "rounded-full p-6 transition-colors duration-300",
-                    !isListening
-                      ? "bg-destructive/30 text-destructive hover:bg-destructive/10"
-                      : isUserSpeaking
-                        ? "bg-input text-foreground"
-                        : "",
-                  )}
+                  className="size-8"
+                  onClick={() => setUseCompactView(!useCompactView)}
                 >
-                  {isListening ? (
-                    <MicIcon
-                      className={`size-6 ${isUserSpeaking ? "text-primary" : "text-muted-foreground transition-colors duration-300"}`}
-                    />
+                  {useCompactView ? (
+                    <MessageSquareMoreIcon className="size-4" />
                   ) : (
-                    <MicOffIcon className="size-6" />
+                    <MessagesSquareIcon className="size-4" />
                   )}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
-                {isListening ? t("VoiceChat.closeMic") : t("VoiceChat.openMic")}
+              <TooltipContent side="left">
+                {t("VoiceChat.displayMode")}
               </TooltipContent>
             </Tooltip>
-          )}
+
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant={"secondary"}
+                      size={"icon"}
+                      className="size-8"
+                    >
+                      <PianoIcon className="text-foreground size-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="left">
+                  {t("VoiceChat.tune")}
+                </TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent side="top" className="min-w-40" align="end">
+                {Object.entries(OPENAI_VOICE).map(([key, value]) => (
+                  <DropdownMenuItem
+                    className="cursor-pointer flex items-center justify-between"
+                    onClick={() =>
+                      appStoreMutate({
+                        voiceChat: {
+                          ...voiceChat,
+                          options: {
+                            provider: "openai",
+                            providerOptions: {
+                              voice: value,
+                            },
+                          },
+                        },
+                      })
+                    }
+                    key={key}
+                  >
+                    {key}
+
+                    {value === voiceChat.options.providerOptions?.voice && (
+                      <CheckIcon className="size-3.5" />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
     </div>

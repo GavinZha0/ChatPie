@@ -86,14 +86,49 @@ export function AgentDropdown({ agent, children, side, align }: Props) {
 
             <DropdownMenuItem
               onClick={() => {
-                appStore.setState((state) => ({
-                  voiceChat: {
-                    ...state.voiceChat,
-                    isOpen: true,
-                    threadId: generateUUID(),
-                    agentId: agent.id,
-                  },
-                }));
+                appStore.setState((state) => {
+                  const existingTab = state.rightPanel.tabs.find(
+                    (t) => t.id === "voice",
+                  );
+
+                  if (existingTab) {
+                    return {
+                      voiceChat: {
+                        ...state.voiceChat,
+                        threadId: generateUUID(),
+                        agentId: agent.id,
+                      },
+                      rightPanel: {
+                        ...state.rightPanel,
+                        isOpen: true,
+                        activeTabId: "voice",
+                      },
+                    };
+                  }
+
+                  return {
+                    voiceChat: {
+                      ...state.voiceChat,
+                      threadId: generateUUID(),
+                      agentId: agent.id,
+                    },
+                    rightPanel: {
+                      ...state.rightPanel,
+                      isOpen: true,
+                      activeTabId: "voice",
+                      tabs: [
+                        ...state.rightPanel.tabs,
+                        {
+                          id: "voice",
+                          title: "Voice Chat",
+                          icon: AudioWaveformIcon,
+                          getInitialContent: () => ({}),
+                          content: {},
+                        },
+                      ],
+                    },
+                  };
+                });
                 setOpen(false);
               }}
             >

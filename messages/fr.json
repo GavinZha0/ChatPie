@@ -273,6 +273,8 @@
     },
     "VoiceChat": {
       "title": "Mode Chat Vocal",
+      "displayMode": "Affichage",
+      "tune": "Tune",
       "compactDisplayMode": "Mode d'affichage compact",
       "conversationDisplayMode": "Mode d'affichage de conversation",
       "pleaseCloseTheVoiceChatAndTryAgain": "Veuillez fermer le chat vocal et réessayer.",
