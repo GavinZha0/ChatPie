@@ -1119,12 +1119,17 @@ export default function PromptInput({
                           submit();
                         }
                       }}
-                      className="fade-in animate-in cursor-pointer text-muted-foreground rounded-full p-2 bg-secondary hover:bg-accent-foreground hover:text-accent transition-all duration-200"
+                      className={cn(
+                        "fade-in animate-in cursor-pointer rounded-full p-2 transition-all duration-200",
+                        isLoading
+                          ? "bg-input/60 border hover:bg-input text-red-500"
+                          : "text-muted-foreground bg-secondary hover:bg-accent-foreground hover:text-accent",
+                      )}
                     >
                       {isLoading ? (
                         <Square
                           size={16}
-                          className="fill-muted-foreground text-muted-foreground"
+                          className="fill-red-500 text-red-500"
                         />
                       ) : (
                         <CornerRightUp size={16} />
