@@ -140,11 +140,9 @@ export function ProviderAddModelDialog({
           const agentData = {
             name: finalModelId,
             description: description.trim(),
-            instructions: {
-              chatModel: {
-                provider: provider.name.toLowerCase(),
-                model: finalModelId,
-              },
+            model: {
+              provider: provider.name.toLowerCase(),
+              model: finalModelId,
             },
             icon: {
               type: "emoji",
