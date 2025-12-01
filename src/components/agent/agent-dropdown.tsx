@@ -72,44 +72,6 @@ export function AgentDropdown({ agent, children, side, align }: Props) {
         <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
         <DropdownMenuContent className="w-[200px]" side={side} align={align}>
           <DropdownMenuGroup>
-            <DropdownMenuItem
-              onClick={() => {
-                appStore.setState((state) => ({
-                  voiceChat: {
-                    ...state.voiceChat,
-                    isOpen: true,
-                    threadId: generateUUID(),
-                    agentId: agent.id,
-                  },
-                }));
-                setOpen(false);
-              }}
-            >
-              <AudioWaveformIcon className="mr-2" />
-              <span>{t("Chat.VoiceChat.title")}</span>
-            </DropdownMenuItem>
-
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
-                <UserPlus className="mr-2" />
-                <span>Add to group</span>
-              </DropdownMenuSubTrigger>
-              <DropdownMenuPortal>
-                <DropdownMenuSubContent>
-                  {groups.map((g) => (
-                    <DropdownMenuItem key={g.id} onClick={() => addToGroup(g)}>
-                      <span className="truncate">{g.name}</span>
-                    </DropdownMenuItem>
-                  ))}
-                  {groups.length === 0 && (
-                    <div className="px-2 py-1.5">
-                      <p className="text-xs text-muted-foreground">No groups</p>
-                    </div>
-                  )}
-                </DropdownMenuSubContent>
-              </DropdownMenuPortal>
-            </DropdownMenuSub>
-
             {canEdit && (
               <DropdownMenuItem
                 onClick={() => {
@@ -121,6 +83,81 @@ export function AgentDropdown({ agent, children, side, align }: Props) {
                 {t("Common.edit")}
               </DropdownMenuItem>
             )}
+
+            <DropdownMenuItem
+              onClick={() => {
+                appStore.setState((state) => {
+                  const existingTab = state.rightPanel.tabs.find(
+                    (t) => t.id === "voice",
+                  );
+
+                  if (existingTab) {
+                    return {
+                      voiceChat: {
+                        ...state.voiceChat,
+                        threadId: generateUUID(),
+                        agentId: agent.id,
+                      },
+                      rightPanel: {
+                        ...state.rightPanel,
+                        isOpen: true,
+                        activeTabId: "voice",
+                      },
+                    };
+                  }
+
+                  return {
+                    voiceChat: {
+                      ...state.voiceChat,
+                      threadId: generateUUID(),
+                      agentId: agent.id,
+                    },
+                    rightPanel: {
+                      ...state.rightPanel,
+                      isOpen: true,
+                      activeTabId: "voice",
+                      tabs: [
+                        ...state.rightPanel.tabs,
+                        {
+                          id: "voice",
+                          title: "Voice Chat",
+                          icon: AudioWaveformIcon,
+                          getInitialContent: () => ({}),
+                          content: {},
+                        },
+                      ],
+                    },
+                  };
+                });
+                setOpen(false);
+              }}
+            >
+              <AudioWaveformIcon className="mr-2" />
+              <span>{t("Chat.VoiceChat.title")}</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <UserPlus className="mr-2" />
+                <span>{t("Agent.addToTeam")}</span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuSubContent>
+                  {groups.map((g) => (
+                    <DropdownMenuItem key={g.id} onClick={() => addToGroup(g)}>
+                      <span className="truncate">{g.name}</span>
+                    </DropdownMenuItem>
+                  ))}
+                  {groups.length === 0 && (
+                    <div className="px-2 py-1.5">
+                      <p className="text-xs text-muted-foreground">
+                        {t("Chat.TeamChat.noTeam")}
+                      </p>
+                    </div>
+                  )}
+                </DropdownMenuSubContent>
+              </DropdownMenuPortal>
+            </DropdownMenuSub>
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -24,11 +24,12 @@ export interface UploadedFile {
 export type TeamTabMode = "comparison" | "task" | "debate" | "discussion";
 
 export interface RightPanelTab {
-  id: "team" | "history" | "web" | "chart" | "code" | "tempchat";
+  id: "team" | "history" | "web" | "chart" | "code" | "tempchat" | "voice";
   mode?: TeamTabMode;
   title: string;
   content: any;
   threadId?: string;
+  hidden?: boolean;
 }
 
 export interface AppState {
@@ -66,7 +67,6 @@ export interface AppState {
     chatModel?: ChatModel;
   };
   voiceChat: {
-    isOpen: boolean;
     agentId?: string;
     options: {
       provider: string;
@@ -82,6 +82,7 @@ export interface AppState {
     activeTabId?: string;
     panelSizes: [number, number]; // [left%, right%]
   };
+  rightPanelRuntime?: Record<string, any>;
 }
 
 export interface AppDispatch {
@@ -115,7 +116,6 @@ const initialState: AppState = {
     instructions: "",
   },
   voiceChat: {
-    isOpen: false,
     options: {
       provider: "openai",
       providerOptions: {
@@ -132,6 +132,7 @@ const initialState: AppState = {
     activeTabId: undefined,
     panelSizes: [60, 40],
   },
+  rightPanelRuntime: {},
 };
 
 /**
@@ -191,7 +192,6 @@ export const appStore = create<AppState & AppDispatch>()(
         voiceChat: {
           ...initialState.voiceChat,
           ...state.voiceChat,
-          isOpen: false,
         },
         groupChatMode: state.groupChatMode ?? initialState.groupChatMode,
         rightPanel: {

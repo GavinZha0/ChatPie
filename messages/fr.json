@@ -225,7 +225,7 @@
       "temporaryChatInstructionsPlaceholder": "Entrez vos instructions ici",
       "temporaryChatInstructionsDescription": "Vous pouvez définir des instructions pour le chat temporaire. Cela sera utilisé comme prompt système pour le chat temporaire."
     },
-    "GroupChat": {
+    "TeamChat": {
       "teamMode": "Mode d'Équipe",
       "comparison": "Comparaison",
       "comparisonDescription": "Demandez une fois, comparez plusieurs réponses.",
@@ -236,7 +236,8 @@
       "task": "Tâche",
       "taskDescription": "Un agent assigne des tâches aux autres",
       "debate": "Débat",
-      "debateDescription": "Les agents se divisent en pour et contre pour débattre"
+      "debateDescription": "Les agents se divisent en pour et contre pour débattre",
+      "noTeam": "Aucun équipe"
     },
     "chatPlaceholder": "Demandez n'importe quoi, @agent ou $tool",
     "toggleRightPanel": "Basculer le panneau droit",
@@ -272,6 +273,8 @@
     },
     "VoiceChat": {
       "title": "Mode Chat Vocal",
+      "displayMode": "Affichage",
+      "tune": "Tune",
       "compactDisplayMode": "Mode d'affichage compact",
       "conversationDisplayMode": "Mode d'affichage de conversation",
       "pleaseCloseTheVoiceChatAndTryAgain": "Veuillez fermer le chat vocal et réessayer.",
@@ -443,6 +446,7 @@
     "newAgent": "Créer un Agent",
     "editAgent": "Modifier l'Agent",
     "generatingAgent": "Génération de l'Agent...",
+    "addToTeam": "Ajouter au groupe",
     "agentNameAndIconLabel": "Donnez un nom et une icône à votre agent.",
     "agentDescriptionLabel": "Ajoutez une brève description de ce que fait cet agent.",
     "agentDescriptionPlaceholder": "Ceci n'est qu'une description de l'agent, ce n'est pas critique.",

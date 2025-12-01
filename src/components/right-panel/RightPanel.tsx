@@ -4,10 +4,11 @@ import { appStore } from "@/app/store";
 import { useShallow } from "zustand/shallow";
 import { ResizableHandle, ResizablePanel } from "ui/resizable";
 import { TemporaryChatTab } from "./tabs/TemporaryChatTab";
-import { HistoryTabContent } from "@/components/history/chat-bot-history";
+import { HistoryChatTab } from "./tabs/HistoryChatTab";
 import { TeamComparisonTab } from "./tabs/TeamComparisonTab";
+import { VoiceChatTab } from "./tabs/VoiceChatTab";
 
-export function RightPanel({ isChatRoute }: { isChatRoute: boolean }) {
+export function RightTabPanel({ isChatRoute }: { isChatRoute: boolean }) {
   const [rightPanel, appStoreMutate] = appStore(
     useShallow((state) => [state.rightPanel, state.mutate]),
   );
@@ -17,17 +18,22 @@ export function RightPanel({ isChatRoute }: { isChatRoute: boolean }) {
 
   const closeTab = (tabId: string) => {
     appStoreMutate((prev) => {
-      const newTabs = prev.rightPanel.tabs.filter((t) => t.id !== tabId);
-      const newActiveTabId =
-        prev.rightPanel.activeTabId === tabId
-          ? newTabs[0]?.id
-          : prev.rightPanel.activeTabId;
+      const nextTabs = prev.rightPanel.tabs.map((t) =>
+        t.id === tabId ? { ...t, hidden: true } : t,
+      );
+      const hasVisibleTabs = nextTabs.some((t) => !t.hidden);
+      const nextActiveTabId = (() => {
+        if (prev.rightPanel.activeTabId !== tabId)
+          return prev.rightPanel.activeTabId;
+        const nextVisible = nextTabs.find((t) => !t.hidden);
+        return nextVisible?.id;
+      })();
       const updates: Partial<typeof prev> = {
         rightPanel: {
           ...prev.rightPanel,
-          tabs: newTabs,
-          activeTabId: newActiveTabId,
-          isOpen: newTabs.length > 0 && prev.rightPanel.isOpen,
+          tabs: nextTabs,
+          activeTabId: nextActiveTabId,
+          isOpen: hasVisibleTabs ? prev.rightPanel.isOpen : false,
         },
       };
       if (tabId === "tempchat") {
@@ -40,25 +46,29 @@ export function RightPanel({ isChatRoute }: { isChatRoute: boolean }) {
     });
   };
 
-  if (!(isChatRoute && rightPanel.isOpen && resolvedActiveTabId)) return null;
+  if (!isChatRoute) return null;
 
   return (
     <>
-      <ResizableHandle withHandle className="hidden md:flex" />
+      <ResizableHandle
+        withHandle
+        className={`hidden ${rightPanel.isOpen ? "md:flex" : ""}`}
+      />
       <ResizablePanel
-        defaultSize={rightPanel.panelSizes[1]}
-        minSize={20}
+        defaultSize={rightPanel.isOpen ? rightPanel.panelSizes[1] : 0}
+        minSize={rightPanel.isOpen ? 20 : 0}
         className="hidden md:block overflow-hidden relative z-30"
       >
         <div className="h-full flex flex-col bg-muted/30">
           {rightPanel.tabs.map((tab) => {
             const isActive = tab.id === resolvedActiveTabId;
+            const isHidden = Boolean(tab.hidden);
             if (tab.id === "team") {
               if (tab.mode === "comparison") {
                 return (
                   <div
                     key={tab.id}
-                    className={`flex-1 overflow-y-auto p-4 ${isActive ? "" : "hidden"}`}
+                    className={`flex-1 overflow-y-auto p-4 ${isHidden ? "hidden" : isActive ? "" : "hidden"}`}
                   >
                     <TeamComparisonTab
                       agents={tab.content.agents || []}
@@ -70,7 +80,7 @@ export function RightPanel({ isChatRoute }: { isChatRoute: boolean }) {
               return (
                 <div
                   key={tab.id}
-                  className={`flex flex-1 items-center justify-center text-sm text-muted-foreground ${isActive ? "" : "hidden"}`}
+                  className={`flex flex-1 items-center justify-center text-sm text-muted-foreground ${isHidden ? "hidden" : isActive ? "" : "hidden"}`}
                 >
                   No team content yet
                 </div>
@@ -80,9 +90,19 @@ export function RightPanel({ isChatRoute }: { isChatRoute: boolean }) {
               return (
                 <div
                   key={tab.id}
-                  className={`${isActive ? "" : "hidden"} h-full`}
+                  className={`${isHidden ? "hidden" : isActive ? "" : "hidden"} h-full`}
                 >
                   <TemporaryChatTab />
+                </div>
+              );
+            }
+            if (tab.id === "voice") {
+              return (
+                <div
+                  key={tab.id}
+                  className={`${isHidden ? "hidden" : isActive ? "" : "hidden"} h-full`}
+                >
+                  <VoiceChatTab />
                 </div>
               );
             }
@@ -90,16 +110,16 @@ export function RightPanel({ isChatRoute }: { isChatRoute: boolean }) {
               return (
                 <div
                   key={tab.id}
-                  className={`${isActive ? "" : "hidden"} h-full`}
+                  className={`${isHidden ? "hidden" : isActive ? "" : "hidden"} h-full`}
                 >
-                  <HistoryTabContent onClose={() => closeTab("history")} />
+                  <HistoryChatTab onClose={() => closeTab("history")} />
                 </div>
               );
             }
             return (
               <div
                 key={tab.id}
-                className={`flex h-full flex-col ${isActive ? "" : "hidden"}`}
+                className={`flex h-full flex-col ${isHidden ? "hidden" : isActive ? "" : "hidden"}`}
               >
                 <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
                   <span className="text-sm font-semibold text-foreground">

@@ -123,6 +123,7 @@ export default function PromptInput({
     threadImageToolModel,
     groupChatMode,
     appStoreMutate,
+    rightPanelRuntime,
   ] = appStore(
     useShallow((state) => [
       state.chatModel,
@@ -131,6 +132,7 @@ export default function PromptInput({
       state.threadImageToolModel,
       state.groupChatMode,
       state.mutate,
+      state.rightPanelRuntime,
     ]),
   );
 
@@ -885,7 +887,7 @@ export default function PromptInput({
                         </TooltipTrigger>
                         <TooltipContent side="bottom" align="center">
                           <span className="text-sm">
-                            {t("GroupChat.teamMode")}
+                            {t("TeamChat.teamMode")}
                           </span>
                         </TooltipContent>
                       </Tooltip>
@@ -905,14 +907,14 @@ export default function PromptInput({
                             <div className="flex items-center gap-2">
                               <Users className="size-4" />
                               <span className="font-bold">
-                                {t("GroupChat.comparison")}
+                                {t("TeamChat.comparison")}
                               </span>
                               {groupChatMode === "comparison" && (
                                 <Check className="ml-auto size-4" />
                               )}
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              {t("GroupChat.comparisonDescription")}
+                              {t("TeamChat.comparisonDescription")}
                             </p>
                           </div>
                         </DropdownMenuItem>
@@ -927,14 +929,14 @@ export default function PromptInput({
                             <div className="flex items-center gap-2">
                               <MessagesSquare className="size-4" />
                               <span className="font-bold">
-                                {t("GroupChat.discussion")}
+                                {t("TeamChat.discussion")}
                               </span>
                               {groupChatMode === "discussion" && (
                                 <Check className="ml-auto size-4" />
                               )}
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              {t("GroupChat.discussionDescription")}
+                              {t("TeamChat.discussionDescription")}
                             </p>
                           </div>
                         </DropdownMenuItem>
@@ -949,14 +951,14 @@ export default function PromptInput({
                             <div className="flex items-center gap-2">
                               <Repeat1 className="size-4" />
                               <span className="font-bold">
-                                {t("GroupChat.chain")}
+                                {t("TeamChat.chain")}
                               </span>
                               {groupChatMode === "chain" && (
                                 <Check className="ml-auto size-4" />
                               )}
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              {t("GroupChat.chainDescription")}
+                              {t("TeamChat.chainDescription")}
                             </p>
                           </div>
                         </DropdownMenuItem>
@@ -971,14 +973,14 @@ export default function PromptInput({
                             <div className="flex items-center gap-2">
                               <Target className="size-4" />
                               <span className="font-bold">
-                                {t("GroupChat.task")}
+                                {t("TeamChat.task")}
                               </span>
                               {groupChatMode === "task" && (
                                 <Check className="ml-auto size-4" />
                               )}
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              {t("GroupChat.taskDescription")}
+                              {t("TeamChat.taskDescription")}
                             </p>
                           </div>
                         </DropdownMenuItem>
@@ -993,14 +995,14 @@ export default function PromptInput({
                             <div className="flex items-center gap-2">
                               <Scale className="size-4" />
                               <span className="font-bold">
-                                {t("GroupChat.debate")}
+                                {t("TeamChat.debate")}
                               </span>
                               {groupChatMode === "debate" && (
                                 <Check className="ml-auto size-4" />
                               )}
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              {t("GroupChat.debateDescription")}
+                              {t("TeamChat.debateDescription")}
                             </p>
                           </div>
                         </DropdownMenuItem>
@@ -1025,17 +1027,85 @@ export default function PromptInput({
                           variant="ghost"
                           size={"sm"}
                           onClick={() => {
-                            appStoreMutate((state) => ({
-                              voiceChat: {
-                                ...state.voiceChat,
-                                isOpen: true,
-                                agentId: undefined,
-                              },
-                            }));
+                            appStoreMutate((state) => {
+                              const existingTab = state.rightPanel.tabs.find(
+                                (t) => t.id === "voice",
+                              );
+                              const isActive = (state.rightPanelRuntime || {})
+                                .voice?.isActive;
+                              const isListening = (
+                                state.rightPanelRuntime || {}
+                              ).voice?.isListening;
+                              const shouldQuickStart =
+                                !isActive || !isListening;
+                              if (existingTab) {
+                                return {
+                                  rightPanel: {
+                                    ...state.rightPanel,
+                                    isOpen: true,
+                                    activeTabId: "voice",
+                                  },
+                                  voiceChat: {
+                                    ...state.voiceChat,
+                                    agentId: selectedAgentId,
+                                  },
+                                  rightPanelRuntime: {
+                                    ...(state.rightPanelRuntime || {}),
+                                    voice: {
+                                      ...((state.rightPanelRuntime || {})
+                                        .voice || {}),
+                                      ...(shouldQuickStart
+                                        ? { startRequestedAt: Date.now() }
+                                        : {}),
+                                    },
+                                  },
+                                };
+                              }
+                              return {
+                                rightPanel: {
+                                  ...state.rightPanel,
+                                  isOpen: true,
+                                  activeTabId: "voice",
+                                  tabs: [
+                                    ...state.rightPanel.tabs,
+                                    {
+                                      id: "voice",
+                                      title: t("VoiceChat.title"),
+                                      icon: AudioWaveformIcon,
+                                      getInitialContent: () => ({}),
+                                      content: {},
+                                    },
+                                  ],
+                                },
+                                voiceChat: {
+                                  ...state.voiceChat,
+                                  agentId: selectedAgentId,
+                                },
+                                rightPanelRuntime: {
+                                  ...(state.rightPanelRuntime || {}),
+                                  voice: {
+                                    ...((state.rightPanelRuntime || {}).voice ||
+                                      {}),
+                                    ...(shouldQuickStart
+                                      ? { startRequestedAt: Date.now() }
+                                      : {}),
+                                  },
+                                },
+                              };
+                            });
                           }}
                           className="bg-input/60 border rounded-full hover:bg-input! p-2! ml-2"
                         >
-                          <AudioWaveformIcon size={16} />
+                          <AudioWaveformIcon
+                            size={16}
+                            className={cn(
+                              (rightPanelRuntime || {}).voice?.isActive
+                                ? (rightPanelRuntime || {}).voice?.isListening
+                                  ? "text-green-500"
+                                  : "text-yellow-500"
+                                : "",
+                            )}
+                          />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>{t("VoiceChat.title")}</TooltipContent>
@@ -1049,12 +1119,17 @@ export default function PromptInput({
                           submit();
                         }
                       }}
-                      className="fade-in animate-in cursor-pointer text-muted-foreground rounded-full p-2 bg-secondary hover:bg-accent-foreground hover:text-accent transition-all duration-200"
+                      className={cn(
+                        "fade-in animate-in cursor-pointer rounded-full p-2 transition-all duration-200",
+                        isLoading
+                          ? "bg-input/60 border hover:bg-input text-red-500"
+                          : "text-muted-foreground bg-secondary hover:bg-accent-foreground hover:text-accent",
+                      )}
                     >
                       {isLoading ? (
                         <Square
                           size={16}
-                          className="fill-muted-foreground text-muted-foreground"
+                          className="fill-red-500 text-red-500"
                         />
                       ) : (
                         <CornerRightUp size={16} />

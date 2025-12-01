@@ -3,7 +3,7 @@
 import { appStore } from "@/app/store";
 import { useArchives } from "@/hooks/queries/use-archives";
 import { useMounted } from "@/hooks/use-mounted";
-import { ThreadDropdown } from "./thread-dropdown";
+import { ThreadDropdown } from "@/components/thread/thread-dropdown";
 import {
   deleteThreadsAction,
   deleteUnarchivedThreadsAction,
@@ -34,7 +34,7 @@ type ThreadGroup = {
   threads: EnhancedChatThread[];
 };
 
-export function HistoryTabContent({ onClose }: { onClose: () => void }) {
+export function HistoryChatTab({ onClose }: { onClose: () => void }) {
   const mounted = useMounted();
   const router = useRouter();
   const t = useTranslations("Layout");
@@ -230,7 +230,7 @@ export function HistoryTabContent({ onClose }: { onClose: () => void }) {
                             <MoreHorizontal />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent side="left" align="end">
+                        <DropdownMenuContent side="left" align="start">
                           <DropdownMenuItem
                             variant="destructive"
                             onClick={handleDeleteAllThreads}
@@ -274,7 +274,7 @@ export function HistoryTabContent({ onClose }: { onClose: () => void }) {
 
                       <ThreadDropdown
                         side="left"
-                        align="end"
+                        align="start"
                         threadId={thread.id}
                         beforeTitle={thread.title}
                       >

@@ -238,7 +238,7 @@ export function ArchiveExplorer({
                         </span>
                       </div>
                     </div>
-                    <div className="pointer-events-none absolute right-2 top-8 flex flex-col gap-2 opacity-0 transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+                    <div className="pointer-events-none absolute right-4 top-4 flex flex-col gap-1 opacity-0 transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
                       <Button
                         variant="ghost"
                         size="icon"

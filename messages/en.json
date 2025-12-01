@@ -228,7 +228,7 @@
       "temporaryChatInstructionsPlaceholder": "Enter your instructions here",
       "temporaryChatInstructionsDescription": "You can set instructions for the temporary chat. This will be used as a system prompt for the temporary chat."
     },
-    "GroupChat": {
+    "TeamChat": {
       "teamMode": "Team Mode",
       "comparison": "Comparison",
       "comparisonDescription": "Ask once, compare multiple answers.",
@@ -239,7 +239,8 @@
       "task": "Task",
       "taskDescription": "One agent assigns tasks to others",
       "debate": "Debate",
-      "debateDescription": "Agents split into pro & con sides to debate"
+      "debateDescription": "Agents split into pro & con sides to debate",
+      "noTeam": "No team"
     },
     "chatPlaceholder": "Ask anything, @agent or $tool",
     "toggleRightPanel": "Toggle right panel",
@@ -274,14 +275,16 @@
       }
     },
     "VoiceChat": {
-      "title": "Voice Mode",
-      "compactDisplayMode": "Compact display mode",
-      "conversationDisplayMode": "Conversation display mode",
+      "title": "Voice chat",
+      "displayMode": "Display mode",
+      "tune": "Tune",
+      "compactDisplayMode": "Compact mode",
+      "conversationDisplayMode": "Conversation mode",
       "pleaseCloseTheVoiceChatAndTryAgain": "Please close the voice chat and try again.",
-      "startConversation": "Start conversation",
-      "closeMic": "Close Mic",
-      "openMic": "Open Mic",
-      "endConversation": "End conversation",
+      "startConversation": "Start",
+      "closeMic": "Mute",
+      "openMic": "Unmute",
+      "endConversation": "End",
       "toggleVoiceChat": "Toggle Voice Chat",
       "readyWhenYouAreJustStartTalking": "Ready when you are—just start talking.",
       "yourMicIsOff": "Your mic is off.",
@@ -453,9 +456,10 @@
   },
   "Agent": {
     "title": "Agent",
-    "newAgent": "Create Agent",
-    "editAgent": "Edit Agent",
-    "generatingAgent": "Generating Agent...",
+    "newAgent": "Create agent",
+    "editAgent": "Edit agent",
+    "generatingAgent": "Generating agent...",
+    "addToTeam": "Add to team",
     "agentNameAndIconLabel": "Name",
     "agentDescriptionLabel": "Description",
     "agentDescriptionPlaceholder": "This is just a description of the agent.",

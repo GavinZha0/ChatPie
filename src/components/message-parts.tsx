@@ -954,7 +954,7 @@ export const ToolMessagePart = memo(
               <div className="w-full flex flex-col gap-2">
                 <div
                   className={cn(
-                    "min-w-0 w-full p-4 rounded-lg bg-card px-4 border text-xs transition-colors fade-300",
+                    "min-w-0 w-full py-2 px-4 rounded-lg bg-card border text-xs transition-colors fade-300",
                     !isExpanded && "hover:bg-secondary cursor-pointer",
                   )}
                   onClick={() => {
@@ -963,7 +963,7 @@ export const ToolMessagePart = memo(
                     }
                   }}
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center h-6">
                     <h5 className="text-muted-foreground font-medium select-none transition-colors">
                       Request
                     </h5>
@@ -994,7 +994,7 @@ export const ToolMessagePart = memo(
                 ) : (
                   <div
                     className={cn(
-                      "min-w-0 w-full p-4 rounded-lg bg-card px-4 border text-xs mt-2 transition-colors fade-300",
+                      "min-w-0 w-full py-2 px-4 rounded-lg bg-card border text-xs mt-2 transition-colors fade-300",
                       !isExpanded && "hover:bg-secondary cursor-pointer",
                     )}
                     onClick={() => {
@@ -1003,7 +1003,7 @@ export const ToolMessagePart = memo(
                       }
                     }}
                   >
-                    <div className="flex items-center">
+                    <div className="flex items-center h-6">
                       <h5 className="text-muted-foreground font-medium select-none">
                         Response
                       </h5>
