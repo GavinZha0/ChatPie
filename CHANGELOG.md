@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/GavinZha0/ChatPie/compare/v0.7.0...v0.7.1) (2025-12-01)
+
+
+### Bug Fixes
+
+* fail to add agent model ([#8](https://github.com/GavinZha0/ChatPie/issues/8)) ([4f5d039](https://github.com/GavinZha0/ChatPie/commit/4f5d03996db00876bb76e39b97f7bcce8ab35834))
+
 ## [0.7.0](https://github.com/GavinZha0/ChatPie/compare/v0.6.1...v0.7.0) (2025-12-01)
 
 
