@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/GavinZha0/ChatPie/compare/v0.6.1...v0.7.0) (2025-12-01)
+
+
+### Features
+
+* improve voice chat function and UI ([#6](https://github.com/GavinZha0/ChatPie/issues/6)) ([af86a85](https://github.com/GavinZha0/ChatPie/commit/af86a85305d1f3b6a895847fbbf7e435739c88c1))
+
 ## [0.6.1](https://github.com/GavinZha0/ChatPie/compare/v0.6.0...v0.6.1) (2025-11-29)
 
 
