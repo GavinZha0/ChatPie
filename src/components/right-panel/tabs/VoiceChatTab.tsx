@@ -47,6 +47,8 @@ import { useAgent } from "@/hooks/queries/use-agent";
 import { ChatMention } from "app-types/chat";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
 import { getEmojiUrl } from "lib/emoji";
+import { authClient } from "auth/client";
+import { getUserAvatar } from "lib/user/utils";
 
 export function VoiceChatTab() {
   const t = useTranslations("Chat");
@@ -501,6 +503,8 @@ function ConversationView({
   messages,
 }: { messages: UIMessageWithCompleted[] }) {
   const ref = useRef<HTMLDivElement>(null);
+  const { data: session } = authClient.useSession();
+  const currentUser = session?.user;
 
   useEffect(() => {
     if (ref.current) {
@@ -510,6 +514,12 @@ function ConversationView({
       });
     }
   }, [messages.length]);
+  const fallbackSource =
+    currentUser?.name?.trim() || currentUser?.email?.trim();
+  const avatarFallback = fallbackSource
+    ? fallbackSource.charAt(0).toUpperCase()
+    : "U";
+
   return (
     <div className="select-text w-full overflow-y-auto h-full" ref={ref}>
       <div className="flex flex-col px-4 py-4 gap-4 min-h-0 min-w-0">
@@ -517,63 +527,80 @@ function ConversationView({
           <div
             key={message.id}
             className={cn(
-              "flex px-3 py-2 text-sm",
-              message.role == "user" &&
-                "ml-auto max-w-[90%] text-foreground rounded-2xl w-fit bg-input/40",
+              "flex gap-2 text-sm items-start",
+              message.role == "user" && "mt-2 mb-1",
             )}
           >
-            {!message.completed ? (
-              <MessageLoading
-                className={cn(
-                  message.role == "user"
-                    ? "text-muted-foreground"
-                    : "text-foreground",
-                )}
-              />
-            ) : (
-              message.parts.map((part, index) => {
-                if (part.type === "text") {
-                  if (!part.text) {
+            {message.role === "user" && (
+              <Avatar className="size-7 mt-1 ring ring-border rounded-none flex-shrink-0">
+                <AvatarImage
+                  src={getUserAvatar({
+                    image: currentUser?.image ?? undefined,
+                  })}
+                />
+                <AvatarFallback>{avatarFallback}</AvatarFallback>
+              </Avatar>
+            )}
+            <div
+              className={cn(
+                "flex px-3 py-2",
+                message.role == "user" &&
+                  "max-w-[80%] text-foreground rounded-2xl w-fit bg-green-200 dark:bg-green-800 text-green-900 dark:text-green-50 border border-green-300 dark:border-green-700",
+              )}
+            >
+              {!message.completed ? (
+                <MessageLoading
+                  className={cn(
+                    message.role == "user"
+                      ? "text-muted-foreground"
+                      : "text-foreground",
+                  )}
+                />
+              ) : (
+                message.parts.map((part, index) => {
+                  if (part.type === "text") {
+                    if (!part.text) {
+                      return (
+                        <MessageLoading
+                          key={index}
+                          className={cn(
+                            message.role == "user"
+                              ? "text-muted-foreground"
+                              : "text-foreground",
+                          )}
+                        />
+                      );
+                    }
                     return (
-                      <MessageLoading
+                      <p key={index}>
+                        {(part.text || "...")
+                          ?.trim()
+                          .split(" ")
+                          .map((word, wordIndex) => (
+                            <span
+                              key={wordIndex}
+                              className="animate-in fade-in duration-3000"
+                            >
+                              {word}{" "}
+                            </span>
+                          ))}
+                      </p>
+                    );
+                  } else if (isToolUIPart(part)) {
+                    return (
+                      <ToolMessagePart
                         key={index}
-                        className={cn(
-                          message.role == "user"
-                            ? "text-muted-foreground"
-                            : "text-foreground",
-                        )}
+                        part={part}
+                        showActions={false}
+                        messageId={message.id}
+                        isLast={part.state.startsWith("input")}
                       />
                     );
                   }
-                  return (
-                    <p key={index}>
-                      {(part.text || "...")
-                        ?.trim()
-                        .split(" ")
-                        .map((word, wordIndex) => (
-                          <span
-                            key={wordIndex}
-                            className="animate-in fade-in duration-3000"
-                          >
-                            {word}{" "}
-                          </span>
-                        ))}
-                    </p>
-                  );
-                } else if (isToolUIPart(part)) {
-                  return (
-                    <ToolMessagePart
-                      key={index}
-                      part={part}
-                      showActions={false}
-                      messageId={message.id}
-                      isLast={part.state.startsWith("input")}
-                    />
-                  );
-                }
-                return <p key={index}>{part.type} unknown part</p>;
-              })
-            )}
+                  return <p key={index}>{part.type} unknown part</p>;
+                })
+              )}
+            </div>
           </div>
         ))}
       </div>
