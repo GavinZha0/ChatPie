@@ -269,10 +269,16 @@
       "searchOptionsDescription": "您可以向聊天机器人传递搜索选项，例如搜索结果的最大数量、搜索日期等。",
       "defaultToolKit": {
         "visualization": "数据可视化",
-        "webSearch": "网页搜寻",
-        "http": "HTTP Request",
-        "code": "Code Execution"
-      }
+        "webSearch": "联网搜索",
+        "http": "HTTP 请求",
+        "code": "代码执行"
+      },
+      "codeRun": "运行",
+      "codeCopy": "复制",
+      "codeGenerating": "代码生成中...",
+      "codeReExecuting": "重新执行代码...",
+      "outputExceededStorageLimit": "日志输出超过存储限制（10KB）。用户仅显示完整输出，但服务器存储截断。",
+      "executionFinished": "执行完成。请提供：1) 主要结果/输出 2) 关键洞察/发现 3) 如果有错误，请解释。不要重复代码或原始日志 - 对用户解释和总结。"
     },
     "VoiceChat": {
       "title": "语音聊天",

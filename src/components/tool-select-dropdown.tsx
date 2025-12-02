@@ -7,8 +7,6 @@ import {
   ChartColumn,
   Check,
   ChevronRight,
-  CodeIcon,
-  GlobeIcon,
   HammerIcon,
   HardDriveUploadIcon,
   ImagesIcon,
@@ -899,30 +897,30 @@ function AppDefaultToolKitSelector() {
 
   const defaultToolInfo = useMemo(() => {
     const raw = t.raw("Chat.Tool.defaultToolKit");
-    return Object.values(AppDefaultToolkit).map((toolkit) => {
-      const label = raw[toolkit] || toolkit;
-      const id = toolkit;
-      let icon = Wrench;
-      switch (toolkit) {
-        case AppDefaultToolkit.Visualization:
-          icon = ChartColumn;
-          break;
-        case AppDefaultToolkit.WebSearch:
-          icon = GlobeIcon;
-          break;
-        case AppDefaultToolkit.Http:
-          icon = HardDriveUploadIcon;
-          break;
-        case AppDefaultToolkit.Code:
-          icon = CodeIcon;
-          break;
-      }
-      return {
-        label,
-        id,
-        icon,
-      };
-    });
+    return Object.values(AppDefaultToolkit)
+      .filter(
+        (toolkit) =>
+          toolkit !== AppDefaultToolkit.WebSearch &&
+          toolkit !== AppDefaultToolkit.Code,
+      )
+      .map((toolkit) => {
+        const label = raw[toolkit] || toolkit;
+        const id = toolkit;
+        let icon = Wrench;
+        switch (toolkit) {
+          case AppDefaultToolkit.Visualization:
+            icon = ChartColumn;
+            break;
+          case AppDefaultToolkit.Http:
+            icon = HardDriveUploadIcon;
+            break;
+        }
+        return {
+          label,
+          id,
+          icon,
+        };
+      });
   }, []);
 
   return (

@@ -269,7 +269,13 @@
         "webSearch": "Rechercher sur le le Web",
         "http": "HTTP Request",
         "code": "Code Execution"
-      }
+      },
+      "codeRun": "Exécuter",
+      "codeCopy": "Copier",
+      "codeGenerating": "Génération de code...",
+      "codeReExecuting": "Réexécution de code...",
+      "outputExceededStorageLimit": "Sortie de log excède la limite de stockage (10KB). L'utilisateur ne voit que la sortie complète, mais le stockage du serveur est tronqué.",
+      "executionFinished": "Exécution terminée. Veuillez fournir : 1) Résultats principaux / sortie 2) Encuentros clés / découvertes 3) Si des erreurs se sont produites, expliquez-les. Ne répétez ni le code ni le log original - résumez pour l'utilisateur."
     },
     "VoiceChat": {
       "title": "Mode Chat Vocal",

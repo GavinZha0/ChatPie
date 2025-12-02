@@ -160,12 +160,30 @@ export async function safePythonRun({
       setTimeout(() => reject(new Error("Timeout")), timeout),
     );
     const returnValue = await Promise.race([execution, timer]);
+    let clonedResult = returnValue as any;
+    try {
+      const isObject = clonedResult && typeof clonedResult === "object";
+      const hasToJs =
+        isObject && typeof (clonedResult as any).toJs === "function";
+      if (hasToJs) {
+        const jsVal = (clonedResult as any).toJs();
+        try {
+          if (typeof (clonedResult as any).destroy === "function") {
+            (clonedResult as any).destroy();
+          }
+        } catch {}
+        clonedResult =
+          jsVal instanceof Map
+            ? Object.fromEntries(jsVal as Map<any, any>)
+            : jsVal;
+      }
+    } catch {}
 
     return {
       success: true,
       logs,
       executionTimeMs: Date.now() - startTime,
-      result: returnValue,
+      result: clonedResult,
     } as CodeRunnerResult;
   })
     .ifFail((err) => ({

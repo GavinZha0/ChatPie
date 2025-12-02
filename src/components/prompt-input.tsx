@@ -17,6 +17,8 @@ import {
   Check,
   Scale,
   MessagesSquare,
+  GlobeIcon,
+  CodeIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "ui/button";
@@ -35,7 +37,7 @@ import { WorkflowSummary } from "app-types/workflow";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
 import equal from "lib/equal";
 import { MCPIcon } from "ui/mcp-icon";
-import { DefaultToolName } from "lib/ai/tools";
+import { AppDefaultToolkit, DefaultToolName } from "lib/ai/tools";
 import { DefaultToolIcon } from "./default-tool-icon";
 import { OpenAIIcon } from "ui/openai-icon";
 import { GeminiIcon } from "ui/gemini-icon";
@@ -124,6 +126,7 @@ export default function PromptInput({
     groupChatMode,
     appStoreMutate,
     rightPanelRuntime,
+    allowedAppDefaultToolkit,
   ] = appStore(
     useShallow((state) => [
       state.chatModel,
@@ -133,6 +136,7 @@ export default function PromptInput({
       state.groupChatMode,
       state.mutate,
       state.rightPanelRuntime,
+      state.allowedAppDefaultToolkit,
     ]),
   );
 
@@ -844,28 +848,6 @@ export default function PromptInput({
                     </DropdownMenuContent>
                   </DropdownMenu>
 
-                  {!toolDisabled &&
-                    (imageToolModel ? (
-                      <Button
-                        variant={"ghost"}
-                        size={"sm"}
-                        className="rounded-full hover:bg-input! p-2! group/image-generator text-primary"
-                        onClick={() => handleGenerateImage()}
-                      >
-                        <ImagesIcon className="size-3.5" />
-                        {t("generateImage")}
-                        <XIcon className="size-3 group-hover/image-generator:opacity-100 opacity-0 transition-opacity duration-200" />
-                      </Button>
-                    ) : (
-                      <ToolSelectDropdown
-                        className="mx-1"
-                        align="start"
-                        side="top"
-                        onSelectWorkflow={onSelectWorkflow}
-                        onGenerateImage={handleGenerateImage}
-                        mentions={mentions}
-                      />
-                    ))}
                   {/* Group Chat Mode Selector */}
                   {!disabledMention && (
                     <DropdownMenu
@@ -1009,6 +991,101 @@ export default function PromptInput({
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
+
+                  {!toolDisabled &&
+                    (imageToolModel ? (
+                      <Button
+                        variant={"ghost"}
+                        size={"sm"}
+                        className="rounded-full hover:bg-input! p-2! group/image-generator text-primary"
+                        onClick={() => handleGenerateImage()}
+                      >
+                        <ImagesIcon className="size-3.5" />
+                        {t("generateImage")}
+                        <XIcon className="size-3 group-hover/image-generator:opacity-100 opacity-0 transition-opacity duration-200" />
+                      </Button>
+                    ) : (
+                      <ToolSelectDropdown
+                        className="mx-1"
+                        align="start"
+                        side="top"
+                        onSelectWorkflow={onSelectWorkflow}
+                        onGenerateImage={handleGenerateImage}
+                        mentions={mentions}
+                      />
+                    ))}
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn("rounded-full hover:bg-input! p-2! mx-1")}
+                        onClick={() => {
+                          appStoreMutate((prev) => {
+                            const list = [
+                              ...(prev.allowedAppDefaultToolkit ?? []),
+                            ];
+                            const idx = list.indexOf(
+                              AppDefaultToolkit.WebSearch,
+                            );
+                            if (idx >= 0) list.splice(idx, 1);
+                            else list.push(AppDefaultToolkit.WebSearch);
+                            return { allowedAppDefaultToolkit: list } as any;
+                          });
+                        }}
+                      >
+                        <GlobeIcon
+                          className={cn(
+                            "size-4",
+                            allowedAppDefaultToolkit?.includes(
+                              AppDefaultToolkit.WebSearch,
+                            ) && "text-green-600",
+                          )}
+                        />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" align="center">
+                      <span className="text-sm">
+                        {t("Tool.defaultToolKit.webSearch")}
+                      </span>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn("rounded-full hover:bg-input! p-2! mx-1")}
+                        onClick={() => {
+                          appStoreMutate((prev) => {
+                            const list = [
+                              ...(prev.allowedAppDefaultToolkit ?? []),
+                            ];
+                            const idx = list.indexOf(AppDefaultToolkit.Code);
+                            if (idx >= 0) list.splice(idx, 1);
+                            else list.push(AppDefaultToolkit.Code);
+                            return { allowedAppDefaultToolkit: list } as any;
+                          });
+                        }}
+                      >
+                        <CodeIcon
+                          className={cn(
+                            "size-4",
+                            allowedAppDefaultToolkit?.includes(
+                              AppDefaultToolkit.Code,
+                            ) && "text-green-600",
+                          )}
+                        />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" align="center">
+                      <span className="text-sm">
+                        {t("Tool.defaultToolKit.code")}
+                      </span>
+                    </TooltipContent>
+                  </Tooltip>
 
                   <div className="flex-1" />
 

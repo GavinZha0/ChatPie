@@ -2,8 +2,7 @@ import { useCopy } from "@/hooks/use-copy";
 import { ToolUIPart } from "ai";
 
 import { callCodeRunWorker } from "lib/code-runner/call-worker";
-import { APP_NAME } from "lib/const";
-
+import { useTranslations } from "next-intl";
 import {
   CodeRunnerResult,
   LogEntry,
@@ -15,7 +14,6 @@ import {
   ChevronRight,
   CopyIcon,
   Loader,
-  Percent,
   PlayIcon,
 } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -38,6 +36,7 @@ export const CodeExecutor = memo(function CodeExecutor({
 
   const { copy, copied } = useCopy();
   const [isExecuting, setIsExecuting] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   const lastStartedAt = useRef<number>(Date.now());
 
@@ -46,6 +45,7 @@ export const CodeExecutor = memo(function CodeExecutor({
   >([]);
 
   const codeResultContainerRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations("Chat.Tool");
 
   const runCode = useCallback(
     async (code: string, type: "javascript" | "python") => {
@@ -77,16 +77,14 @@ export const CodeExecutor = memo(function CodeExecutor({
                     args: [
                       {
                         type: "data",
-                        value:
-                          "Log output exceeded storage limit (10KB). Full output was displayed to user but truncated for server storage.",
+                        value: t("outputExceededStorageLimit"),
                       },
                     ],
                   },
                 ]
               : result.logs,
         }),
-        guide:
-          "Execution finished. Provide: 1) Main results/outputs 2) Key insights or findings 3) Error explanations if any. Don't repeat code or raw logs - interpret and summarize for the user.",
+        guide: t("executionFinished"),
       });
     },
     [onResult],
@@ -100,6 +98,10 @@ export const CodeExecutor = memo(function CodeExecutor({
       top: codeResultContainerRef.current.scrollHeight,
       behavior: "smooth",
     });
+  }, []);
+
+  const toggleCollapse = useCallback(() => {
+    setCollapsed((v) => !v);
   }, []);
 
   const result = useMemo(() => {
@@ -169,7 +171,7 @@ export const CodeExecutor = memo(function CodeExecutor({
     setRealtimeLogs([
       {
         type: "log",
-        args: [{ type: "data", value: "Re-executing code..." }],
+        args: [{ type: "data", value: t("codeReExecuting") }],
         time: Date.now(),
       },
     ]);
@@ -183,7 +185,7 @@ export const CodeExecutor = memo(function CodeExecutor({
       return (
         <>
           <Loader className="size-3 animate-spin text-muted-foreground" />
-          <TextShimmer className="text-xs">Generating Code...</TextShimmer>
+          <TextShimmer className="text-xs">{t("codeGenerating")}</TextShimmer>
         </>
       );
     return (
@@ -210,21 +212,7 @@ export const CodeExecutor = memo(function CodeExecutor({
     if (!logs.length) return null;
     return (
       <div className="p-4 text-[10px] text-foreground flex flex-col gap-1 border-t">
-        <div className="text-foreground flex items-center gap-1">
-          {isRunning ? (
-            <Loader className="size-2 animate-spin" />
-          ) : (
-            <div className="w-1 h-1 mr-1 ring ring-border rounded-full" />
-          )}
-          {APP_NAME}
-          <Percent className="size-2" />
-        </div>
         {logs}
-        {isRunning && (
-          <div className="ml-3 animate-caret-blink text-muted-foreground">
-            |
-          </div>
-        )}
       </div>
     );
   }, [logs, isRunning]);
@@ -242,20 +230,25 @@ export const CodeExecutor = memo(function CodeExecutor({
   }, [part.state, !!onResult]);
 
   useEffect(() => {
-    if (isRunning) {
+    if (isRunning && !collapsed) {
       const closeKey = setInterval(scrollToCode, 300);
       return () => clearInterval(closeKey);
-    } else if (part.state.startsWith("output") && isRun.current) {
+    } else if (part.state.startsWith("output") && isRun.current && !collapsed) {
       scrollToCode();
     }
-  }, [isRunning]);
+  }, [isRunning, collapsed]);
 
   return (
     <div className="flex flex-col">
       <div className="px-6 py-3">
         <div className="border overflow-x-hidden relative rounded-lg shadow fade-in animate-in duration-500">
           <div className="py-2.5 bg-border px-4 flex items-center gap-1.5 z-10 min-h-[37px]">
-            {header}
+            <div
+              className="flex items-center gap-1.5 cursor-pointer select-none"
+              onClick={toggleCollapse}
+            >
+              {header}
+            </div>
             <div className="flex-1" />
 
             {part.state.startsWith("output") && (
@@ -265,7 +258,7 @@ export const CodeExecutor = memo(function CodeExecutor({
                   onClick={reExecute}
                 >
                   <PlayIcon className="size-2" />
-                  Run
+                  {t("codeRun")}
                 </div>
                 <div
                   className="flex items-center gap-1 text-[10px] text-muted-foreground px-2 py-1 transition-all rounded-sm cursor-pointer hover:bg-input hover:text-foreground font-semibold"
@@ -276,29 +269,31 @@ export const CodeExecutor = memo(function CodeExecutor({
                   ) : (
                     <CopyIcon className="size-2" />
                   )}
-                  Copy
+                  {t("codeCopy")}
                 </div>
               </>
             )}
           </div>
-          <div className="relative">
-            <div className="absolute pointer-events-none top-0 left-0 w-full h-1/6 bg-gradient-to-b from-background to-transparent z-10" />
-            <div className="absolute pointer-events-none bottom-0 left-0 w-full h-1/6 bg-gradient-to-t from-background to-transparent z-10" />
-            <div className="absolute pointer-events-none top-0 left-0 w-1/6 h-full bg-gradient-to-r from-background to-transparent z-10" />
-            <div className="absolute pointer-events-none top-0 right-0 w-1/6 h-full bg-gradient-to-l from-background to-transparent z-10" />
-            <div
-              className="min-h-14 p-6 text-xs overflow-y-auto max-h-[40vh]"
-              ref={codeResultContainerRef}
-            >
-              <CodeBlock
-                className="p-4 text-[10px] overflow-x-auto"
-                code={toAny(part.input)?.code}
-                lang={type}
-                fallback={fallback}
-              />
+          {!collapsed && (
+            <div className="relative">
+              <div className="absolute pointer-events-none top-0 left-0 w-full h-1/6 bg-gradient-to-b from-background to-transparent z-10" />
+              <div className="absolute pointer-events-none bottom-0 left-0 w-full h-1/6 bg-gradient-to-t from-background to-transparent z-10" />
+              <div className="absolute pointer-events-none top-0 left-0 w-1/6 h-full bg-gradient-to-r from-background to-transparent z-10" />
+              <div className="absolute pointer-events-none top-0 right-0 w-1/6 h-full bg-gradient-to-l from-background to-transparent z-10" />
+              <div
+                className="min-h-14 p-6 text-xs overflow-y-auto max-h-[40vh]"
+                ref={codeResultContainerRef}
+              >
+                <CodeBlock
+                  className="p-4 text-[10px] overflow-x-auto"
+                  code={toAny(part.input)?.code}
+                  lang={type}
+                  fallback={fallback}
+                />
+              </div>
             </div>
-          </div>
-          {logContainer}
+          )}
+          {!collapsed && logContainer}
         </div>
       </div>
     </div>

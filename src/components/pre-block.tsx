@@ -45,11 +45,15 @@ const PurePre = ({
   className,
   code,
   lang,
+  collapsed = false,
+  onToggle,
 }: {
   children: any;
   className?: string;
   code: string;
   lang: string;
+  collapsed?: boolean;
+  onToggle?: () => void;
 }) => {
   const { copied, copy } = useCopy();
 
@@ -57,7 +61,12 @@ const PurePre = ({
     <pre className={cn("relative", className)}>
       <div className="p-1.5 border-b mb-4 z-20 bg-secondary">
         <div className="w-full flex z-20 py-0.5 px-4 items-center">
-          <span className="text-sm text-muted-foreground">{lang}</span>
+          <span
+            className="text-sm text-muted-foreground cursor-pointer"
+            onClick={onToggle}
+          >
+            {lang}
+          </span>
           <Button
             size="icon"
             variant={copied ? "secondary" : "ghost"}
@@ -70,8 +79,9 @@ const PurePre = ({
           </Button>
         </div>
       </div>
-
-      <div className="relative overflow-x-auto px-6 pb-6">{children}</div>
+      {!collapsed && (
+        <div className="relative overflow-x-auto px-6 pb-6">{children}</div>
+      )}
     </pre>
   );
 };
@@ -80,6 +90,8 @@ export async function Highlight(
   code: string,
   lang: BundledLanguage | (string & {}),
   theme: string,
+  collapsed: boolean,
+  onToggle: () => void,
 ) {
   const parsed: BundledLanguage = (
     bundledLanguages[lang] ? lang : "md"
@@ -87,7 +99,12 @@ export async function Highlight(
 
   if (lang === "json") {
     return (
-      <PurePre code={code} lang={lang}>
+      <PurePre
+        code={code}
+        lang={lang}
+        collapsed={collapsed}
+        onToggle={onToggle}
+      >
         <JsonView data={code} initialExpandDepth={3} />
       </PurePre>
     );
@@ -95,7 +112,12 @@ export async function Highlight(
 
   if (lang === "mermaid") {
     return (
-      <PurePre code={code} lang={lang}>
+      <PurePre
+        code={code}
+        lang={lang}
+        collapsed={collapsed}
+        onToggle={onToggle}
+      >
         <MermaidDiagram chart={code} />
       </PurePre>
     );
@@ -111,7 +133,15 @@ export async function Highlight(
     jsx,
     jsxs,
     components: {
-      pre: (props) => <PurePre {...props} code={code} lang={lang} />,
+      pre: (props) => (
+        <PurePre
+          {...props}
+          code={code}
+          lang={lang}
+          collapsed={collapsed}
+          onToggle={onToggle}
+        />
+      ),
     },
   }) as JSX.Element;
 }
@@ -121,8 +151,15 @@ export function PreBlock({ children }: { children: any }) {
   const { theme } = useTheme();
   const language = children.props.className?.split("-")?.[1] || "bash";
   const [loading, setLoading] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
   const [component, setComponent] = useState<JSX.Element | null>(
-    <PurePre className="animate-pulse" code={code} lang={language}>
+    <PurePre
+      className="animate-pulse"
+      code={code}
+      lang={language}
+      collapsed={collapsed}
+      onToggle={() => setCollapsed((v) => !v)}
+    >
       {children}
     </PurePre>,
   );
@@ -134,11 +171,13 @@ export function PreBlock({ children }: { children: any }) {
           code,
           language,
           theme == "dark" ? "dark-plus" : "github-light",
+          collapsed,
+          () => setCollapsed((v) => !v),
         ),
       )
       .ifOk(setComponent)
       .watch(() => setLoading(false));
-  }, [theme, language, code]);
+  }, [theme, language, code, collapsed]);
 
   // For other code blocks, render as before
   return (

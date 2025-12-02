@@ -269,7 +269,12 @@
         "webSearch": "웹 검색",
         "http": "HTTP Request",
         "code": "Code Execution"
-      }
+      },
+      "codeRun": "실행",
+      "codeCopy": "복사",
+      "codeGenerating": "코드 생성 중...",
+      "codeReExecuting": "코드 재실행 중...",
+      "outputExceededStorageLimit": "로그 출력이 10KB를 초과했습니다. 사용자는 전체 출력을 볼 수 있지만, 서버 스토리지는 잘려버립니다."
     },
     "VoiceChat": {
       "title": "음성 채팅 모드",
