@@ -18,8 +18,8 @@ import {
   Scale,
   MessagesSquare,
   GlobeIcon,
-  CodeIcon,
   HardDriveUploadIcon,
+  CodeXmlIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "ui/button";
@@ -1071,7 +1071,7 @@ export default function PromptInput({
                           });
                         }}
                       >
-                        <CodeIcon
+                        <CodeXmlIcon
                           className={cn(
                             "size-4",
                             allowedAppDefaultToolkit?.includes(
