@@ -41,9 +41,10 @@ export const httpFetchTool = createTool({
     "Make HTTP requests to any URL. Can be used to fetch data from APIs, send data to servers, or interact with web services.",
   inputSchema: jsonSchemaToZod(httpFetchSchema),
   execute: async ({ url, method = "GET", headers, body, timeout = 10000 }) => {
+    const effectiveTimeout = Math.max(10000, timeout ?? 10000);
     return safe(async () => {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      const timeoutId = setTimeout(() => controller.abort(), effectiveTimeout);
 
       try {
         const response = await fetch(url, {

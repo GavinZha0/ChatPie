@@ -245,8 +245,8 @@
     "chatPlaceholder": "Ask anything, @agent or $tool",
     "toggleRightPanel": "Toggle right panel",
     "Tool": {
-      "webSearching": "Searching the Web...",
-      "searchedTheWeb": "Searched the Web",
+      "webSearching": "Searching web...",
+      "searchedTheWeb": "Searched web",
       "toolsSetupDescription": "Select tools that the chatbot can use.\nThe chatbot will use selected tools based on its own judgment.\n\nYou can also force the use of specific tools through @mention.",
       "selectToolMode": "Tool mode",
       "toolModeAuto": "Auto",
@@ -268,11 +268,17 @@
       "searchOptions": "Search Options",
       "searchOptionsDescription": "You can pass search options to the chatbot, such as the maximum number of search results, the search date, etc.",
       "defaultToolKit": {
-        "visualization": "Data Visualization",
-        "webSearch": "Search the Web",
-        "http": "HTTP Request",
-        "code": "Code Execution"
-      }
+        "visualization": "Data visualization",
+        "webSearch": "Web search",
+        "http": "HTTP",
+        "code": "Code execution"
+      },
+      "codeRun": "Run",
+      "codeCopy": "Copy",
+      "codeGenerating": "Code Generating...",
+      "codeReExecuting": "Re-executing code...",
+      "outputExceededStorageLimit": "Log output exceeded storage limit (10KB). Full output was displayed to user but truncated for server storage.",
+      "executionFinished": "Execution finished. Provide: 1) Main results/outputs 2) Key insights or findings 3) Error explanations if any. Don't repeat code or raw logs - interpret and summarize for the user."
     },
     "VoiceChat": {
       "title": "Voice chat",
@@ -317,8 +323,8 @@
       "title": "Chat Preferences",
       "whatShouldWeCallYou": "What should we call you?",
       "botName": "Assistant Name",
-      "botSecretaryModel": "Assistant main model",
-      "botAudioModel": "Assistant audio model",
+      "botSecretaryModel": "Secretary model",
+      "botAudioModel": "Audio model",
       "selectAudioModel": "Select audio model",
       "whatBestDescribesYourWork": "What best describes your work?",
       "whatPersonalPreferencesShouldBeTakenIntoAccountInResponses": "What personal preferences should be taken into account in responses?",

@@ -269,7 +269,13 @@
         "webSearch": "Buscar en la web",
         "http": "Solicitud HTTP",
         "code": "Ejecución de código"
-      }
+      },
+      "codeRun": "Ejecutar",
+      "codeCopy": "Copiar",
+      "codeGenerating": "Generando código...",
+      "codeReExecuting": "Reejecutando código...",
+      "outputExceededStorageLimit": "Salida de log excede el límite de almacenamiento (10KB). El usuario solo muestra la salida completa, pero el almacenamiento del servidor se trunca.",
+      "executionFinished": "Ejecución finalizada. Por favor, proporciona: 1) Resultados principales / salida 2) Encuentros clave / descubrimientos 3) Si hay errores, explica. No repitas el código o el log original - resúmelo para el usuario."
     },
     "VoiceChat": {
       "title": "Modo de Chat por Voz",

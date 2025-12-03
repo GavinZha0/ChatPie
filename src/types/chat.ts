@@ -51,6 +51,7 @@ export type ChatThread = {
   title: string;
   userId: string;
   createdAt: Date;
+  isArchived?: boolean;
 };
 
 export type ChatMessage = {

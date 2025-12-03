@@ -86,14 +86,22 @@ export const pgChatRepository: ChatRepository = {
         title: ChatThreadTable.title,
         createdAt: ChatThreadTable.createdAt,
         userId: ChatThreadTable.userId,
-        lastMessageAt: sql<string>`MAX(${ChatMessageTable.createdAt})`.as(
-          "last_message_at",
+        lastMessageAt:
+          sql<number>`EXTRACT(EPOCH FROM MAX(${ChatMessageTable.createdAt})) * 1000`.as(
+            "last_message_at",
+          ),
+        archiveItemCount: sql<number>`COUNT(${ArchiveItemTable.id})`.as(
+          "archive_item_count",
         ),
       })
       .from(ChatThreadTable)
       .leftJoin(
         ChatMessageTable,
         eq(ChatThreadTable.id, ChatMessageTable.threadId),
+      )
+      .leftJoin(
+        ArchiveItemTable,
+        eq(ChatThreadTable.id, ArchiveItemTable.itemId),
       )
       .where(eq(ChatThreadTable.userId, userId))
       .groupBy(ChatThreadTable.id)
@@ -105,9 +113,8 @@ export const pgChatRepository: ChatRepository = {
         title: row.title,
         userId: row.userId,
         createdAt: row.createdAt,
-        lastMessageAt: row.lastMessageAt
-          ? new Date(row.lastMessageAt).getTime()
-          : 0,
+        lastMessageAt: row.lastMessageAt ? Number(row.lastMessageAt) : 0,
+        isArchived: Number(row.archiveItemCount || 0) > 0,
       };
     });
   },

@@ -24,7 +24,7 @@ import {
 import { TextShimmer } from "ui/text-shimmer";
 import { fetcher, deduplicateByKey, groupBy } from "lib/utils";
 import { toast } from "sonner";
-import { MoreHorizontal, Trash } from "lucide-react";
+import { Star, MoreHorizontal, Trash } from "lucide-react";
 import Link from "next/link";
 
 type EnhancedChatThread = ChatThread & { lastMessageAt?: number };
@@ -251,16 +251,24 @@ export function HistoryChatTab({ onClose }: { onClose: () => void }) {
                   </div>
                 </div>
 
-                <div className="px-2 space-y-0.5 min-w-0">
+                <div className="px-1 space-y-0.5 min-w-0">
                   {group.threads.map((thread) => (
                     <div
                       key={thread.id}
-                      className="group/thread flex items-center px-2 py-1 rounded-md hover:bg-input transition-colors min-w-0"
+                      className="group/thread flex items-center px-1 py-1 rounded-md hover:bg-input transition-colors min-w-0"
                     >
                       <Link
                         href={`/chat/${thread.id}`}
-                        className="flex items-center flex-1 min-w-0"
+                        className="grid grid-cols-[16px_1fr] gap-1.5 items-center flex-1 min-w-0"
                       >
+                        {thread.isArchived ? (
+                          <Star
+                            className="size-3.5 text-yellow-500"
+                            fill="currentColor"
+                          />
+                        ) : (
+                          <span className="size-3.5" />
+                        )}
                         {generatingTitleThreadIds.includes(thread.id) ? (
                           <TextShimmer className="truncate min-w-0">
                             {thread.title || "New Chat"}

@@ -45,5 +45,22 @@ self.onmessage = async (event) => {
     type: "result",
     result,
   };
-  self.postMessage(resultEvent);
+  try {
+    self.postMessage(resultEvent);
+  } catch (e: any) {
+    const errMsg = e?.message || "Failed to post result";
+    const errorResult: CodeRunnerResult = {
+      success: false,
+      logs: [{ type: "error", args: [{ type: "data", value: errMsg }] }],
+      error: errMsg,
+    };
+    const fallbackEvent: CodeWorkerResult = {
+      id,
+      type: "result",
+      result: errorResult,
+    };
+    try {
+      self.postMessage(fallbackEvent);
+    } catch {}
+  }
 };

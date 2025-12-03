@@ -3,13 +3,12 @@
 import { useCopy } from "@/hooks/use-copy";
 import type { UseChatHelpers } from "@ai-sdk/react";
 import { FileUIPart, ToolUIPart, UIMessage, getToolName } from "ai";
-import { cn, safeJSONParse, truncateString } from "lib/utils";
+import { cn, safeJSONParse } from "lib/utils";
 import {
   Brain,
   Check,
   ChevronDownIcon,
   ChevronRight,
-  ChevronUp,
   Copy,
   Download,
   FileIcon,
@@ -153,7 +152,6 @@ interface ToolMessagePartProps {
   readonly?: boolean;
 }
 
-const MAX_TEXT_LENGTH = 600;
 export const UserMessagePart = memo(
   function UserMessagePart({
     part,
@@ -165,17 +163,12 @@ export const UserMessagePart = memo(
     isError,
     currentUser,
   }: UserMessagePartProps) {
-    const t = useTranslations();
     const [mode, setMode] = useState<"view" | "edit">("view");
     const [expanded, setExpanded] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
     const scrolledRef = useRef(false);
 
-    const isLongText = part.text.length > MAX_TEXT_LENGTH;
-    const displayText =
-      expanded || !isLongText
-        ? part.text
-        : truncateString(part.text, MAX_TEXT_LENGTH);
+    const displayText = part.text;
 
     useEffect(() => {
       if (status === "submitted" && isLast && !scrolledRef.current) {
@@ -205,7 +198,10 @@ export const UserMessagePart = memo(
 
     return (
       <div className="flex flex-row gap-2 items-start mt-2 mb-1">
-        <Avatar className="size-7 mt-1 ring ring-border rounded-none flex-shrink-0">
+        <Avatar
+          className="size-7 mt-1 ring ring-border rounded-none flex-shrink-0 cursor-pointer"
+          onClick={() => setExpanded(!expanded)}
+        >
           <AvatarImage
             src={getUserAvatar({ image: currentUser?.image ?? undefined })}
           />
@@ -215,7 +211,7 @@ export const UserMessagePart = memo(
           <div
             data-testid="message-content"
             className={cn(
-              "inline-flex flex-col gap-4 w-fit max-w-[80%] relative overflow-hidden px-4 py-1 rounded-2xl",
+              "inline-flex flex-col gap-4 w-fit max-w-full relative overflow-hidden px-4 py-1 rounded-2xl",
               "bg-green-200 dark:bg-green-800",
               "text-green-900 dark:text-green-50",
               "border border-green-300 dark:border-green-700",
@@ -225,29 +221,21 @@ export const UserMessagePart = memo(
               isError && "border-destructive border",
             )}
           >
-            {isLongText && !expanded && (
-              <div className="absolute pointer-events-none bg-gradient-to-t from-green-200 dark:from-green-800 to-transparent w-full h-40 bottom-0 left-0" />
-            )}
-            <p className={cn("whitespace-pre-wrap text-base break-words")}>
+            <p
+              className={cn("whitespace-pre-wrap text-base break-words")}
+              style={
+                expanded
+                  ? undefined
+                  : {
+                      display: "-webkit-box",
+                      WebkitLineClamp: 5 as any,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                    }
+              }
+            >
               {displayText}
             </p>
-            {isLongText && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setExpanded(!expanded)}
-                className="h-auto p-1 text-xs z-10 text-muted-foreground hover:text-foreground self-start"
-              >
-                <span className="flex items-center gap-1">
-                  {t(expanded ? "Common.showLess" : "Common.showMore")}
-                  {expanded ? (
-                    <ChevronUp className="size-3" />
-                  ) : (
-                    <ChevronDownIcon className="size-3" />
-                  )}
-                </span>
-              </Button>
-            )}
           </div>
           <div ref={ref} className="min-w-0" />
         </div>
