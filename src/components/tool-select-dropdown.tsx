@@ -8,7 +8,6 @@ import {
   Check,
   ChevronRight,
   HammerIcon,
-  HardDriveUploadIcon,
   ImagesIcon,
   InfoIcon,
   Loader,
@@ -901,7 +900,8 @@ function AppDefaultToolKitSelector() {
       .filter(
         (toolkit) =>
           toolkit !== AppDefaultToolkit.WebSearch &&
-          toolkit !== AppDefaultToolkit.Code,
+          toolkit !== AppDefaultToolkit.Code &&
+          toolkit !== AppDefaultToolkit.Http,
       )
       .map((toolkit) => {
         const label = raw[toolkit] || toolkit;
@@ -910,9 +910,6 @@ function AppDefaultToolKitSelector() {
         switch (toolkit) {
           case AppDefaultToolkit.Visualization:
             icon = ChartColumn;
-            break;
-          case AppDefaultToolkit.Http:
-            icon = HardDriveUploadIcon;
             break;
         }
         return {

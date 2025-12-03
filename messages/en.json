@@ -270,7 +270,7 @@
       "defaultToolKit": {
         "visualization": "Data visualization",
         "webSearch": "Web search",
-        "http": "HTTP request",
+        "http": "HTTP",
         "code": "Code execution"
       },
       "codeRun": "Run",

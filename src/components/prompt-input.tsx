@@ -19,6 +19,7 @@ import {
   MessagesSquare,
   GlobeIcon,
   CodeIcon,
+  HardDriveUploadIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "ui/button";
@@ -1083,6 +1084,41 @@ export default function PromptInput({
                     <TooltipContent side="bottom" align="center">
                       <span className="text-sm">
                         {t("Tool.defaultToolKit.code")}
+                      </span>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn("rounded-full hover:bg-input! p-2! mx-1")}
+                        onClick={() => {
+                          appStoreMutate((prev) => {
+                            const list = [
+                              ...(prev.allowedAppDefaultToolkit ?? []),
+                            ];
+                            const idx = list.indexOf(AppDefaultToolkit.Http);
+                            if (idx >= 0) list.splice(idx, 1);
+                            else list.push(AppDefaultToolkit.Http);
+                            return { allowedAppDefaultToolkit: list } as any;
+                          });
+                        }}
+                      >
+                        <HardDriveUploadIcon
+                          className={cn(
+                            "size-4",
+                            allowedAppDefaultToolkit?.includes(
+                              AppDefaultToolkit.Http,
+                            ) && "text-green-600",
+                          )}
+                        />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" align="center">
+                      <span className="text-sm">
+                        {t("Tool.defaultToolKit.http")}
                       </span>
                     </TooltipContent>
                   </Tooltip>
