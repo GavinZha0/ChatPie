@@ -86,9 +86,10 @@ export const pgChatRepository: ChatRepository = {
         title: ChatThreadTable.title,
         createdAt: ChatThreadTable.createdAt,
         userId: ChatThreadTable.userId,
-        lastMessageAt: sql<string>`MAX(${ChatMessageTable.createdAt})`.as(
-          "last_message_at",
-        ),
+        lastMessageAt:
+          sql<number>`EXTRACT(EPOCH FROM MAX(${ChatMessageTable.createdAt})) * 1000`.as(
+            "last_message_at",
+          ),
       })
       .from(ChatThreadTable)
       .leftJoin(
@@ -105,9 +106,7 @@ export const pgChatRepository: ChatRepository = {
         title: row.title,
         userId: row.userId,
         createdAt: row.createdAt,
-        lastMessageAt: row.lastMessageAt
-          ? new Date(row.lastMessageAt).getTime()
-          : 0,
+        lastMessageAt: row.lastMessageAt ? Number(row.lastMessageAt) : 0,
       };
     });
   },
