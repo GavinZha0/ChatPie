@@ -5,7 +5,7 @@
 
 ### Bug Fixes
 
-* multiple issues ([#10](https://github.com/GavinZha0/ChatPie/issues/10)) ([0d68bf3](https://github.com/GavinZha0/ChatPie/commit/0d68bf306681aa06c922048b2a385943819b0fa8))
+* multiple issues ([#10](https://github.com/GavinZha0/ChatPie/issues/10)) ([0d68bf3](https://github.com/GavinZha0/ChatPie/commit/0d68bf306681aa06c922048b2a385943819b0fa8)) by @GavinZha0
 
 ## [0.7.1](https://github.com/GavinZha0/ChatPie/compare/v0.7.0...v0.7.1) (2025-12-01)
 
