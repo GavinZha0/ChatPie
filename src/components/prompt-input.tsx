@@ -20,6 +20,7 @@ import {
   GlobeIcon,
   HardDriveUploadIcon,
   CodeXmlIcon,
+  ChartColumn,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "ui/button";
@@ -166,7 +167,6 @@ export default function PromptInput({
   }, [mentions]);
 
   const hasMultipleAgents = agentMentions.length > 1;
-  const isGroupChatModeEnabled = hasMultipleAgents;
 
   // Dynamic icon based on selected group chat mode
   const groupChatModeIcon = useMemo(() => {
@@ -743,7 +743,7 @@ export default function PromptInput({
                           size={"sm"}
                           onClick={onNewChat}
                           aria-label={layoutT("Layout.newChat")}
-                          className="rounded-full p-2!"
+                          className="rounded-md p-2!"
                         >
                           <WriteIcon className="size-4" />
                         </Button>
@@ -769,7 +769,7 @@ export default function PromptInput({
                             temporaryResetLabel ?? t("TemporaryChat.resetChat")
                           }
                           className={cn(
-                            "rounded-full p-2!",
+                            "rounded-md p-2!",
                             onNewChat ? "ml-2" : undefined,
                           )}
                         >
@@ -787,67 +787,70 @@ export default function PromptInput({
                     </Tooltip>
                   ) : null}
 
-                  <DropdownMenu
-                    open={isUploadDropdownOpen}
-                    onOpenChange={setIsUploadDropdownOpen}
-                  >
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant={"ghost"}
-                            size={"sm"}
-                            className="rounded-full hover:bg-input! p-2! data-[state=open]:bg-input! ml-2"
-                            disabled={!threadId}
-                          >
-                            <PlusIcon />
-                          </Button>
-                        </DropdownMenuTrigger>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom" align="center">
-                        <span className="text-sm">{t("uploadImage")}</span>
-                      </TooltipContent>
-                    </Tooltip>
-                    <DropdownMenuContent align="start" side="top">
-                      <DropdownMenuItem
-                        className="cursor-pointer"
-                        disabled={
-                          modelInfo?.isImageInputUnsupported || !canUploadImages
-                        }
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        <PaperclipIcon className="mr-2 size-4" />
-                        {t("uploadImage")}
-                      </DropdownMenuItem>
+                  {!toolDisabled ? (
+                    <DropdownMenu
+                      open={isUploadDropdownOpen}
+                      onOpenChange={setIsUploadDropdownOpen}
+                    >
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant={"ghost"}
+                              size={"sm"}
+                              className="rounded-md hover:bg-input! p-2! data-[state=open]:bg-input! ml-2 bg-input/60 border"
+                              disabled={!threadId}
+                            >
+                              <PlusIcon />
+                            </Button>
+                          </DropdownMenuTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" align="center">
+                          <span className="text-sm">{t("uploadImage")}</span>
+                        </TooltipContent>
+                      </Tooltip>
+                      <DropdownMenuContent align="start" side="top">
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          disabled={
+                            modelInfo?.isImageInputUnsupported ||
+                            !canUploadImages
+                          }
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          <PaperclipIcon className="mr-2 size-4" />
+                          {t("uploadImage")}
+                        </DropdownMenuItem>
 
-                      <DropdownMenuSub>
-                        <DropdownMenuSubTrigger className="cursor-pointer">
-                          <ImagesIcon className="mr-4 size-4 text-muted-foreground" />
-                          <span className="mr-4">{t("generateImage")}</span>
-                        </DropdownMenuSubTrigger>
-                        <DropdownMenuPortal>
-                          <DropdownMenuSubContent>
-                            <DropdownMenuItem
-                              disabled={modelInfo?.isToolCallUnsupported}
-                              onClick={() => handleGenerateImage("google")}
-                              className="cursor-pointer"
-                            >
-                              <GeminiIcon className="mr-2 size-4" />
-                              Gemini (Nano Banana)
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              disabled={modelInfo?.isToolCallUnsupported}
-                              onClick={() => handleGenerateImage("openai")}
-                              className="cursor-pointer"
-                            >
-                              <OpenAIIcon className="mr-2 size-4" />
-                              OpenAI
-                            </DropdownMenuItem>
-                          </DropdownMenuSubContent>
-                        </DropdownMenuPortal>
-                      </DropdownMenuSub>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger className="cursor-pointer">
+                            <ImagesIcon className="mr-4 size-4 text-muted-foreground" />
+                            <span className="mr-4">{t("generateImage")}</span>
+                          </DropdownMenuSubTrigger>
+                          <DropdownMenuPortal>
+                            <DropdownMenuSubContent>
+                              <DropdownMenuItem
+                                disabled={modelInfo?.isToolCallUnsupported}
+                                onClick={() => handleGenerateImage("google")}
+                                className="cursor-pointer"
+                              >
+                                <GeminiIcon className="mr-2 size-4" />
+                                Gemini (Nano Banana)
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                disabled={modelInfo?.isToolCallUnsupported}
+                                onClick={() => handleGenerateImage("openai")}
+                                className="cursor-pointer"
+                              >
+                                <OpenAIIcon className="mr-2 size-4" />
+                                OpenAI
+                              </DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                          </DropdownMenuPortal>
+                        </DropdownMenuSub>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : null}
 
                   {/* Group Chat Mode Selector */}
                   {!disabledMention && (
@@ -861,8 +864,7 @@ export default function PromptInput({
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="rounded-full hover:bg-input! p-2! data-[state=open]:bg-input! mx-1"
-                              disabled={!isGroupChatModeEnabled}
+                              className="rounded-md hover:bg-input! p-2! mx-1 bg-input/60 border data-[state=open]:bg-input!"
                             >
                               {groupChatModeIcon}
                             </Button>
@@ -998,7 +1000,7 @@ export default function PromptInput({
                       <Button
                         variant={"ghost"}
                         size={"sm"}
-                        className="rounded-full hover:bg-input! p-2! group/image-generator text-primary"
+                        className="rounded-md hover:bg-input! p-2! group/image-generator text-primary bg-input/60 border"
                         onClick={() => handleGenerateImage()}
                       >
                         <ImagesIcon className="size-3.5" />
@@ -1016,112 +1018,173 @@ export default function PromptInput({
                       />
                     ))}
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className={cn("rounded-full hover:bg-input! p-2! mx-1")}
-                        onClick={() => {
-                          appStoreMutate((prev) => {
-                            const list = [
-                              ...(prev.allowedAppDefaultToolkit ?? []),
-                            ];
-                            const idx = list.indexOf(
-                              AppDefaultToolkit.WebSearch,
-                            );
-                            if (idx >= 0) list.splice(idx, 1);
-                            else list.push(AppDefaultToolkit.WebSearch);
-                            return { allowedAppDefaultToolkit: list } as any;
-                          });
-                        }}
-                      >
-                        <GlobeIcon
-                          className={cn(
-                            "size-4",
-                            allowedAppDefaultToolkit?.includes(
-                              AppDefaultToolkit.WebSearch,
-                            ) && "text-green-600",
-                          )}
-                        />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" align="center">
-                      <span className="text-sm">
-                        {t("Tool.defaultToolKit.webSearch")}
-                      </span>
-                    </TooltipContent>
-                  </Tooltip>
+                  {!toolDisabled ? (
+                    <>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={cn(
+                              "rounded-md hover:bg-input! p-2! mx-1 bg-input/60 border",
+                            )}
+                            onClick={() => {
+                              appStoreMutate((prev) => {
+                                const list = [
+                                  ...(prev.allowedAppDefaultToolkit ?? []),
+                                ];
+                                const idx = list.indexOf(
+                                  AppDefaultToolkit.WebSearch,
+                                );
+                                if (idx >= 0) list.splice(idx, 1);
+                                else list.push(AppDefaultToolkit.WebSearch);
+                                return {
+                                  allowedAppDefaultToolkit: list,
+                                } as any;
+                              });
+                            }}
+                          >
+                            <GlobeIcon
+                              className={cn(
+                                "size-4",
+                                allowedAppDefaultToolkit?.includes(
+                                  AppDefaultToolkit.WebSearch,
+                                ) && "text-green-600",
+                              )}
+                            />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" align="center">
+                          <span className="text-sm">
+                            {t("Tool.defaultToolKit.webSearch")}
+                          </span>
+                        </TooltipContent>
+                      </Tooltip>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className={cn("rounded-full hover:bg-input! p-2! mx-1")}
-                        onClick={() => {
-                          appStoreMutate((prev) => {
-                            const list = [
-                              ...(prev.allowedAppDefaultToolkit ?? []),
-                            ];
-                            const idx = list.indexOf(AppDefaultToolkit.Code);
-                            if (idx >= 0) list.splice(idx, 1);
-                            else list.push(AppDefaultToolkit.Code);
-                            return { allowedAppDefaultToolkit: list } as any;
-                          });
-                        }}
-                      >
-                        <CodeXmlIcon
-                          className={cn(
-                            "size-4",
-                            allowedAppDefaultToolkit?.includes(
-                              AppDefaultToolkit.Code,
-                            ) && "text-green-600",
-                          )}
-                        />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" align="center">
-                      <span className="text-sm">
-                        {t("Tool.defaultToolKit.code")}
-                      </span>
-                    </TooltipContent>
-                  </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={cn(
+                              "rounded-md hover:bg-input! p-2! mx-1 bg-input/60 border",
+                            )}
+                            onClick={() => {
+                              appStoreMutate((prev) => {
+                                const list = [
+                                  ...(prev.allowedAppDefaultToolkit ?? []),
+                                ];
+                                const idx = list.indexOf(
+                                  AppDefaultToolkit.Code,
+                                );
+                                if (idx >= 0) list.splice(idx, 1);
+                                else list.push(AppDefaultToolkit.Code);
+                                return {
+                                  allowedAppDefaultToolkit: list,
+                                } as any;
+                              });
+                            }}
+                          >
+                            <CodeXmlIcon
+                              className={cn(
+                                "size-4",
+                                allowedAppDefaultToolkit?.includes(
+                                  AppDefaultToolkit.Code,
+                                ) && "text-green-600",
+                              )}
+                            />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" align="center">
+                          <span className="text-sm">
+                            {t("Tool.defaultToolKit.code")}
+                          </span>
+                        </TooltipContent>
+                      </Tooltip>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className={cn("rounded-full hover:bg-input! p-2! mx-1")}
-                        onClick={() => {
-                          appStoreMutate((prev) => {
-                            const list = [
-                              ...(prev.allowedAppDefaultToolkit ?? []),
-                            ];
-                            const idx = list.indexOf(AppDefaultToolkit.Http);
-                            if (idx >= 0) list.splice(idx, 1);
-                            else list.push(AppDefaultToolkit.Http);
-                            return { allowedAppDefaultToolkit: list } as any;
-                          });
-                        }}
-                      >
-                        <HardDriveUploadIcon
-                          className={cn(
-                            "size-4",
-                            allowedAppDefaultToolkit?.includes(
-                              AppDefaultToolkit.Http,
-                            ) && "text-green-600",
-                          )}
-                        />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" align="center">
-                      <span className="text-sm">
-                        {t("Tool.defaultToolKit.http")}
-                      </span>
-                    </TooltipContent>
-                  </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={cn(
+                              "rounded-md hover:bg-input! p-2! mx-1 bg-input/60 border",
+                            )}
+                            onClick={() => {
+                              appStoreMutate((prev) => {
+                                const list = [
+                                  ...(prev.allowedAppDefaultToolkit ?? []),
+                                ];
+                                const idx = list.indexOf(
+                                  AppDefaultToolkit.Http,
+                                );
+                                if (idx >= 0) list.splice(idx, 1);
+                                else list.push(AppDefaultToolkit.Http);
+                                return {
+                                  allowedAppDefaultToolkit: list,
+                                } as any;
+                              });
+                            }}
+                          >
+                            <HardDriveUploadIcon
+                              className={cn(
+                                "size-4",
+                                allowedAppDefaultToolkit?.includes(
+                                  AppDefaultToolkit.Http,
+                                ) && "text-green-600",
+                              )}
+                            />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" align="center">
+                          <span className="text-sm">
+                            {t("Tool.defaultToolKit.http")}
+                          </span>
+                        </TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={cn(
+                              "rounded-md hover:bg-input! p-2! mx-1 bg-input/60 border",
+                            )}
+                            onClick={() => {
+                              appStoreMutate((prev) => {
+                                const list = [
+                                  ...(prev.allowedAppDefaultToolkit ?? []),
+                                ];
+                                const idx = list.indexOf(
+                                  AppDefaultToolkit.Visualization,
+                                );
+                                if (idx >= 0) list.splice(idx, 1);
+                                else list.push(AppDefaultToolkit.Visualization);
+                                return {
+                                  allowedAppDefaultToolkit: list,
+                                } as any;
+                              });
+                            }}
+                          >
+                            <ChartColumn
+                              className={cn(
+                                "size-4",
+                                allowedAppDefaultToolkit?.includes(
+                                  AppDefaultToolkit.Visualization,
+                                ) && "text-green-600",
+                              )}
+                            />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" align="center">
+                          <span className="text-sm">
+                            {t("Tool.defaultToolKit.visualization")}
+                          </span>
+                        </TooltipContent>
+                      </Tooltip>
+                    </>
+                  ) : null}
 
                   <div className="flex-1" />
 
@@ -1207,7 +1270,7 @@ export default function PromptInput({
                               };
                             });
                           }}
-                          className="bg-input/60 border rounded-full hover:bg-input! p-2! ml-2"
+                          className="bg-input/60 border rounded-md hover:bg-input! p-2! ml-2"
                         >
                           <AudioWaveformIcon
                             size={16}
@@ -1233,7 +1296,7 @@ export default function PromptInput({
                         }
                       }}
                       className={cn(
-                        "fade-in animate-in cursor-pointer rounded-full p-2 transition-all duration-200",
+                        "fade-in animate-in cursor-pointer rounded-md p-2 transition-all duration-200",
                         isLoading
                           ? "bg-input/60 border hover:bg-input text-red-500"
                           : "text-muted-foreground bg-secondary hover:bg-accent-foreground hover:text-accent",
