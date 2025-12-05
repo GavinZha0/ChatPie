@@ -201,6 +201,32 @@ export async function POST(request: Request) {
   }
 }
 
+// Helper function to get the last Dify conversation ID from previous messages
+function getLastDifyConversationId(
+  messages: UIMessage[],
+  modelToUse: { provider: string; model: string },
+): string | undefined {
+  // Only check for Dify providers
+  if (modelToUse.provider !== "dify") {
+    return undefined;
+  }
+
+  // Iterate through messages in reverse order to find the most recent one with difyConversationId
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const message = messages[i];
+    if (
+      message.metadata &&
+      (message.metadata as ChatMetadata).difyConversationId
+    ) {
+      const conversationId = (message.metadata as ChatMetadata)
+        .difyConversationId;
+      return conversationId;
+    }
+  }
+
+  return undefined;
+}
+
 // Unified processing function for single or multiple models
 async function handleChatModels(
   chatModel:
@@ -400,6 +426,30 @@ async function handleChatModels(
             `Agent: ${agentName}, model: ${modelToUse.provider}/${modelToUse.model}, tool mode: ${toolChoice}, mentions: ${agentMentions.length}`,
           );
 
+          // Get the last Dify conversation ID if this is a Dify provider
+          const lastDifyConversationId = getLastDifyConversationId(
+            messages,
+            modelToUse,
+          );
+
+          // Prepare headers for the request
+          const headers: Record<string, string> = {
+            "user-id": session.user.email,
+          };
+
+          // Add chat-id header for Dify providers to maintain conversation continuity
+          if (lastDifyConversationId) {
+            headers["chat-id"] = lastDifyConversationId;
+          }
+
+          // For Dify providers, also set response mode to blocking to ensure conversation ID is returned
+          let difySettings = {};
+          if (modelToUse.provider === "dify") {
+            difySettings = {
+              responseMode: "blocking",
+            };
+          }
+
           const result = streamText({
             model,
             system: systemPrompt,
@@ -409,18 +459,77 @@ async function handleChatModels(
             tools: vercelAITooles,
             toolChoice: toolChoice === "manual" ? "none" : "auto",
             abortSignal: request.signal,
-            headers: {
-              "user-id": session.user.email,
-            },
+            headers,
+            ...difySettings,
           });
 
           result.consumeStream();
           dataStream.merge(
             result.toUIMessageStream({
               messageMetadata: ({ part }) => {
+                // Capture Dify conversation ID from finish-step part
+                if (part.type == "finish-step") {
+                  const finishStepPart = part as any;
+
+                  // Try to get conversationId from finish-step
+                  let conversationId: string | undefined;
+
+                  // Path: difyWorkflowData (for workflow type)
+                  if (
+                    finishStepPart.providerMetadata?.difyWorkflowData
+                      ?.conversationId
+                  ) {
+                    conversationId = finishStepPart.providerMetadata
+                      .difyWorkflowData.conversationId as string;
+
+                    // Store it in metadata for use in finish part
+                    metadata.difyConversationId = conversationId;
+                  }
+                }
+
                 if (part.type == "finish") {
                   // add usage to metadata and send to frontend
                   metadata.usage = part.totalUsage;
+
+                  // conversationId should already be captured from finish-step, but let's double-check
+                  const finishPart = part as any;
+
+                  // If we didn't get it from finish-step, try to get it from finish part
+                  if (!metadata.difyConversationId) {
+                    let conversationId: string | undefined;
+
+                    // Path 1: Original difyWorkflowData (for workflow type)
+                    if (
+                      finishPart.providerMetadata?.difyWorkflowData
+                        ?.conversationId
+                    ) {
+                      conversationId = finishPart.providerMetadata
+                        .difyWorkflowData.conversationId as string;
+                    }
+                    // Path 2: Direct providerMetadata (for chat/agent type)
+                    else if (finishPart.providerMetadata?.conversationId) {
+                      conversationId = finishPart.providerMetadata
+                        .conversationId as string;
+                    }
+                    // Path 3: Root level (less likely but possible)
+                    else if (finishPart.conversationId) {
+                      conversationId = finishPart.conversationId as string;
+                    }
+
+                    if (conversationId) {
+                      metadata.difyConversationId = conversationId;
+                      logger.info(
+                        "Using conversationId captured from finish part:",
+                        conversationId,
+                      );
+                    }
+                  } else {
+                    logger.info(
+                      "Using conversationId captured from finish-step:",
+                      metadata.difyConversationId,
+                    );
+                  }
+
                   return metadata;
                 }
               },

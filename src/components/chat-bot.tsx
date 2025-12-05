@@ -949,6 +949,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
               });
 
               router.push("/");
+              router.refresh();
             }}
           />
         </div>

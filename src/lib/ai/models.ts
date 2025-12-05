@@ -193,7 +193,11 @@ function createProviderSDK(
     case "dify": {
       const provider = createDifyProvider({ baseURL });
       return (modelId: string, options?: { apiKey?: string }) => {
-        return provider(modelId, options) as unknown as LanguageModel;
+        return provider(modelId, {
+          ...options,
+          // Use blocking mode for Dify to ensure conversation ID is returned
+          responseMode: "blocking",
+        }) as unknown as LanguageModel;
       };
     }
     default:
