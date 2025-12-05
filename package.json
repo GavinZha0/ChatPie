@@ -35,14 +35,15 @@
     "db:migrate": "tsx scripts/db-migrate.ts",
     "db:pull": "drizzle-kit pull",
     "db:check": "drizzle-kit check",
-    "docker-compose:up": "docker compose -f docker/compose.yml up -d --build",
-    "docker-compose:down": "docker compose -f docker/compose.yml down",
-    "docker-compose:clean": "docker compose -f docker/compose.yml down --volumes --rmi all --remove-orphans",
+    "docker-compose:up": "docker compose -f docker/compose.yml --profile storage up -d --build",
+    "docker-compose:down": "docker compose -f docker/compose.yml --profile storage down",
+    "docker-compose:clean": "docker compose -f docker/compose.yml --profile storage down --volumes --rmi all --remove-orphans",
     "docker-compose:logs": "docker compose -f docker/compose.yml logs -f",
     "docker-compose:ps": "docker compose -f docker/compose.yml ps",
     "docker-compose:update": "git pull && docker compose -f docker/compose.yml up -d --build",
     "docker:pg": "docker run --name chatpie-pg -e POSTGRES_PASSWORD=chatpie123 -e POSTGRES_USER=chatpie -e POSTGRES_DB=chatpie -p 5432:5432 -d postgres",
     "docker:redis": "docker run --name chatpie-redis -p 6379:6379 -d redis:7-alpine",
+    "docker:rustfs": "docker run --name chatpie-rustfs -e RUSTFS_ACCESS_KEY=rustfs -e RUSTFS_SECRET_KEY=rustfs123 -p 9000:9000 -p 9001:9001 -v chatpie-rustfs-data:/data -d rustfs/rustfs:latest",
     "docker:app": "docker build -f docker/Dockerfile -t chatpie . && docker run -p 8300:8300 -e NO_HTTPS=1 chatpie",
     "docker:buildx:init": "docker buildx create --use || true",
     "docker:buildx:amd64": "docker buildx build -f docker/Dockerfile --platform linux/amd64 -t chatpie:latest . --load",
@@ -172,13 +173,8 @@
     "vitest": "^3.2.4"
   },
   "lint-staged": {
-    "*.{js,json,mjs,ts,tsx,css}": [
-      "pnpm format",
-      "pnpm lint:fix"
-    ],
-    "*.{yml,yaml}": [
-      "prettier --write"
-    ]
+    "*.{js,json,mjs,ts,tsx,css}": ["pnpm format", "pnpm lint:fix"],
+    "*.{yml,yaml}": ["prettier --write"]
   },
   "packageManager": "pnpm@10.20.0",
   "engines": {
@@ -192,8 +188,6 @@
       "sharp",
       "unrs-resolver"
     ],
-    "ignoredBuiltDependencies": [
-      "@swc/core"
-    ]
+    "ignoredBuiltDependencies": ["@swc/core"]
   }
 }

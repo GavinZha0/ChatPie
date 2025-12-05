@@ -9,6 +9,7 @@ services:
       - "8300:8300"
     environment:
       POSTGRES_HOST: piedb
+      FILE_STORAGE_S3_ENDPOINT: http://localhost:9000
     env_file:
       - ../.env
     extra_hosts:
@@ -52,8 +53,33 @@ services:
       retries: 10
     restart: unless-stopped
 
+  # Optional: RustFS - S3-compatible object storage for file uploads
+  # Start with: docker compose --profile storage up -d
+  rustfs:
+    image: rustfs/rustfs:latest
+    profiles:
+      - storage
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:-rustfs}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:-rustfs123}
+    networks:
+      - chatpie-networks
+    volumes:
+      - rustfs_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
 volumes:
   chatpie_pg_data:
+  rustfs_data:
 
 networks:
   chatpie-networks:

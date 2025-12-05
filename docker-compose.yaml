@@ -10,6 +10,17 @@ services:
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:8300}
       POSTGRES_HOST: ${POSTGRES_HOST:-piedb}
       REDIS_URL: ${REDIS_URL:-}
+      # File Storage Configuration (S3/RustFS)
+      FILE_STORAGE_TYPE: ${FILE_STORAGE_TYPE:-s3}
+      FILE_STORAGE_S3_BUCKET: ${FILE_STORAGE_S3_BUCKET:-chatpie}
+      FILE_STORAGE_S3_REGION: ${FILE_STORAGE_S3_REGION:-us-east-1}
+      FILE_STORAGE_S3_ENDPOINT: ${FILE_STORAGE_S3_ENDPOINT:-http://localhost:9000}
+      FILE_STORAGE_S3_FORCE_PATH_STYLE: ${FILE_STORAGE_S3_FORCE_PATH_STYLE:-1}
+      FILE_STORAGE_PREFIX: ${FILE_STORAGE_PREFIX:-uploads}
+      # AWS Credentials for S3/RustFS
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-rustfs}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-rustfs123}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
     depends_on:
       piedb:
         condition: service_healthy
@@ -44,5 +55,28 @@ services:
       retries: 10
     restart: unless-stopped
 
+  # Optional: RustFS - S3-compatible object storage for file uploads
+  # Start with: docker compose --profile storage up -d
+  rustfs:
+    image: rustfs/rustfs:latest
+    profiles:
+      - storage
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:-rustfs}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:-rustfs123}
+    volumes:
+      - rustfs_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
 volumes:
   chatpie_pg_data:
+  rustfs_data:
