@@ -98,23 +98,18 @@ ChatPie, a modern AI-powered chatbot platform designed to foster seamless human-
 Use the prebuilt image and the root `docker-compose.yaml` for a simple start. No Node.js or pnpm required.
 
 ```bash
-# Basic setup (chat functionality only)
+# Setup (with postgres and rustfs)
 docker compose up -d
-
-# Full setup with file storage (recommended for complete features)
-# Includes AI image generation, avatar uploads, and file attachments
-docker compose --profile storage up -d
 
 # Open the app in your browser
 open http://localhost:8300
 ```
 
-**Note:** If you use the `storage` profile, you'll need to set the `chatpie` bucket to "Public" in RustFS WebUI (http://localhost:9001/rustfs/console/index.html) after first startup to enable file access.
-
 Image sources:
 
 - ChatPie: `ghcr.io/gavinzha0/chatpie:latest`
 - PostgreSQL: `postgres:17`
+- RustFS: `rustfs:latest`
 
 Optional configuration:
 
@@ -133,7 +128,7 @@ Notes:
 # 1. Install dependencies
 pnpm i
 
-# 2. Build and start all services (including PostgreSQL) with Docker Compose
+# 2. Build and start all services (including PostgreSQL and RustFS) with Docker Compose
 pnpm docker-compose:up
 
 ```
@@ -156,7 +151,7 @@ pnpm db:migrate
 #(Optional) Start a local RustFS instance for file storage
 # RustFS is an S3-compatible object storage for AI-generated images, avatars, and file uploads.
 # If you skip this step, you'll need to configure an external S3/MinIO or use Vercel Blob.
-# After starting, set bucket to 'Public' in WebUI: http://localhost:9001/rustfs/console/index.html
+# RustFS WebUI: http://localhost:9001/rustfs/console
 pnpm docker:rustfs
 
 # Build and start the application

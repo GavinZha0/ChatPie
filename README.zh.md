@@ -98,23 +98,18 @@ ChatPie 是一款现代化的 AI 驱动聊天平台，旨在促进无缝的人�
 使用预构建镜像与根目录的 `docker-compose.yaml`，无需安装 Node.js 或 pnpm。
 
 ```bash
-# 基础版（仅聊天功能）
+# 快速启动（包含 postgres 和 rustfs）
 docker compose up -d
-
-# 完整版（包含文件存储，推荐）
-# 包括 AI 图像生成、头像上传和文件附件功能
-docker compose --profile storage up -d
 
 # 从浏览器访问
 http://localhost:8300
 ```
 
-**注意:** 如果使用 `storage` profile，首次启动后需要在 RustFS WebUI (http://localhost:9001/rustfs/console/index.html) 中将 `chatpie` bucket 设置为 "Public" 以启用文件访问。
-
 镜像来源：
 
 - ChatPie：`ghcr.io/gavinzha0/chatpie:latest`
 - PostgreSQL：`postgres:17`
+- RustFS：`rustfs:latest`
 
 可选配置：
 
@@ -130,7 +125,7 @@ http://localhost:8300
 # 1. 安装依赖
 pnpm i
 
-# 2. 使用 Docker Compose 构建并启动所有服务（包含 PostgreSQL）
+# 2. 使用 Docker Compose 构建并启动所有服务（包含 PostgreSQL 和 RustFS）
 pnpm docker-compose:up
 
 ```
@@ -153,7 +148,7 @@ pnpm db:migrate
 #（可选）启动本地 RustFS 实例用于文件存储
 # RustFS 是一个 S3 兼容的对象存储，用于存储 AI 生成的图像、头像和文件上传。
 # 如果跳过此步骤，你需要配置外部 S3/MinIO 或使用 Vercel Blob。
-# 启动后，在 WebUI 中将 bucket 设置为 'Public'：http://localhost:9001/rustfs/console/index.html
+#  RustFs WebUI：http://localhost:9001/rustfs/console
 pnpm docker:rustfs
 
 # 构建并启动应用

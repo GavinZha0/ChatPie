@@ -15,6 +15,12 @@ export async function register() {
         (m) => m.initMCPManager,
       );
       await initMCPManager();
+
+      // Initialize S3 bucket (create if missing + policy)
+      const initS3 = await import("./lib/file-storage/s3-init").then(
+        (m) => m.initS3,
+      );
+      await initS3();
     }
   }
 }

@@ -22,6 +22,8 @@ services:
     depends_on:
       piedb:
         condition: service_healthy
+      rustfs:
+        condition: service_healthy
     healthcheck:
       test:
         [
@@ -54,11 +56,10 @@ services:
     restart: unless-stopped
 
   # Optional: RustFS - S3-compatible object storage for file uploads
-  # Start with: docker compose --profile storage up -d
   rustfs:
     image: rustfs/rustfs:latest
-    profiles:
-      - storage
+    env_file:
+      - ../.env
     ports:
       - "9000:9000"
       - "9001:9001"
