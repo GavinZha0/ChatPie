@@ -47,7 +47,7 @@ import {
 import { getSession } from "auth/server";
 import { colorize } from "consola/utils";
 import { generateUUID } from "lib/utils";
-import { nanoBananaTool, openaiImageTool } from "lib/ai/tools/image";
+import { nanoBananaTool, openaiImageAdapterTool } from "lib/ai/tools/image";
 import { ImageToolName } from "lib/ai/tools";
 import { buildCsvIngestionPreviewParts } from "@/lib/ai/ingest/csv-ingest";
 import { serverFileStorage } from "lib/file-storage";
@@ -398,7 +398,7 @@ async function handleChatModels(
                 [ImageToolName]:
                   imageTool?.model === "google"
                     ? nanoBananaTool
-                    : openaiImageTool,
+                    : openaiImageAdapterTool,
               }
             : {};
 
