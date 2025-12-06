@@ -275,7 +275,20 @@
       "codeGenerating": "Generando código...",
       "codeReExecuting": "Reejecutando código...",
       "outputExceededStorageLimit": "Salida de log excede el límite de almacenamiento (10KB). El usuario solo muestra la salida completa, pero el almacenamiento del servidor se trunca.",
-      "executionFinished": "Ejecución finalizada. Por favor, proporciona: 1) Resultados principales / salida 2) Encuentros clave / descubrimientos 3) Si hay errores, explica. No repitas el código o el log original - resúmelo para el usuario."
+      "executionFinished": "Ejecución finalizada. Por favor, proporciona: 1) Resultados principales / salida 2) Encuentros clave / descubrimientos 3) Si hay errores, explica. No repitas el código o el log original - resúmelo para el usuario.",
+      "imageEditing": "Editando imagen...",
+      "imageEdited": "Imagen editada",
+      "imageCompositing": "Componiendo imágenes...",
+      "imageComposed": "Imagen compuesta",
+      "imageGenerating": "Generando imagen...",
+      "imageGenerated": "Imagen generada",
+      "imageGeneratingFailed": "Error al generar la imagen",
+      "imageGeneratingFailedDescription": "Error al generar la imagen. Inténtalo de nuevo.",
+      "imageGeneratingFailedRetry": "Reintentar",
+      "imageGeneratingFailedCancel": "Cancelar",
+      "imageNotGenerated": "No se generaron imágenes",
+      "imageNotGeneratedDescription": "No se generaron imágenes. Verifique su solicitud e intente de nuevo.",
+      "imageGenerationTakeTime": "La generación de imágenes puede tardar hasta 1 minuto."
     },
     "VoiceChat": {
       "title": "Modo de Chat por Voz",

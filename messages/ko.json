@@ -274,7 +274,21 @@
       "codeCopy": "복사",
       "codeGenerating": "코드 생성 중...",
       "codeReExecuting": "코드 재실행 중...",
-      "outputExceededStorageLimit": "로그 출력이 10KB를 초과했습니다. 사용자는 전체 출력을 볼 수 있지만, 서버 스토리지는 잘려버립니다."
+      "outputExceededStorageLimit": "로그 출력이 10KB를 초과했습니다. 사용자는 전체 출력을 볼 수 있지만, 서버 스토리지는 잘려버립니다.",
+      "executionFinished": "실행 완료. 다음을 제공하십시오: 1) 주요 결과/출력 2) 핵심 통찰력/발견 3) 오류가 있는 경우 설명. 코드나 원본 로그를 반복하지 말고 사용자를 위해 해석하고 요약하십시오.",
+      "imageEditing": "이미지 편집 중...",
+      "imageEdited": "이미지 편집됨",
+      "imageCompositing": "이미지 합성 중...",
+      "imageComposed": "이미지 합성됨",
+      "imageGenerating": "이미지 생성 중...",
+      "imageGenerated": "이미지 생성됨",
+      "imageGeneratingFailed": "이미지 생성 실패",
+      "imageGeneratingFailedDescription": "이미지 생성에 실패했습니다. 다시 시도해 주세요.",
+      "imageGeneratingFailedRetry": "재시도",
+      "imageGeneratingFailedCancel": "취소",
+      "imageNotGenerated": "생성된 이미지 없음",
+      "imageNotGeneratedDescription": "생성된 이미지가 없습니다. 다시 시도해 주세요.",
+      "imageGenerationTakeTime": "이미지 생성에는 최대 1분이 소요될 수 있습니다."
     },
     "VoiceChat": {
       "title": "음성 채팅 모드",
