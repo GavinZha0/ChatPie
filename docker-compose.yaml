@@ -2,6 +2,8 @@ name: chatpie
 services:
   chatpie:
     image: ${CHATPIE_IMAGE:-ghcr.io/gavinzha0/chatpie:latest}
+    env_file:
+      - ./.env
     ports:
       - "8300:8300"
     environment:
@@ -14,7 +16,8 @@ services:
       FILE_STORAGE_TYPE: ${FILE_STORAGE_TYPE:-s3}
       FILE_STORAGE_S3_BUCKET: ${FILE_STORAGE_S3_BUCKET:-chatpie}
       FILE_STORAGE_S3_REGION: ${FILE_STORAGE_S3_REGION:-us-east-1}
-      FILE_STORAGE_S3_ENDPOINT: ${FILE_STORAGE_S3_ENDPOINT:-http://localhost:9000}
+      FILE_STORAGE_S3_ENDPOINT: ${FILE_STORAGE_S3_ENDPOINT:-http://rustfs:9000}
+      FILE_STORAGE_S3_PUBLIC_BASE_URL: ${FILE_STORAGE_S3_PUBLIC_BASE_URL:-http://localhost:9000}
       FILE_STORAGE_S3_FORCE_PATH_STYLE: ${FILE_STORAGE_S3_FORCE_PATH_STYLE:-1}
       FILE_STORAGE_PREFIX: ${FILE_STORAGE_PREFIX:-uploads}
       # AWS Credentials for S3/RustFS
@@ -40,6 +43,8 @@ services:
 
   piedb:
     image: postgres:17
+    env_file:
+      - ./.env
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-chatpie}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-chatpie123}

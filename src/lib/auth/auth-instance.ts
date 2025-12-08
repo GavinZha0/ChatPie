@@ -114,11 +114,11 @@ const options = {
   rateLimit: {
     enabled: true,
     window: 60,
-    max: 5,
+    max: 30,
     customRules: {
       "/sign-in/email": {
         window: 60,
-        max: 5,
+        max: 10,
       },
     },
   },

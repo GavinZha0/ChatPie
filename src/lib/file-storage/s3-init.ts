@@ -22,26 +22,12 @@ export async function initS3() {
     return;
   }
 
+  // 3. Initialize S3 client with configured endpoint which is internal S3 endpoint
   const configuredEndpoint = process.env.FILE_STORAGE_S3_ENDPOINT;
-  const ping = async (url: string, ms: number) => {
-    try {
-      const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), ms);
-      const res = await fetch(url, { signal: controller.signal });
-      clearTimeout(id);
-      return res.ok;
-    } catch {
-      return false;
-    }
-  };
-  const internalEndpoint = (await ping("http://rustfs:9000/health", 500))
-    ? "http://rustfs:9000"
-    : configuredEndpoint;
-
   try {
     const s3 = new S3Client({
       region,
-      endpoint: internalEndpoint,
+      endpoint: configuredEndpoint,
       forcePathStyle,
     });
 

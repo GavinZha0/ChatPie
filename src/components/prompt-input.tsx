@@ -501,7 +501,18 @@ export default function PromptInput({
         file.mimeType,
         supportedFileMimeTypes,
       );
-      const link = file.url || file.dataUrl || "";
+
+      // use dataUrl when it's an image and the url is localhost
+      // this avoids CORS issues with local file servers
+      const shouldUseDataUrl =
+        file.dataUrl &&
+        file.mimeType?.startsWith("image/") &&
+        file.url?.includes("localhost");
+
+      const link = shouldUseDataUrl
+        ? file.dataUrl
+        : file.url || file.dataUrl || "";
+
       if (!link) return acc;
       if (isFileSupported) {
         acc.push({
