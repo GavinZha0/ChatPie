@@ -145,7 +145,7 @@ export function AppToolbar({ user }: { user?: BasicUser }) {
               className="flex flex-col items-center gap-1 px-2 py-2 rounded-md hover:bg-accent"
               data-testid="toolbar-user-button"
             >
-              <Avatar className="size-9 border">
+              <Avatar className="size-10 border">
                 <AvatarImage
                   src={getUserAvatar(user)}
                   alt={user.name || "User"}

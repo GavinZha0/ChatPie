@@ -9,6 +9,18 @@ services:
       - "8300:8300"
     environment:
       POSTGRES_HOST: piedb
+      # File Storage Configuration (S3/RustFS)
+      FILE_STORAGE_TYPE: ${FILE_STORAGE_TYPE:-s3}
+      FILE_STORAGE_S3_BUCKET: ${FILE_STORAGE_S3_BUCKET:-chatpie}
+      FILE_STORAGE_S3_REGION: ${FILE_STORAGE_S3_REGION:-us-east-1}
+      FILE_STORAGE_S3_ENDPOINT: ${FILE_STORAGE_S3_ENDPOINT:-http://rustfs:9000}
+      FILE_STORAGE_S3_PUBLIC_BASE_URL: ${FILE_STORAGE_S3_PUBLIC_BASE_URL:-http://localhost:9000}
+      FILE_STORAGE_S3_FORCE_PATH_STYLE: ${FILE_STORAGE_S3_FORCE_PATH_STYLE:-1}
+      FILE_STORAGE_PREFIX: ${FILE_STORAGE_PREFIX:-uploads}
+      # AWS Credentials for S3/RustFS
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-rustfs}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-rustfs123}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
     env_file:
       - ../.env
     extra_hosts:
@@ -20,6 +32,8 @@ services:
       - chatpie-networks
     depends_on:
       piedb:
+        condition: service_healthy
+      rustfs:
         condition: service_healthy
     healthcheck:
       test:
@@ -52,8 +66,32 @@ services:
       retries: 10
     restart: unless-stopped
 
+  # Optional: RustFS - S3-compatible object storage for file uploads
+  rustfs:
+    image: rustfs/rustfs:latest
+    env_file:
+      - ../.env
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:-rustfs}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:-rustfs123}
+    networks:
+      - chatpie-networks
+    volumes:
+      - rustfs_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
 volumes:
   chatpie_pg_data:
+  rustfs_data:
 
 networks:
   chatpie-networks:

@@ -116,8 +116,8 @@ export function ToolSelectDropdown({
         state.mcpList,
       ]),
     );
+  const workflowToolList = appStore((state) => state.workflowToolList);
 
-  const t = useTranslations("Chat.Tool");
   const { isLoading } = useMcpList();
   const { data: providers } = useChatModels();
   const [globalModel, appStoreMutate] = appStore(
@@ -152,13 +152,17 @@ export function ToolSelectDropdown({
 
   const bindingTools = useMemo<string[]>(() => {
     if (mentions?.length) {
-      return mentions.map((m) => m.name);
+      // only calculate workflow and MCP tools: filter out default tools
+      const defaultToolNames = new Set(
+        Object.values(AppDefaultToolkit).map((t) => t),
+      );
+      return mentions
+        .filter((m) => m.type === "workflow" || m.type === "mcpServer")
+        .map((m) => m.name)
+        .filter((name) => !defaultToolNames.has(name as any));
     }
     if (toolChoice == "manual") return [];
-    const translate = t.raw("defaultToolKit");
-    const defaultTools = Object.values(AppDefaultToolkit)
-      .filter((t) => allowedAppDefaultToolkit?.includes(t))
-      .map((t) => translate[t]);
+
     const mcpIds = mcpList.map((v) => v.id);
     const mcpTools = Object.values(
       objectFlow(allowedMcpServers ?? {}).filter((_, id) =>
@@ -167,14 +171,15 @@ export function ToolSelectDropdown({
     )
       .map((v) => v.tools)
       .flat();
-
-    return [...defaultTools, ...mcpTools];
+    const workflowTools = workflowToolList.map((w) => w.name);
+    return [...workflowTools, ...mcpTools];
   }, [
     mentions,
     allowedAppDefaultToolkit,
     allowedMcpServers,
     toolChoice,
     mcpList,
+    workflowToolList,
   ]);
 
   // Determine if in manual mention mode (user manually selected tools)
@@ -188,16 +193,14 @@ export function ToolSelectDropdown({
         variant="ghost"
         size={"sm"}
         className={cn(
-          "gap-0.5 bg-input/60 border rounded-full data-[state=open]:bg-input! hover:bg-input!",
-          // Manual mode - highlight with primary color
+          "gap-0.5 bg-input/60 border rounded-md data-[state=open]:bg-input! hover:bg-input!",
           isManualMode &&
             "bg-primary/10 border-primary text-primary hover:bg-primary/20!",
-          // Empty state
           !bindingTools.length &&
             !isLoading &&
             !isManualMode &&
             !hasAgentMention &&
-            "text-muted-foreground bg-transparent border-transparent",
+            "text-muted-foreground",
           isLoading && "bg-input/60",
           open && !isManualMode && "bg-input!",
           className,
@@ -277,9 +280,6 @@ export function ToolSelectDropdown({
             <DropdownMenuSeparator />
           </div>
           <WorkflowToolSelector onSelectWorkflow={onSelectWorkflow} />
-          <div className="py-1">
-            <DropdownMenuSeparator />
-          </div>
           <AppDefaultToolKitSelector />
           <div className="py-1">
             <DropdownMenuSeparator />
@@ -901,7 +901,8 @@ function AppDefaultToolKitSelector() {
         (toolkit) =>
           toolkit !== AppDefaultToolkit.WebSearch &&
           toolkit !== AppDefaultToolkit.Code &&
-          toolkit !== AppDefaultToolkit.Http,
+          toolkit !== AppDefaultToolkit.Http &&
+          toolkit !== AppDefaultToolkit.Visualization,
       )
       .map((toolkit) => {
         const label = raw[toolkit] || toolkit;

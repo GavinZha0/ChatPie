@@ -111,19 +111,29 @@ export const CodeExecutor = memo(function CodeExecutor({
 
   const logs = useMemo(() => {
     const error = result?.error;
-    const logs: (LogEntry & { time?: number })[] = realtimeLogs.length
+    const baseLogs: (LogEntry & { time?: number })[] = realtimeLogs.length
       ? realtimeLogs
       : (result?.logs ?? []);
 
     if (error) {
-      logs.push({
+      baseLogs.push({
         type: "error",
         args: [{ type: "data", value: error }],
         time: lastStartedAt.current,
       });
     }
 
-    return logs.map((log, i) => {
+    const seenHtml = new Set<string>();
+    const filteredLogs = baseLogs.filter((entry) => {
+      const htmlArg = entry.args.find((a) => a.type === "html");
+      if (!htmlArg) return true;
+      const key = String(htmlArg.value);
+      if (seenHtml.has(key)) return false;
+      seenHtml.add(key);
+      return true;
+    });
+
+    return filteredLogs.map((log, i) => {
       return (
         <div
           key={i}
@@ -133,9 +143,6 @@ export const CodeExecutor = memo(function CodeExecutor({
             log.type == "warn" && "text-yellow-500",
           )}
         >
-          <div className="w-[8.6rem] hidden md:block">
-            {new Date(toAny(log).time || Date.now()).toISOString()}
-          </div>
           <div className="h-[15px] flex items-center">
             {log.type == "error" ? (
               <AlertTriangleIcon className="size-2" />
@@ -150,6 +157,17 @@ export const CodeExecutor = memo(function CodeExecutor({
               if (arg.type == "image") {
                 /* eslint-disable-next-line @next/next/no-img-element */
                 return <img key={i} src={arg.value} alt="Code output" />;
+              }
+              if (arg.type == "html") {
+                return (
+                  <iframe
+                    key={i}
+                    className="plotly-iframe w-full min-h-[500px] border-0"
+                    sandbox="allow-scripts allow-same-origin"
+                    title="Plotly Chart"
+                    srcDoc={arg.value}
+                  />
+                );
               }
               return (
                 <span key={i}>

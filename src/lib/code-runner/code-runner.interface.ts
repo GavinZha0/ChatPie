@@ -1,6 +1,10 @@
 export type LogEntry = {
   type: "log" | "error" | (string & {});
-  args: ({ type: "data"; value: any } | { type: "image"; value: string })[];
+  args: (
+    | { type: "data"; value: any }
+    | { type: "image"; value: string }
+    | { type: "html"; value: string }
+  )[];
 };
 
 export type CodeRunnerResult = {

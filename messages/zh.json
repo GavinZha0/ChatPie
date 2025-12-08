@@ -278,7 +278,20 @@
       "codeGenerating": "代码生成中...",
       "codeReExecuting": "重新执行代码...",
       "outputExceededStorageLimit": "日志输出超过存储限制（10KB）。用户仅显示完整输出，但服务器存储截断。",
-      "executionFinished": "执行完成。请提供：1) 主要结果/输出 2) 关键洞察/发现 3) 如果有错误，请解释。不要重复代码或原始日志 - 对用户解释和总结。"
+      "executionFinished": "执行完成。请提供：1) 主要结果/输出 2) 关键洞察/发现 3) 如果有错误，请解释。不要重复代码或原始日志 - 对用户解释和总结。",
+      "imageEditing": "正在编辑图片...",
+      "imageEdited": "图片已编辑",
+      "imageCompositing": "正在合成图片...",
+      "imageComposed": "图片已合成",
+      "imageGenerating": "正在生成图片...",
+      "imageGenerated": "图片已生成",
+      "imageGeneratingFailed": "图片生成失败",
+      "imageGeneratingFailedDescription": "图片生成失败。请重试。",
+      "imageGeneratingFailedRetry": "重试",
+      "imageGeneratingFailedCancel": "取消",
+      "imageNotGenerated": "未生成图片",
+      "imageNotGeneratedDescription": "未生成图片。请重试。",
+      "imageGenerationTakeTime": "图片生成可能需要长达 1 分钟。"
     },
     "VoiceChat": {
       "title": "语音聊天",

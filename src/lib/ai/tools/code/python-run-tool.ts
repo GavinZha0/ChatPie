@@ -7,7 +7,58 @@ export const pythonExecutionSchema: JSONSchema7 = {
   properties: {
     code: {
       type: "string",
-      description: `Execute Python code in the user's browser via Pyodide.\n\nNetwork access: use pyodide.http.open_url for HTTP/HTTPS, not urllib/request/requests. CORS must allow the app origin.\nExample (CSV):\nfrom pyodide.http import open_url\nimport pandas as pd\nurl = 'https://example.com/data.csv'\ndf = pd.read_csv(open_url(url))\nprint(df.head())\n\nOutput capture:\npyodide.setStdout({\n  batched: (output: string) => {\n    const type = output.startsWith('data:image/png;base64') ? 'image' : 'data'\n    logs.push({ type: 'log', args: [{ type, value: output }] })\n  },\n})\npyodide.setStderr({\n  batched: (output: string) => {\n    logs.push({ type: 'error', args: [{ type: 'data', value: output }] })\n  },\n})`,
+      description: `Execute Python code in the user's browser via Pyodide.
+
+Packages: Common packages (pandas, numpy, matplotlib, plotly) are automatically detected and loaded. No need to manually install.
+
+Network access: use pyodide.http.open_url for HTTP/HTTPS, not urllib/request/requests. CORS must allow the app origin.
+Example (CSV):
+from pyodide.http import open_url
+import pandas as pd
+url = 'https://example.com/data.csv'
+df = pd.read_csv(open_url(url))
+print(df.head())
+
+Matplotlib: Plots are automatically captured as base64 PNG images. Just use plt.show().
+Example:
+import matplotlib.pyplot as plt
+import numpy as np
+x = np.linspace(0, 2*np.pi, 100)
+plt.plot(x, np.sin(x))
+plt.title('Sine Wave')
+plt.show()  # Automatically displays as image
+
+Plotly (Recommended): Creates interactive charts with zoom, pan, and hover features. Use fig.show().
+Example:
+import plotly.graph_objects as go
+import plotly.express as px
+import numpy as np
+
+# Using graph_objects
+fig = go.Figure(data=go.Scatter(x=[1,2,3,4], y=[10,11,12,13]))
+fig.update_layout(title='Interactive Line Chart')
+fig.show()  # Automatically displays as interactive HTML
+
+# Using express (simpler)
+import pandas as pd
+df = pd.DataFrame({'x': [1,2,3,4], 'y': [10,11,12,13]})
+fig = px.line(df, x='x', y='y', title='Simple Line Chart')
+fig.show()
+
+Return values: DataFrames, Series, and NumPy arrays are automatically converted to JSON-serializable format. You can directly return pandas DataFrames without manual conversion.
+
+Output capture:
+pyodide.setStdout({
+  batched: (output: string) => {
+    const type = output.startsWith('data:image/png;base64') ? 'image' : 'data'
+    logs.push({ type: 'log', args: [{ type, value: output }] })
+  },
+})
+pyodide.setStderr({
+  batched: (output: string) => {
+    logs.push({ type: 'error', args: [{ type: 'data', value: output }] })
+  },
+})`,
     },
   },
   required: ["code"],
@@ -15,6 +66,6 @@ export const pythonExecutionSchema: JSONSchema7 = {
 
 export const pythonExecutionTool = createTool({
   description:
-    "Execute Python code in the user's browser via Pyodide. Use pyodide.http.open_url for HTTP(S) downloads; CORS must allow the app origin.",
+    "Execute Python code in the user's browser via Pyodide. Supports interactive Plotly charts (recommended) and matplotlib. DataFrames/Series are auto-converted to JSON. Use pyodide.http.open_url for HTTP(S) downloads; CORS must allow the app origin.",
   inputSchema: jsonSchemaToZod(pythonExecutionSchema),
 });

@@ -414,20 +414,21 @@ export const AssistMessagePart = memo(function AssistMessagePart({
             </>
           )}
 
-          {metadata?.usage?.totalTokens !== undefined && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-auto px-2 py-1 text-xs font-mono"
-                >
-                  {metadata.usage.totalTokens.toLocaleString()}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Token</TooltipContent>
-            </Tooltip>
-          )}
+          {metadata?.usage?.totalTokens !== undefined &&
+            metadata.usage.totalTokens > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto px-2 py-1 text-xs font-mono"
+                  >
+                    {metadata.usage.totalTokens.toLocaleString()}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Token</TooltipContent>
+              </Tooltip>
+            )}
         </div>
       )}
       <div ref={ref} className="min-w-0" />

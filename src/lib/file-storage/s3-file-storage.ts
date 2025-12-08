@@ -45,7 +45,15 @@ const buildPublicUrl = (
   forcePathStyle?: boolean,
 ) => {
   if (publicBaseUrl) {
-    return `${publicBaseUrl.replace(/\/$/, "")}/${encodeURI(key)}`;
+    const baseUrl = publicBaseUrl.replace(/\/$/, "");
+    // Check if bucket is already included in publicBaseUrl
+    if (baseUrl.endsWith(`/${bucket}`)) {
+      // base url with bucket: http://localhost:9000/chatpie
+      return `${baseUrl}/${encodeURI(key)}`;
+    } else {
+      // base url without bucket: http://localhost:9000
+      return `${baseUrl}/${bucket}/${encodeURI(key)}`;
+    }
   }
 
   // If custom endpoint provided (e.g., MinIO), fall back to constructing from it
@@ -60,7 +68,7 @@ const buildPublicUrl = (
     }
   }
 
-  // AWS standard virtual-hosted–style URL
+  // AWS standard virtual-hostedâ€“style URL
   return `https://${bucket}.s3.${region}.amazonaws.com/${encodeURI(key)}`;
 };
 
@@ -80,11 +88,35 @@ export const createS3FileStorage = (): FileStorage => {
   );
   const publicBaseUrl = process.env.FILE_STORAGE_S3_PUBLIC_BASE_URL;
 
+  // Primary S3Client for server-side operations (upload, download, etc.)
   const s3 = new S3Client({
     region,
     endpoint,
     forcePathStyle,
   });
+
+  // Create a separate S3Client for presigned URLs if publicBaseUrl is available
+  // This allows frontend to use external address while server uses internal address
+  const getPresignedS3Client = () => {
+    if (publicBaseUrl) {
+      // Extract the base endpoint from publicBaseUrl for presigned URLs
+      try {
+        const url = new URL(publicBaseUrl);
+        // url.host includes both hostname and port (e.g., "localhost:9000")
+        // url.hostname would be just "localhost", url.port would be "9000"
+        const publicEndpoint = `${url.protocol}//${url.host}`;
+        return new S3Client({
+          region,
+          endpoint: publicEndpoint,
+          forcePathStyle,
+        });
+      } catch {
+        // Fallback to primary S3Client if publicBaseUrl is invalid
+        return s3;
+      }
+    }
+    return s3;
+  };
 
   return {
     async upload(content, options: UploadOptions = {}) {
@@ -135,7 +167,13 @@ export const createS3FileStorage = (): FileStorage => {
         60,
         Math.min(60 * 60 * 12, options.expiresInSeconds ?? 900),
       );
-      const url = await getSignedUrl(s3, command, { expiresIn: expires });
+
+      // Use the presigned S3Client for frontend-accessible URLs
+      const presignedS3 = getPresignedS3Client();
+      const url = await getSignedUrl(presignedS3, command, {
+        expiresIn: expires,
+      });
+
       return {
         key,
         url,

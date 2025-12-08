@@ -7,7 +7,8 @@ import {
 import { safe, watchError } from "ts-safe";
 import { getBase64Data } from "lib/file-storage/storage-utils";
 import { serverFileStorage } from "lib/file-storage";
-import { openai } from "@ai-sdk/openai";
+import { customModelProvider } from "lib/ai/models";
+import type { ChatModel } from "app-types/chat";
 import { xai } from "@ai-sdk/xai";
 
 import {
@@ -36,23 +37,20 @@ export type GeneratedImageResult = {
 };
 
 export async function generateImageWithOpenAI(
-  options: GenerateImageOptions,
+  options: GenerateImageOptions & { model?: ChatModel },
 ): Promise<GeneratedImageResult> {
-  return experimental_generateImage({
-    model: openai.image("gpt-image-1-mini"),
+  const imageModel = await customModelProvider.getVisionModel(options.model);
+  const res = await experimental_generateImage({
+    model: imageModel,
     abortSignal: options.abortSignal,
     prompt: options.prompt,
-  }).then((res) => {
-    return {
-      images: res.images.map((v) => {
-        const item: GeneratedImage = {
-          base64: Buffer.from(v.uint8Array).toString("base64"),
-          mimeType: v.mediaType,
-        };
-        return item;
-      }),
-    };
   });
+  return {
+    images: res.images.map((v) => ({
+      base64: Buffer.from(v.uint8Array).toString("base64"),
+      mimeType: v.mediaType,
+    })),
+  };
 }
 
 export async function generateImageWithXAI(

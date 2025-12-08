@@ -71,6 +71,7 @@ type ModelCapability = {
  */
 type ModelsCache = {
   models: Record<string, Record<string, LanguageModel>>;
+  visionModels: Record<string, Record<string, any>>;
   filePartSupportByModel: Map<LanguageModel, readonly string[]>;
   providers: Provider[];
   modelCapabilities: Map<LanguageModel, ModelCapability>;
@@ -193,7 +194,11 @@ function createProviderSDK(
     case "dify": {
       const provider = createDifyProvider({ baseURL });
       return (modelId: string, options?: { apiKey?: string }) => {
-        return provider(modelId, options) as unknown as LanguageModel;
+        return provider(modelId, {
+          ...options,
+          // Use blocking mode for Dify to ensure conversation ID is returned
+          responseMode: "blocking",
+        }) as unknown as LanguageModel;
       };
     }
     default:
@@ -224,6 +229,7 @@ export async function loadDynamicModels() {
     );
 
     const models: Record<string, Record<string, LanguageModel>> = {};
+    const visionModels: Record<string, Record<string, any>> = {};
     const filePartSupportByModel = new Map<LanguageModel, readonly string[]>();
     const modelCapabilities = new Map<LanguageModel, ModelCapability>();
 
@@ -245,6 +251,7 @@ export async function loadDynamicModels() {
 
       // Build all models for this provider
       const providerModels: Record<string, LanguageModel> = {};
+      const providerVisionModels: Record<string, any> = {};
       const llmConfigs = provider.llm || [];
 
       for (const llmConfig of llmConfigs) {
@@ -253,29 +260,44 @@ export async function loadDynamicModels() {
         }
 
         try {
-          // Create model instance
-          // For Dify provider, pass apiKey in options; options will be ignored for other providers
-          const model = createModel(
-            llmConfig.id,
-            provider.name === "dify"
-              ? { apiKey: provider.apiKey || undefined }
-              : undefined,
-          );
-          providerModels[llmConfig.id] = model;
+          if (llmConfig.type === "vision") {
+            if (provider.name === "openai") {
+              const p = createOpenAI({
+                baseURL: provider.baseUrl || undefined,
+                apiKey: provider.apiKey || undefined,
+              });
+              const imageModel = (p as any).image(llmConfig.id);
+              providerVisionModels[llmConfig.id] = imageModel;
+            } else if (provider.name === "xai") {
+              const p = createXai({
+                baseURL: provider.baseUrl || undefined,
+                apiKey: provider.apiKey || undefined,
+              });
+              const imageModel = (p as any).image(llmConfig.id);
+              providerVisionModels[llmConfig.id] = imageModel;
+            }
+          } else {
+            const model = createModel(
+              llmConfig.id,
+              provider.name === "dify"
+                ? { apiKey: provider.apiKey || undefined }
+                : undefined,
+            );
+            providerModels[llmConfig.id] = model;
 
-          const supportsFunctionCall = llmConfig.functionCall ?? true;
-          const supportsImageInput = llmConfig.imageInput ?? true;
+            const supportsFunctionCall = llmConfig.functionCall ?? true;
+            const supportsImageInput = llmConfig.imageInput ?? true;
 
-          modelCapabilities.set(model, {
-            supportsFunctionCall,
-            supportsImageInput,
-          });
+            modelCapabilities.set(model, {
+              supportsFunctionCall,
+              supportsImageInput,
+            });
 
-          // Register file support
-          const fileMimeTypes =
-            providerFileSupportMap[provider.name] ||
-            DEFAULT_FILE_PART_MIME_TYPES;
-          filePartSupportByModel.set(model, fileMimeTypes);
+            const fileMimeTypes =
+              providerFileSupportMap[provider.name] ||
+              DEFAULT_FILE_PART_MIME_TYPES;
+            filePartSupportByModel.set(model, fileMimeTypes);
+          }
         } catch (error) {
           logger.error(
             `Failed to create model ${llmConfig.id} for provider ${provider.name}:`,
@@ -291,6 +313,13 @@ export async function loadDynamicModels() {
           models[provider.name] = providerModels;
         }
       }
+      if (Object.keys(providerVisionModels).length > 0) {
+        if (visionModels[provider.name]) {
+          Object.assign(visionModels[provider.name], providerVisionModels);
+        } else {
+          visionModels[provider.name] = providerVisionModels;
+        }
+      }
     }
 
     const lastUpdated = providers.reduce<number>((acc, p) => {
@@ -299,6 +328,7 @@ export async function loadDynamicModels() {
     }, 0);
     modelsCache = {
       models,
+      visionModels,
       filePartSupportByModel,
       providers,
       modelCapabilities,
@@ -312,6 +342,7 @@ export async function loadDynamicModels() {
     // Return empty result instead of throwing error, keep app availability
     return {
       models: {},
+      visionModels: {},
       filePartSupportByModel: new Map<LanguageModel, readonly string[]>(),
       providers: [],
       modelCapabilities: new Map<LanguageModel, ModelCapability>(),
@@ -382,6 +413,7 @@ export async function updateProviderInCache(providerName: string) {
     }
 
     const providerModels: Record<string, LanguageModel> = {};
+    const providerVisionModels: Record<string, any> = {};
     const llmConfigs = updatedProvider.llm || [];
 
     for (const llmConfig of llmConfigs) {
@@ -390,26 +422,44 @@ export async function updateProviderInCache(providerName: string) {
       }
 
       try {
-        const model = createModel(
-          llmConfig.id,
-          updatedProvider.name === "dify"
-            ? { apiKey: updatedProvider.apiKey || undefined }
-            : undefined,
-        );
-        providerModels[llmConfig.id] = model;
+        if (llmConfig.type === "vision") {
+          if (updatedProvider.name === "openai") {
+            const p = createOpenAI({
+              baseURL: updatedProvider.baseUrl || undefined,
+              apiKey: updatedProvider.apiKey || undefined,
+            });
+            const imageModel = (p as any).image(llmConfig.id);
+            providerVisionModels[llmConfig.id] = imageModel;
+          } else if (updatedProvider.name === "xai") {
+            const p = createXai({
+              baseURL: updatedProvider.baseUrl || undefined,
+              apiKey: updatedProvider.apiKey || undefined,
+            });
+            const imageModel = (p as any).image(llmConfig.id);
+            providerVisionModels[llmConfig.id] = imageModel;
+          }
+        } else {
+          const model = createModel(
+            llmConfig.id,
+            updatedProvider.name === "dify"
+              ? { apiKey: updatedProvider.apiKey || undefined }
+              : undefined,
+          );
+          providerModels[llmConfig.id] = model;
 
-        const supportsFunctionCall = llmConfig.functionCall ?? true;
-        const supportsImageInput = llmConfig.imageInput ?? true;
+          const supportsFunctionCall = llmConfig.functionCall ?? true;
+          const supportsImageInput = llmConfig.imageInput ?? true;
 
-        modelsCache.modelCapabilities.set(model, {
-          supportsFunctionCall,
-          supportsImageInput,
-        });
+          modelsCache.modelCapabilities.set(model, {
+            supportsFunctionCall,
+            supportsImageInput,
+          });
 
-        const fileMimeTypes =
-          providerFileSupportMap[updatedProvider.name] ||
-          DEFAULT_FILE_PART_MIME_TYPES;
-        modelsCache.filePartSupportByModel.set(model, fileMimeTypes);
+          const fileMimeTypes =
+            providerFileSupportMap[updatedProvider.name] ||
+            DEFAULT_FILE_PART_MIME_TYPES;
+          modelsCache.filePartSupportByModel.set(model, fileMimeTypes);
+        }
       } catch (error) {
         logger.error(
           `Failed to create model ${llmConfig.id} for provider ${updatedProvider.name} during update:`,
@@ -423,6 +473,15 @@ export async function updateProviderInCache(providerName: string) {
       modelsCache.models[providerName] = providerModels;
     } else {
       delete modelsCache.models[providerName];
+    }
+
+    if (Object.keys(providerVisionModels).length > 0) {
+      if (!modelsCache.visionModels[providerName]) {
+        modelsCache.visionModels[providerName] = {} as Record<string, any>;
+      }
+      modelsCache.visionModels[providerName] = providerVisionModels;
+    } else {
+      delete modelsCache.visionModels[providerName];
     }
 
     modelsCache.providers = updatedProviders;
@@ -516,6 +575,29 @@ export const customModelProvider = {
     }
 
     return dynamicModel;
+  },
+
+  async getVisionModel(model?: ChatModel): Promise<any> {
+    const dynamicData = await loadDynamicModels();
+
+    if (model) {
+      const vm = dynamicData.visionModels[model.provider]?.[model.model];
+      if (vm) return vm;
+      throw new Error(
+        `Vision model ${model.provider}/${model.model} not found in database or not enabled`,
+      );
+    }
+
+    for (const provider of dynamicData.providers) {
+      const enabledVision = (provider.llm || [])
+        .filter((m) => m.enabled && m.type === "vision")
+        .map((m) => m.id);
+      for (const id of enabledVision) {
+        const vm = dynamicData.visionModels[provider.name]?.[id];
+        if (vm) return vm;
+      }
+    }
+    throw new Error("No vision models available in database");
   },
 
   /**

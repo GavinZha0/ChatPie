@@ -90,6 +90,6 @@ describe("s3-file-storage", () => {
     process.env.FILE_STORAGE_S3_PUBLIC_BASE_URL = "https://cdn.example.com";
     const storage = createS3FileStorage();
     const url = await storage.getSourceUrl("uploads/x.txt");
-    expect(url).toBe("https://cdn.example.com/uploads/x.txt");
+    expect(url).toBe("https://cdn.example.com/my-bucket/uploads/x.txt");
   });
 });

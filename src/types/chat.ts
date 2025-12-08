@@ -30,6 +30,8 @@ export type ChatMetadata = {
   toolCount?: number;
   agentId?: string;
   agentName?: string; // New: agent name for frontend display
+  // Dify conversation ID for maintaining conversation continuity
+  difyConversationId?: string;
 };
 
 export type ChatModel = {
