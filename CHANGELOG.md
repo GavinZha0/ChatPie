@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/GavinZha0/ChatPie/compare/v0.7.2...v0.8.0) (2025-12-08)
+
+
+### Features
+
+* add RustFS as file storage for image generation and user avatar ([#12](https://github.com/GavinZha0/ChatPie/issues/12)) ([76f4fe6](https://github.com/GavinZha0/ChatPie/commit/76f4fe6e60ab8add8569aaa669aebbab84607f4b))
+
 ## [0.7.2](https://github.com/GavinZha0/ChatPie/compare/v0.7.1...v0.7.2) (2025-12-03)
 
 
