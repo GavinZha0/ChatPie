@@ -5,7 +5,7 @@
 
 ### Features
 
-* add RustFS as file storage for image generation and user avatar ([#12](https://github.com/GavinZha0/ChatPie/issues/12)) ([76f4fe6](https://github.com/GavinZha0/ChatPie/commit/76f4fe6e60ab8add8569aaa669aebbab84607f4b))
+* add RustFS as file storage for image generation and user avatar ([#12](https://github.com/GavinZha0/ChatPie/issues/12)) ([76f4fe6](https://github.com/GavinZha0/ChatPie/commit/76f4fe6e60ab8add8569aaa669aebbab84607f4b)) by @GavinZha0
 
 ## [0.7.2](https://github.com/GavinZha0/ChatPie/compare/v0.7.1...v0.7.2) (2025-12-03)
 
