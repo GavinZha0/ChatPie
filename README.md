@@ -28,6 +28,9 @@ ChatPie, a modern AI-powered chatbot platform designed to foster seamless human-
 - **Multiple Chat Modes**: Support for both one-on-one and group conversations
 - **AI Agent Builder**: Create and customize intelligent agents for specific tasks
 - **Workflow Construction**: Build automated workflows to streamline complex processes
+- **Code Generation & Execution**: Generate and execute JavaScript and Python code
+- **Data Visualization**: Generate charts and visualizations from structured data
+- **Image Generation & Editing**: Generate and edit images with AI (API key required)
 - **Chat Archive & Management**: Archive conversations with configurable retention policies
 - **Real-Time Voice Chat**: Powered by OpenAI `gpt-realtime` (API key required)
 - **Web Search**: Enhanced search capabilities powered by Exa API (API key required)
