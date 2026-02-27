@@ -41,7 +41,7 @@ ChatPie, a modern AI-powered chatbot platform designed to foster seamless human-
   - Anthropic
   - xAI
   - OpenRouter
-  - Groq
+  - Ollama
   - Qwen
   - Dify
   - And more...
