@@ -49,7 +49,7 @@ export const RECOMMENDED_MCPS = [
     label: "Playwright",
     config: {
       command: "npx",
-      args: ["@playwright/mcp@latest"],
+      args: ["@playwright/mcp@latest", "--headless", "--no-sandbox"],
     },
     icon: PlaywrightIcon,
   },

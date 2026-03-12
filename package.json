@@ -124,6 +124,7 @@
     "ogl": "^1.0.11",
     "ollama-ai-provider-v2": "^1.5.3",
     "pg": "^8.16.3",
+    "playwright": "^1.58.2",
     "qwen-ai-provider": "^0.1.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -176,7 +177,7 @@
     "*.{js,json,mjs,ts,tsx,css}": ["pnpm format", "pnpm lint:fix"],
     "*.{yml,yaml}": ["prettier --write"]
   },
-  "packageManager": "pnpm@10.20.0",
+  "packageManager": "pnpm@10.32.1",
   "engines": {
     "node": ">=22"
   },
