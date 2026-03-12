@@ -27,15 +27,21 @@ const storageDriver = resolveDriver();
 
 const createFileStorage = (): FileStorage => {
   logger.info(`Creating file storage: ${storageDriver}`);
-  switch (storageDriver) {
-    case "vercel-blob":
-      return createVercelBlobStorage();
-    case "s3":
-      return createS3FileStorage();
-    default: {
-      const exhaustiveCheck: never = storageDriver;
-      throw new Error(`Unsupported file storage driver: ${exhaustiveCheck}`);
+  try {
+    switch (storageDriver) {
+      case "vercel-blob":
+        return createVercelBlobStorage();
+      case "s3":
+        return createS3FileStorage();
+      default: {
+        const exhaustiveCheck: never = storageDriver;
+        throw new Error(`Unsupported file storage driver: ${exhaustiveCheck}`);
+      }
     }
+  } catch (error) {
+    logger.warn(`Failed to create ${storageDriver} file storage:`, error);
+    logger.info("Falling back to vercel-blob storage");
+    return createVercelBlobStorage();
   }
 };
 

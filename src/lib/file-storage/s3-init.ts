@@ -74,7 +74,7 @@ export async function initS3() {
       `Bucket '${bucket}' initialized (policy skipped for RustFS compatibility).`,
     );
   } catch (error) {
-    console.error("Failed to initialize S3 bucket:", error);
-    // Don't crash the app, just log error
+    console.warn("Failed to initialize S3 bucket:", error);
+    // Don't crash the app, just log warning
   }
 }

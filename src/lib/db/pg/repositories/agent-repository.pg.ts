@@ -75,7 +75,6 @@ export const pgAgentRepository: AgentRepository = {
           or(
             eq(AgentTable.userId, userId), // Own agent
             eq(AgentTable.visibility, "public"), // Public agent
-            eq(AgentTable.visibility, "readonly"), // Readonly agent
           ),
         ),
       );
@@ -200,20 +199,14 @@ export const pgAgentRepository: AgentRepository = {
         orConditions.push(
           and(
             ne(AgentTable.userId, currentUserId),
-            or(
-              eq(AgentTable.visibility, "public"),
-              eq(AgentTable.visibility, "readonly"),
-            ),
+            eq(AgentTable.visibility, "public"),
           ),
         );
       } else if (filter === "bookmarked") {
         orConditions.push(
           and(
             ne(AgentTable.userId, currentUserId),
-            or(
-              eq(AgentTable.visibility, "public"),
-              eq(AgentTable.visibility, "readonly"),
-            ),
+            eq(AgentTable.visibility, "public"),
             sql`${BookmarkTable.id} IS NOT NULL`,
           ),
         );
@@ -226,10 +219,7 @@ export const pgAgentRepository: AgentRepository = {
             // Shared agents
             and(
               ne(AgentTable.userId, currentUserId),
-              or(
-                eq(AgentTable.visibility, "public"),
-                eq(AgentTable.visibility, "readonly"),
-              ),
+              eq(AgentTable.visibility, "public"),
             ),
           ),
         ];

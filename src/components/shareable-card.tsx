@@ -32,11 +32,14 @@ interface ShareableCardProps {
   isOwner?: boolean;
   href?: string;
   onClick?: () => void;
-  onBookmarkToggle?: (itemId: string, isBookmarked: boolean) => void;
+  onBookmarkToggle?: (
+    item: AgentSummary,
+    isBookmarked: boolean,
+  ) => void | ((itemId: string, isBookmarked: boolean) => void);
   onVisibilityChange?: (itemId: string, visibility: Visibility) => void;
   onDelete?: (itemId: string) => void;
-  isVisibilityChangeLoading?: boolean;
   isBookmarkToggleLoading?: boolean;
+  isVisibilityChangeLoading?: boolean;
   isDeleteLoading?: boolean;
   actionsDisabled?: boolean;
   isModelAvailable?: boolean;
@@ -156,8 +159,12 @@ export function ShareableCard({
                   : undefined
               }
               onBookmarkToggle={
-                onBookmarkToggle
-                  ? (isBookmarked) => onBookmarkToggle(item.id, isBookmarked)
+                type === "agent" && onBookmarkToggle
+                  ? (isBookmarked: boolean) => {
+                      if (type === "agent") {
+                        onBookmarkToggle(item as AgentSummary, isBookmarked);
+                      }
+                    }
                   : undefined
               }
               onDelete={onDelete ? () => onDelete(item.id) : undefined}

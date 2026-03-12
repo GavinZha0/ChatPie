@@ -5,6 +5,7 @@ import { useSWRConfig } from "swr";
 
 export interface BookmarkItem {
   id: string;
+  itemId: string;
   isBookmarked?: boolean;
 }
 

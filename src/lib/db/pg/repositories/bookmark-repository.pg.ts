@@ -73,12 +73,8 @@ export const pgBookmarkRepository: BookmarkRepository = {
 
       if (!agent[0]) return false;
 
-      // Can bookmark if it's public/readonly or if it's their own agent
-      return (
-        agent[0].visibility === "public" ||
-        agent[0].visibility === "readonly" ||
-        agent[0].userId === userId
-      );
+      // Can bookmark if it's public or if it's their own agent
+      return agent[0].visibility === "public" || agent[0].userId === userId;
     }
 
     // TODO: Add workflow access check when workflows support bookmarking
