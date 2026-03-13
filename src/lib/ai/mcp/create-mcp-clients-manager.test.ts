@@ -11,6 +11,18 @@ vi.mock("./create-mcp-client", () => ({
   createMCPClient: vi.fn(),
 }));
 
+vi.mock("./pg-oauth-provider", () => ({
+  PgOAuthClientProvider: vi.fn(),
+}));
+
+vi.mock("lib/file-storage", () => ({
+  serverFileStorage: {
+    upload: vi.fn().mockResolvedValue({
+      sourceUrl: "mock-uploaded-url",
+    }),
+  },
+}));
+
 vi.mock("./mcp-tool-id", () => ({
   createMCPToolId: vi.fn((serverName, toolName) => `${serverName}:${toolName}`),
 }));
