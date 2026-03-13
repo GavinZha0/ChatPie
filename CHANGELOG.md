@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/GavinZha0/ChatPie/compare/v0.8.0...v0.9.0) (2026-03-13)
+
+
+### Features
+
+* support playwright ([#15](https://github.com/GavinZha0/ChatPie/issues/15)) ([4f1c895](https://github.com/GavinZha0/ChatPie/commit/4f1c89564452936dc6d1519ab44d32f8731db128))
+
 ## [0.8.0](https://github.com/GavinZha0/ChatPie/compare/v0.7.2...v0.8.0) (2025-12-08)
 
 
