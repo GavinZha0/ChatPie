@@ -44,11 +44,20 @@ export function AppHeader() {
         <BackButton
           data-testid="admin-users-back-button"
           returnUrl={returnUrl}
-          title={t("Admin.Users.backToUsers")}
+          title={t("Common.back")}
         />
       );
     }
-  }, [currentPaths, searchParams]);
+    if (currentPaths.startsWith("/mcp/test/")) {
+      return (
+        <BackButton
+          data-testid="mcp-test-back-button"
+          returnUrl="/mcp"
+          title={t("Common.back")}
+        />
+      );
+    }
+  }, [currentPaths, searchParams, t]);
 
   return (
     <header className="sticky top-0 z-50 flex items-center px-3 py-2">

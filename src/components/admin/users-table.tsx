@@ -136,7 +136,7 @@ export function UsersTable({
   };
 
   return (
-    <div className="space-y-4 w-full">
+    <div className="space-y-2 w-full">
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-sm">
           <Form action={baseUrl} ref={formRef}>

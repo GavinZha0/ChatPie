@@ -341,7 +341,7 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
   };
 
   return (
-    <div className="flex gap-6 h-[calc(100vh-8rem)] p-6">
+    <div className="flex gap-2 h-[calc(100vh-8rem)] p-4">
       {/* Left Sidebar - Provider List */}
       <div className="w-64 shrink-0">
         <Card className="h-full flex flex-col">
@@ -349,20 +349,20 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
             <CardTitle className="text-lg">{t("listCardTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto px-0">
-            <div className="space-y-2 px-6">
+            <div className="space-y-2 px-4">
               {sortedProviders.map((provider) => (
                 <div key={provider.id} className="group relative">
                   <button
                     onClick={() => setSelectedProviderId(provider.id)}
                     className={cn(
-                      "w-full text-left p-3 rounded-lg border transition-colors",
+                      "w-full text-left p-4 rounded-lg border transition-colors",
                       "hover:bg-muted/50",
                       selectedProviderId === provider.id
                         ? "bg-muted border-primary"
                         : "bg-card border-border",
                     )}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <ModelProviderIcon
                         provider={provider.name.toLowerCase()}
                         colorful={Boolean(provider.apiKey?.trim())}
@@ -403,7 +403,7 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
       </div>
 
       {/* Right Side - Content */}
-      <div className="flex-1 flex flex-col gap-6 overflow-hidden">
+      <div className="flex-1 flex flex-col gap-2 overflow-hidden">
         {/* Top Section - Available Providers Table */}
         <Card className="shrink-0">
           <CardHeader>
@@ -441,7 +441,7 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
                     <TableRow>
                       <TableCell
                         colSpan={6}
-                        className="text-center py-8 text-muted-foreground"
+                        className="text-center py-4 text-muted-foreground"
                       >
                         {t("noApiProviders")}
                       </TableCell>
@@ -457,7 +457,7 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
                         onClick={() => setSelectedProviderId(provider.id)}
                       >
                         <TableCell>
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
                             <ModelProviderIcon
                               provider={provider.name.toLowerCase()}
                               colorful={Boolean(provider.apiKey?.trim())}
@@ -561,7 +561,7 @@ export function Providers({ providers, llmMap }: ProvidersProps) {
                 {t("noModels")}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
                 {selectedProviderModels.map((model) => (
                   <Card
                     key={model.id}

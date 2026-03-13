@@ -315,7 +315,7 @@ export const MCPCard = memo(function MCPCard({
       {errorMessage && <ErrorAlert error={errorMessage} />}
 
       {needsAuthorization && (
-        <div className="px-6 pb-2">
+        <div className="px-4 pb-2">
           <Alert
             className="cursor-pointer hover:bg-accent/10 transition-colors"
             onClick={handleAuthorize}
@@ -439,7 +439,7 @@ ToolsList.displayName = "ToolsList";
 
 // Error alert component
 const ErrorAlert = memo(({ error }: { error: string }) => (
-  <div className="px-6 pb-2">
+  <div className="px-4 pb-2">
     <Alert variant="destructive" className="border-destructive">
       <AlertTitle>Error</AlertTitle>
       <AlertDescription className="whitespace-pre-wrap break-words">

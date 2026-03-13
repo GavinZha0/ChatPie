@@ -258,9 +258,9 @@ export const CodeExecutor = memo(function CodeExecutor({
 
   return (
     <div className="flex flex-col">
-      <div className="px-6 py-3">
+      <div className="px-4 py-2">
         <div className="border overflow-x-hidden relative rounded-lg shadow fade-in animate-in duration-500">
-          <div className="py-2.5 bg-border px-4 flex items-center gap-1.5 z-10 min-h-[37px]">
+          <div className="py-2 bg-border px-4 flex items-center gap-1.5 z-10 min-h-[37px]">
             <div
               className="flex items-center gap-1.5 cursor-pointer select-none"
               onClick={toggleCollapse}

@@ -26,7 +26,7 @@ export function EditShareableLoading({
         </div>
 
         {/* Name and icon */}
-        <div className="flex gap-4 mt-4">
+        <div className="flex gap-2 mt-2">
           <div className="flex flex-col justify-between gap-2 flex-1">
             <Skeleton className="h-5 w-24" />
             <Skeleton className="h-10 w-full" />

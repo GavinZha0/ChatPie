@@ -5,7 +5,7 @@ import { Skeleton } from "ui/skeleton";
 
 export function UserDetailContentSkeleton() {
   return (
-    <div className="min-h-full p-4 md:p-6 space-y-6">
+    <div className="min-h-full p-4 md:p-4 space-y-4">
       {/* Hero Section */}
       <div className="space-y-2">
         <Skeleton className="h-9 w-48" />
@@ -13,7 +13,7 @@ export function UserDetailContentSkeleton() {
       </div>
 
       {/* Cards Layout */}
-      <div className="space-y-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="space-y-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <UserDetailFormSkeleton />
         <UserAccessCardSkeleton />
 

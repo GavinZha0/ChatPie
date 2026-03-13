@@ -746,7 +746,7 @@ export function ChatMentionInputSuggestion({
                             />
                           ))
                         ) : (
-                          <div className="px-2 py-3 text-xs text-muted-foreground text-center">
+                          <div className="px-2 py-2 text-xs text-muted-foreground text-center">
                             No agents found
                           </div>
                         )}
@@ -835,7 +835,7 @@ export function ChatMentionInputSuggestion({
                               />
                             ))
                           ) : (
-                            <div className="px-2 py-3 text-xs text-muted-foreground text-center">
+                            <div className="px-2 py-2 text-xs text-muted-foreground text-center">
                               No app tools found
                             </div>
                           )}

@@ -51,12 +51,12 @@ export function UserDetail({
 
   return (
     <div
-      className="min-h-full p-4 md:p-6 space-y-6"
+      className="min-h-full p-4 md:p-4 space-y-4"
       data-testid="user-detail-content"
     >
       {/* Cards Layout */}
       <div
-        className={cn("grid grid-cols-1 md:grid-cols-2 gap-6", {
+        className={cn("grid grid-cols-1 md:grid-cols-2 gap-4", {
           "grid-cols-1 md:grid-cols-1 lg:grid-cols-2": sidebarOpen,
         })}
       >

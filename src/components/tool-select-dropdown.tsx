@@ -486,7 +486,7 @@ function WorkflowToolSelector({
         <DropdownMenuPortal>
           <DropdownMenuSubContent className="w-80 relative">
             {myWorkflows.length === 0 && sharedWorkflows.length === 0 ? (
-              <div className="text-sm text-muted-foreground flex flex-col py-6 px-6 gap-4 items-center">
+              <div className="text-sm text-muted-foreground flex flex-col p-4 gap-2 items-center">
                 <InfoIcon className="size-4" />
                 <p className="whitespace-pre-wrap">{t("Workflow.noTools")}</p>
 

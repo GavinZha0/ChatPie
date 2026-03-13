@@ -5,7 +5,6 @@ import {
   selectMcpClientAction,
 } from "@/app/api/mcp/actions";
 import {
-  ArrowLeft,
   ChevronDown,
   ChevronRight,
   ChevronUp,
@@ -13,7 +12,6 @@ import {
   Search,
   WandSparkles,
 } from "lucide-react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import {
@@ -221,7 +219,7 @@ const ToolDescription = ({
   showFullDescription: boolean;
   toggleDescription: () => void;
 }) => (
-  <div className="mb-6">
+  <div className="mb-2">
     <p className="text-sm text-muted-foreground">
       {showFullDescription
         ? description
@@ -466,17 +464,10 @@ export default function Page() {
   }, [searchQuery]);
 
   return (
-    <div className="relative flex flex-col px-4 w-full h-full py-4">
+    <div className="relative flex flex-col px-4 w-full h-full py-2">
       <div className="bg-background pb-2">
-        <Link
-          href="/mcp"
-          className="flex items-center gap-2 text-muted-foreground text-sm hover:text-foreground transition-colors pb-4"
-        >
-          <ArrowLeft className="size-3" />
-          {t("Common.back")}
-        </Link>
         <header>
-          <h2 className="text-3xl font-semibold my-2">
+          <h2 className="text-2xl font-semibold my-2">
             {decodeURIComponent(client?.name ?? "")}
           </h2>
         </header>
@@ -484,14 +475,14 @@ export default function Page() {
 
       <ResizablePanelGroup
         direction="horizontal"
-        className="mt-4 flex-1 min-h-0"
+        className="mt-2 flex-1 min-h-0"
       >
         {/* Tool List Panel */}
         <ResizablePanel defaultSize={25}>
           <div className="w-full flex flex-col h-full relative pr-8">
             <div className="top-0 pb-2 z-1">
               <div className="w-full relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-2 top-2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
                   placeholder={t("MCP.searchTools")}
@@ -525,9 +516,9 @@ export default function Page() {
         <ResizablePanel defaultSize={75}>
           <div className="w-full h-full flex flex-col min-h-0">
             {selectedTool ? (
-              <div className="flex-1 flex flex-col pl-6 pr-12 min-h-0 overflow-hidden">
+              <div className="flex-1 flex flex-col pl-4 pr-4 min-h-0 overflow-hidden">
                 <div className="sticky top-0 bg-background">
-                  <h3 className="text-xl font-medium mb-4 flex items-center gap-2">
+                  <h3 className="text-xl font-medium flex items-center gap-2">
                     {selectedTool.name}
                   </h3>
 
@@ -539,10 +530,10 @@ export default function Page() {
                     />
                   )}
 
-                  <Separator className="my-4" />
+                  <Separator className="my-2" />
                 </div>
 
-                <div className="flex-1 min-h-0 grid grid-cols-2 gap-4">
+                <div className="flex-1 min-h-0 grid grid-cols-2 gap-2">
                   {selectedTool.inputSchema ? (
                     <>
                       {/* Left column: JSON on top, Schema below (equal height) */}
@@ -591,7 +582,7 @@ export default function Page() {
                         </div>
 
                         {/* Definition / Schema (bottom) */}
-                        <div className="flex-1 min-h-0 flex flex-col mt-4">
+                        <div className="flex-1 min-h-0 flex flex-col mt-2">
                           <Tabs
                             defaultValue="definition"
                             className="flex-1 min-h-0"
