@@ -1,6 +1,6 @@
 {
   "name": "chatpie",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "private": true,
   "author": "Gavin.Zhao",
   "license": "MIT",
@@ -174,8 +174,13 @@
     "vitest": "^3.2.4"
   },
   "lint-staged": {
-    "*.{js,json,mjs,ts,tsx,css}": ["pnpm format", "pnpm lint:fix"],
-    "*.{yml,yaml}": ["prettier --write"]
+    "*.{js,json,mjs,ts,tsx,css}": [
+      "pnpm format",
+      "pnpm lint:fix"
+    ],
+    "*.{yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "packageManager": "pnpm@10.32.1",
   "engines": {
@@ -189,6 +194,8 @@
       "sharp",
       "unrs-resolver"
     ],
-    "ignoredBuiltDependencies": ["@swc/core"]
+    "ignoredBuiltDependencies": [
+      "@swc/core"
+    ]
   }
 }
