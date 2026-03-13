@@ -1,4 +1,7 @@
-FROM node:23-alpine AS builder
+############################
+# Builder
+############################
+FROM node:22-bookworm-slim AS builder
 ARG DOCKER_BUILD="1"
 WORKDIR /app
 
@@ -6,43 +9,66 @@ COPY . .
 
 # Install pnpm
 RUN corepack enable pnpm
-
 RUN pnpm install --frozen-lockfile
 
-# Makes the next output standalone
-# https://github.com/vercel/next.js/discussions/65511
-ENV NEXT_STANDALONE_OUTPUT="true"
+# Install Playwright browsers with dependencies
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+RUN npx playwright install --with-deps chromium
+RUN chmod -R 755 /ms-playwright
 
+# Makes the next output standalone
+ENV NEXT_STANDALONE_OUTPUT="true"
 RUN pnpm build
 
-FROM node:23-alpine AS runner
-
+############################
+# Runner (production + Playwright)
+############################
+FROM node:22-bookworm-slim AS runner
 WORKDIR /app
-
 ENV NODE_ENV=production
 # disable telemetry during runtime.
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN adduser --system --uid 1001 --home /home/nextjs --shell /bin/bash nextjs
 
 COPY --from=builder /app/public ./public
 
 # Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nogroup /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nogroup /app/.next/static ./.next/static
 
 # Copy migrations content
 COPY --from=builder /app/src/lib/db/migrations ./src/lib/db/migrations
 
+# Copy Playwright browsers from builder
+COPY --from=builder /ms-playwright /ms-playwright
+
+# Copy node_modules for Playwright
+COPY --from=builder /app/node_modules ./node_modules
+
+# Create and set permissions for npm cache directory
+RUN mkdir -p /home/nextjs/.npm && chown -R nextjs:nogroup /home/nextjs
+
+# Create outputs directory for Playwright files
+RUN mkdir -p /app/outputs && chown 1001:65534 /app/outputs
+
+# Set Playwright browsers path and ensure permissions
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+RUN chown -R nextjs:nogroup /ms-playwright
+
+# Create symlink for MCP chrome compatibility
+USER root
+RUN npx playwright install --with-deps chromium
+RUN CHROMIUM_PATH=$(find /ms-playwright -maxdepth 1 -type d -name "chromium-*" | head -n 1) && mkdir -p /opt/google/chrome/ && ln -sf "${CHROMIUM_PATH}/chrome-linux64/chrome" /opt/google/chrome/chrome
 USER nextjs
+
+# Set npm cache directory for nextjs user
+ENV npm_config_cache=/home/nextjs/.npm
+ENV HOME=/home/nextjs
 
 ENV PORT=8300
 ENV HOSTNAME="0.0.0.0"
-
 EXPOSE 8300
 
 # server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
 CMD ["node", "server.js"]

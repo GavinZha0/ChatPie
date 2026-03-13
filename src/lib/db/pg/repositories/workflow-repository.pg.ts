@@ -106,7 +106,7 @@ export const pgWorkflowRepository: WorkflowRepository = {
       .innerJoin(UserTable, eq(WorkflowTable.userId, UserTable.id))
       .where(
         or(
-          inArray(WorkflowTable.visibility, ["public", "readonly"]),
+          inArray(WorkflowTable.visibility, ["public"]),
           eq(WorkflowTable.userId, userId),
         ),
       )
@@ -121,7 +121,7 @@ export const pgWorkflowRepository: WorkflowRepository = {
     return workflow as DBWorkflow;
   },
 
-  async checkAccess(workflowId, userId, readOnly = true) {
+  async checkAccess(workflowId, userId, _readOnly = true) {
     const [workflow] = await pgDb
       .select({
         visibility: WorkflowTable.visibility,
@@ -136,7 +136,6 @@ export const pgWorkflowRepository: WorkflowRepository = {
     if (workflow.visibility === "private") {
       return false;
     }
-    if (workflow.visibility == "readonly" && !readOnly) return false;
     return true;
   },
   async delete(id) {

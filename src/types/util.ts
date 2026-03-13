@@ -58,5 +58,5 @@ export type TipTapMentionJsonContent = {
   }[];
 };
 
-export const VisibilitySchema = z.enum(["public", "private", "readonly"]);
+export const VisibilitySchema = z.enum(["public", "private"]);
 export type Visibility = z.infer<typeof VisibilitySchema>;

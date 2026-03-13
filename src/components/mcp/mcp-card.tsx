@@ -15,7 +15,6 @@ import { Button } from "ui/button";
 import { Card, CardContent, CardHeader } from "ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useSWRConfig } from "swr";
 import { safe } from "ts-safe";
 
@@ -235,20 +234,25 @@ export const MCPCard = memo(function MCPCard({
         <Tooltip>
           <TooltipTrigger asChild>
             {isDisabled ? (
-              <div className="cursor-pointer hidden sm:block">
-                <Button variant="ghost" size="icon" disabled>
-                  <FlaskConical className="size-3.5" />
-                </Button>
-              </div>
-            ) : (
-              <Link
-                href={`/mcp/test/${encodeURIComponent(id)}`}
-                className="cursor-pointer hidden sm:block"
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled
+                className="size-4 text-muted-foreground hover:text-foreground"
               >
-                <Button variant="ghost" size="icon">
-                  <FlaskConical className="size-3.5" />
-                </Button>
-              </Link>
+                <FlaskConical className="size-4" />
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  (window.location.href = `/mcp/test/${encodeURIComponent(id)}`)
+                }
+                className="size-4 text-muted-foreground hover:text-foreground"
+              >
+                <FlaskConical className="size-4" />
+              </Button>
             )}
           </TooltipTrigger>
           <TooltipContent>
@@ -259,11 +263,12 @@ export const MCPCard = memo(function MCPCard({
           <TooltipTrigger asChild>
             <Button
               variant="ghost"
-              size="icon"
+              size="sm"
               onClick={handleRefresh}
               disabled={isLoading}
+              className="size-4 text-muted-foreground hover:text-foreground"
             >
-              <RotateCw className="size-3.5" />
+              <RotateCw className="size-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>

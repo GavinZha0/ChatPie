@@ -10,7 +10,6 @@ import {
 } from "@/components/mcp/mcp-overview";
 
 import { Skeleton } from "ui/skeleton";
-import { Separator } from "ui/separator";
 
 import { ScrollArea } from "ui/scroll-area";
 import { useTranslations } from "next-intl";
@@ -61,8 +60,8 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
     refreshInterval: 10000,
   });
 
-  const { myServers, featuredServers } = useMemo(() => {
-    if (!mcpList) return { myServers: [], featuredServers: [] };
+  const { myServers, sharedServers } = useMemo(() => {
+    if (!mcpList) return { myServers: [], sharedServers: [] };
 
     const sortFn = (a: any, b: any) => {
       if (a.status === b.status) return 0;
@@ -72,12 +71,12 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
     };
 
     const owned = mcpList.filter((s) => s.userId === user?.id).sort(sortFn);
-    const featured = mcpList
+    const shared = mcpList
       .filter((s) => s.userId !== user?.id && s.visibility === "public")
       .sort(sortFn);
 
-    return { myServers: owned, featuredServers: featured };
-  }, [mcpList]);
+    return { myServers: owned, sharedServers: shared };
+  }, [mcpList, user?.id]);
 
   const displayIcons = useMemo(() => {
     const shuffled = [...RECOMMENDED_MCPS].sort(() => 0.5 - Math.random());
@@ -225,23 +224,25 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
               )}
             </div>
           </div>
-          <Separator />
           {isLoading ? (
             <div className="flex flex-col gap-4">
               <Skeleton className="h-60 w-full" />
               <Skeleton className="h-60 w-full" />
               <Skeleton className="h-60 w-full" />
             </div>
-          ) : myServers?.length || featuredServers?.length ? (
+          ) : myServers?.length || sharedServers?.length ? (
             <div
               className="flex flex-col gap-8 mb-4"
               data-testid="mcp-servers-section"
             >
               {myServers?.length > 0 && (
                 <div className="flex flex-col gap-4">
-                  <h2 className="text-lg font-semibold text-muted-foreground">
-                    {t("myMcpServers")}
-                  </h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-semibold text-muted-foreground">
+                      {t("myMcpServers")}
+                    </h2>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
                   <div
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
                     data-testid="my-mcp-servers-section"
@@ -260,16 +261,19 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
                   </div>
                 </div>
               )}
-              {featuredServers?.length > 0 && (
+              {sharedServers?.length > 0 && (
                 <div className="flex flex-col gap-4">
-                  <h2 className="text-lg font-semibold text-muted-foreground">
-                    {t("featuredMcpServers")}
-                  </h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-semibold text-muted-foreground">
+                      {t("sharedMcpServers")}
+                    </h2>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
                   <div
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-                    data-testid="featured-mcp-servers-section"
+                    data-testid="shared-mcp-servers-section"
                   >
-                    {featuredServers.map((mcp) => (
+                    {sharedServers.map((mcp) => (
                       <MCPCard
                         key={mcp.id}
                         {...mcp}

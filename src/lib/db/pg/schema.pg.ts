@@ -55,7 +55,7 @@ export const AgentTable = pgTable("agent", {
   tools: json("tools").$type<ChatMention[]>(),
   model: json("model").$type<ChatModel>().notNull(),
   visibility: varchar("visibility", {
-    enum: ["public", "private", "readonly"],
+    enum: ["public", "private"],
   })
     .notNull()
     .default("private"),
@@ -219,7 +219,7 @@ export const WorkflowTable = pgTable("workflow", {
   description: text("description"),
   isPublished: boolean("is_published").notNull().default(false),
   visibility: varchar("visibility", {
-    enum: ["public", "private", "readonly"],
+    enum: ["public", "private"],
   })
     .notNull()
     .default("private"),

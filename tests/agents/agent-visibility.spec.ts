@@ -11,7 +11,6 @@ const testSuffix =
   Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 const publicAgentName = `Public Agent ${testSuffix}`;
 const privateAgentName = `Private Agent ${testSuffix}`;
-const readonlyAgentName = `Readonly Agent ${testSuffix}`;
 
 test.describe.configure({ mode: "serial" });
 
@@ -64,51 +63,19 @@ test.describe("Agent Visibility and Sharing Between Users", () => {
         await editorPage.getByTestId("agent-name-input").fill(privateAgentName);
         await editorPage
           .getByTestId("agent-description-input")
-          .fill("This is a private agent that only the owner can see");
+          .fill("This is a private agent that only owner can see");
         await clickAndWaitForNavigation(
           editorPage,
           "agent-save-button",
           "**/agents",
         );
-
-        // Create readonly agent
-        await editorPage.goto("/agent/new");
-        await editorPage.waitForLoadState("networkidle");
-        await editorPage
-          .getByTestId("agent-name-input")
-          .fill(readonlyAgentName);
-        await editorPage
-          .getByTestId("agent-description-input")
-          .fill("This is a readonly agent that others can see but not edit");
-        await clickAndWaitForNavigation(
-          editorPage,
-          "agent-save-button",
-          "**/agents",
-        );
-
-        // Edit to set visibility to readonly
-        await editorPage
-          .locator(`main a:has-text("${readonlyAgentName}")`)
-          .first()
-          .click();
-        await editorPage.waitForURL("**/agent/**", { timeout: 10000 });
-        // Open visibility dropdown and select readonly
-        await openDropdown(editorPage, "visibility-button");
-        await selectDropdownOption(editorPage, "visibility-readonly");
-
-        await clickAndWaitForNavigation(
-          editorPage,
-          "agent-save-button",
-          "**/agents",
-        );
-        await editorPage.waitForLoadState("networkidle");
       } finally {
         await editorContext.close();
       }
     },
   );
 
-  test("different user can see public and readonly agents but not private", async ({
+  test("different user can see public agents but not private", async ({
     browser,
   }) => {
     // Create second user context (using editor auth, but role doesn't matter for sharing)
@@ -126,12 +93,6 @@ test.describe("Agent Visibility and Sharing Between Users", () => {
         `[data-testid="agent-card-name"]:has-text("${publicAgentName}")`,
       );
       await expect(publicAgent).toBeVisible({ timeout: 10000 });
-
-      // Should see the readonly agent
-      const readonlyAgent = secondUserPage.locator(
-        `[data-testid="agent-card-name"]:has-text("${readonlyAgentName}")`,
-      );
-      await expect(readonlyAgent).toBeVisible({ timeout: 10000 });
 
       // Should NOT see the private agent
       const privateAgent = secondUserPage.locator(
@@ -196,51 +157,7 @@ test.describe("Agent Visibility and Sharing Between Users", () => {
     }
   });
 
-  test("different user can view but not edit readonly agent", async ({
-    browser,
-  }) => {
-    // Create second user context (using editor auth, but role doesn't matter for sharing)
-    const secondUserContext = await browser.newContext({
-      storageState: TEST_USERS.editor2.authFile,
-    });
-    const secondUserPage = await secondUserContext.newPage();
-
-    try {
-      await secondUserPage.goto("/agents");
-      await secondUserPage.waitForLoadState("networkidle");
-
-      // Click on the readonly agent
-      await secondUserPage
-        .locator(`main a:has-text("${readonlyAgentName}")`)
-        .first()
-        .click();
-      await secondUserPage.waitForURL("**/agent/**", { timeout: 10000 });
-
-      // Should be able to see the form fields but they should be disabled
-      const nameInput = secondUserPage.getByTestId("agent-name-input");
-      const descriptionInput = secondUserPage.getByTestId(
-        "agent-description-input",
-      );
-
-      await expect(nameInput).toBeVisible();
-      await expect(nameInput).toBeDisabled();
-      await expect(descriptionInput).toBeVisible();
-      await expect(descriptionInput).toBeDisabled();
-
-      // Save button should not be visible or should be disabled
-      const saveButton = secondUserPage.getByTestId("agent-save-button");
-      await expect(saveButton).not.toBeVisible();
-
-      // Verify current values are visible
-      await expect(nameInput).toHaveValue(readonlyAgentName);
-    } finally {
-      await secondUserContext.close();
-    }
-  });
-
-  test("different user can bookmark public and readonly agents", async ({
-    browser,
-  }) => {
+  test("different user can bookmark public agents", async ({ browser }) => {
     // Create second user context (using editor auth, but role doesn't matter for sharing)
     const secondUserContext = await browser.newContext({
       storageState: TEST_USERS.editor2.authFile,
@@ -283,31 +200,7 @@ test.describe("Agent Visibility and Sharing Between Users", () => {
         secondUserPage.getByTestId("agents-sidebar-menu"),
       ).toContainText(publicAgentName, { timeout: 10000 });
 
-      // Find and bookmark the readonly agent
-      const readonlyAgentCard = secondUserPage
-        .locator(`[data-testid*="agent-card"]`)
-        .filter({
-          has: secondUserPage.locator(`[data-testid="agent-card-name"]`, {
-            hasText: readonlyAgentName,
-          }),
-        })
-        .first();
-
-      await readonlyAgentCard.scrollIntoViewIfNeeded();
-      await readonlyAgentCard.getByTestId("bookmark-button").click();
-      await secondUserPage.waitForTimeout(1000);
-
-      await expect(
-        secondUserPage.getByTestId("agents-sidebar-menu"),
-      ).toContainText(readonlyAgentName, { timeout: 10000 });
-
-      // Remove bookmarks from Agents and verify they are removed from sidebar
-      await readonlyAgentCard.getByTestId("bookmark-button").click();
-      await secondUserPage.waitForTimeout(1000);
-      await expect(
-        secondUserPage.getByTestId("agents-sidebar-menu"),
-      ).not.toContainText(readonlyAgentName);
-
+      // Remove bookmark from Agents and verify it is removed from sidebar
       await publicAgentCard.getByTestId("bookmark-button").click();
       await secondUserPage.waitForTimeout(1000);
       await expect(

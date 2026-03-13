@@ -20,7 +20,6 @@ import {
   toBuffer,
 } from "./storage-utils";
 import { FileNotFoundError } from "lib/errors";
-import { generateUUID } from "lib/utils";
 
 const STORAGE_PREFIX = resolveStoragePrefix();
 
@@ -29,11 +28,90 @@ const required = (name: string, value: string | undefined) => {
   return value;
 };
 
+const getFileTypeFolder = (filename: string): string => {
+  const ext = filename.split(".").pop()?.toLowerCase() || "";
+
+  switch (ext) {
+    // Images
+    case "png":
+    case "jpg":
+    case "jpeg":
+    case "gif":
+    case "bmp":
+    case "svg":
+    case "webp":
+      return "image";
+
+    // Web files
+    case "html":
+    case "htm":
+    case "css":
+    case "scss":
+    case "less":
+      return "web";
+
+    // Data files
+    case "csv":
+    case "json":
+    case "xml":
+    case "yaml":
+    case "yml":
+      return "data";
+
+    // Text files
+    case "txt":
+    case "md":
+    case "log":
+      return "text";
+
+    // Code files
+    case "py":
+    case "js":
+    case "ts":
+    case "jsx":
+    case "tsx":
+    case "java":
+    case "c":
+    case "cpp":
+    case "cs":
+    case "go":
+    case "rs":
+    case "php":
+    case "rb":
+    case "swift":
+    case "kt":
+      return "code";
+
+    // Default
+    default:
+      return "others";
+  }
+};
+
 const buildKey = (filename: string) => {
   const safeName = sanitizeFilename(filename || "file");
-  const id = generateUUID();
+  const now = new Date();
+
+  // Format: 20260312T182436374Z (YYYYMMDDTHHMMSSmmmZ)
+  const dateStr = now.toISOString().replace(/[-:.]/g, "");
+
+  // Use date as folder name (20260312)
+  const dateFolder = dateStr.substring(0, 8);
+
+  // Use time with milliseconds as prefix (182436374Z)
+  const timePrefix = dateStr.substring(9);
+
+  // Get file type folder based on extension
+  const typeFolder = getFileTypeFolder(safeName);
+
   const prefix = STORAGE_PREFIX ? `${STORAGE_PREFIX}/` : "";
-  return path.posix.join(prefix, `${id}-${safeName}`);
+
+  return path.posix.join(
+    prefix,
+    typeFolder,
+    dateFolder,
+    `${timePrefix}-${safeName}`,
+  );
 };
 
 const buildPublicUrl = (
@@ -93,6 +171,20 @@ export const createS3FileStorage = (): FileStorage => {
     region,
     endpoint,
     forcePathStyle,
+    // Use RustFS credentials when using RustFS endpoint
+    credentials:
+      endpoint && endpoint.includes("rustfs")
+        ? {
+            accessKeyId:
+              process.env.RUSTFS_ACCESS_KEY ||
+              process.env.AWS_ACCESS_KEY_ID ||
+              "",
+            secretAccessKey:
+              process.env.RUSTFS_SECRET_KEY ||
+              process.env.AWS_SECRET_ACCESS_KEY ||
+              "",
+          }
+        : undefined,
   });
 
   // Create a separate S3Client for presigned URLs if publicBaseUrl is available
@@ -109,6 +201,20 @@ export const createS3FileStorage = (): FileStorage => {
           region,
           endpoint: publicEndpoint,
           forcePathStyle,
+          // Use RustFS credentials for presigned URLs as well
+          credentials:
+            endpoint && endpoint.includes("rustfs")
+              ? {
+                  accessKeyId:
+                    process.env.RUSTFS_ACCESS_KEY ||
+                    process.env.AWS_ACCESS_KEY_ID ||
+                    "",
+                  secretAccessKey:
+                    process.env.RUSTFS_SECRET_KEY ||
+                    process.env.AWS_SECRET_ACCESS_KEY ||
+                    "",
+                }
+              : undefined,
         });
       } catch {
         // Fallback to primary S3Client if publicBaseUrl is invalid

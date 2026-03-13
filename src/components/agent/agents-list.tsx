@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 import { AgentSummary, AgentUpdateSchema } from "app-types/agent";
-import { Card, CardDescription, CardHeader, CardTitle } from "ui/card";
 import { Button } from "ui/button";
 import { Plus } from "lucide-react";
 import { useBookmark } from "@/hooks/queries/use-bookmark";
@@ -12,6 +11,7 @@ import useSWR from "swr";
 import { fetcher } from "lib/utils";
 import { Visibility } from "@/components/shareable-actions";
 import { ShareableCard } from "@/components/shareable-card";
+import { PromotionDialog } from "./promotion-dialog";
 import { notify } from "lib/notify";
 import { useState } from "react";
 import { handleErrorWithToast } from "ui/shared-toast";
@@ -41,10 +41,22 @@ export function AgentsList({
   const [visibilityChangeLoading, setVisibilityChangeLoading] = useState<
     string | null
   >(null);
-  const [editingAgent, setEditingAgent] = useState<{
-    id: string | null;
-    data?: AgentSummary;
-  } | null>(null);
+
+  const { toggleBookmark: toggleBookmarkHook, isLoading: isBookmarkLoading } =
+    useBookmark({
+      itemType: "agent",
+    });
+
+  const bookmarkToggleAdapter = (
+    agent: AgentSummary,
+    isBookmarked: boolean,
+  ) => {
+    toggleBookmarkHook({
+      id: agent.id,
+      itemId: agent.id,
+      isBookmarked,
+    });
+  };
 
   const { data: allAgents } = useSWR(
     "/api/agent?filters=mine,shared",
@@ -62,28 +74,67 @@ export function AgentsList({
     allAgents?.filter((agent: AgentSummary) => agent.userId !== userId) ||
     initialSharedAgents;
 
-  const { toggleBookmark: toggleBookmarkHook, isLoading: isBookmarkLoading } =
-    useBookmark({
-      itemType: "agent",
-    });
+  const [promotionDialog, setPromotionDialog] = useState<{
+    open: boolean;
+    onConfirm: () => Promise<void>;
+    mcpServersCount: number;
+    workflowsCount: number;
+    agentData: {
+      id: string;
+      name: string;
+      visibility: string;
+    };
+    action?: "promote" | "demote";
+  } | null>(null);
 
-  const toggleBookmark = async (agentId: string, isBookmarked: boolean) => {
-    await toggleBookmarkHook({ id: agentId, isBookmarked });
-  };
+  const [editingAgent, setEditingAgent] = useState<{
+    id: string | null;
+    data?: AgentSummary;
+  } | null>(null);
 
   const updateVisibility = async (agentId: string, visibility: Visibility) => {
+    const updateData = JSON.stringify(AgentUpdateSchema.parse({ visibility }));
+
     safe(() => setVisibilityChangeLoading(agentId))
-      .map(() => AgentUpdateSchema.parse({ visibility }))
-      .map(JSON.stringify)
-      .map(async (body) =>
+      .map(() => updateData)
+      .map(async () =>
         fetcher(`/api/agent/${agentId}`, {
           method: "PUT",
-          body,
+          body: updateData,
         }),
       )
-      .ifOk(() => {
-        mutateAgents({ id: agentId, visibility });
-        toast.success(t("Agent.visibilityUpdated"));
+      .ifOk((response) => {
+        // Check if response requires confirmation
+        if (response.requiresConfirmation) {
+          // Show confirmation dialog
+          setPromotionDialog({
+            open: true,
+            onConfirm: async () => {
+              // Retry with confirmation flag
+              const confirmData = JSON.parse(updateData);
+              confirmData.confirmPromotion = true;
+
+              await fetcher(`/api/agent/${agentId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(confirmData),
+              });
+
+              // Update agent state and show success message
+              mutateAgents({ id: agentId, visibility });
+              toast.success(t("Agent.visibilityUpdated"));
+              setPromotionDialog(null);
+            },
+            mcpServersCount: response.mcpServersCount,
+            workflowsCount: response.workflowsCount,
+            agentData: response.agentData,
+            action: response.action || "promote",
+          });
+        } else {
+          // Normal update without confirmation required
+          mutateAgents({ id: agentId, visibility });
+          toast.success(t("Agent.visibilityUpdated"));
+        }
       })
       .ifFail((e) => {
         handleErrorWithToast(e);
@@ -163,7 +214,7 @@ export function AgentsList({
         </div>
 
         {/* My Agents Section */}
-        {canCreate && (
+        {myAgents?.length > 0 && (
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold">{t("Agent.myAgents")}</h2>
@@ -191,46 +242,47 @@ export function AgentsList({
         )}
 
         {/* Shared/Available Agents Section */}
-        <div className="flex flex-col gap-4 mt-8">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold">
-              {canCreate ? t("Agent.sharedAgents") : t("Agent.availableAgents")}
-            </h2>
-            <div className="flex-1 h-px bg-border" />
-          </div>
+        {sharedAgents?.length > 0 && (
+          <div className="flex flex-col gap-4 mt-8">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold">
+                {canCreate
+                  ? t("Agent.sharedAgents")
+                  : t("Agent.availableAgents")}
+              </h2>
+              <div className="flex-1 h-px bg-border" />
+            </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            {sharedAgents.map((agent) => (
-              <ShareableCard
-                key={agent.id}
-                type="agent"
-                item={agent}
-                isOwner={false}
-                onClick={() => handleEditAgent(agent)}
-                onBookmarkToggle={toggleBookmark}
-                isBookmarkToggleLoading={isBookmarkLoading(agent.id)}
-                isModelAvailable={isAgentModelAvailable(agent)}
-              />
-            ))}
-            {sharedAgents.length === 0 && (
-              <Card className="col-span-full bg-transparent border-none">
-                <CardHeader className="text-center py-12">
-                  <CardTitle>
-                    {canCreate
-                      ? t("Agent.noSharedAgents")
-                      : t("Agent.noAvailableAgents")}
-                  </CardTitle>
-                  <CardDescription>
-                    {canCreate
-                      ? t("Agent.noSharedAgentsDescription")
-                      : t("Agent.noAvailableAgentsDescription")}
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            )}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+              {sharedAgents.map((agent) => (
+                <ShareableCard
+                  key={agent.id}
+                  type="agent"
+                  item={agent}
+                  isOwner={false}
+                  onClick={() => handleEditAgent(agent)}
+                  onBookmarkToggle={bookmarkToggleAdapter}
+                  isBookmarkToggleLoading={isBookmarkLoading(agent.id)}
+                  isModelAvailable={isAgentModelAvailable(agent)}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
+
+      {/* Promotion Confirmation Dialog */}
+      {promotionDialog && (
+        <PromotionDialog
+          open={promotionDialog.open}
+          onOpenChange={(open) => !open && setPromotionDialog(null)}
+          onConfirm={promotionDialog.onConfirm}
+          mcpServersCount={promotionDialog.mcpServersCount}
+          workflowsCount={promotionDialog.workflowsCount}
+          action={promotionDialog.action}
+          agentName={promotionDialog.agentData.name}
+        />
+      )}
 
       {/* Edit Agent Dialog */}
       <EditAgentDialog

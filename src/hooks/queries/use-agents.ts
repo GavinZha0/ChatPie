@@ -54,14 +54,11 @@ export function useAgents(options: UseAgentsOptions = {}) {
       (agent) => agent.userId !== currentUserId && agent.isBookmarked === true,
     ),
     publicAgents: filterAgents((agent) => agent.visibility === "public"),
-    readonlyAgents: filterAgents((agent) => agent.visibility === "readonly"),
     isLoading,
     error,
     mutate,
     // Helper to check if any agents exist of a certain type
-    hasAgents: (
-      type: "mine" | "shared" | "bookmarked" | "public" | "readonly",
-    ) => {
+    hasAgents: (type: "mine" | "shared" | "bookmarked" | "public") => {
       switch (type) {
         case "mine":
           return agents.some((agent) => agent.userId === currentUserId);
@@ -73,8 +70,6 @@ export function useAgents(options: UseAgentsOptions = {}) {
           );
         case "public":
           return agents.some((agent) => agent.visibility === "public");
-        case "readonly":
-          return agents.some((agent) => agent.visibility === "readonly");
       }
     },
   };

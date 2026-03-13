@@ -456,6 +456,7 @@ export function EditAgentDialog({
     safe(async () => {
       await toggleBookmark({
         id: fullAgent.id!,
+        itemId: fullAgent.id!,
         isBookmarked: fullAgent.isBookmarked!,
       });
     })

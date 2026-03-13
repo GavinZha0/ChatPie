@@ -17,7 +17,7 @@ Used for locally executed tools that run via a command-line interface.
 ```json
 {
   "command": "npx",
-  "args": ["@playwright/mcp@latest"]
+  "args": ["@playwright/mcp@latest", "--headless", "--no-sandbox"]
 }
 ```
 
@@ -64,7 +64,7 @@ Then, create a `.mcp-config.json` file in the project root and define your serve
 {
   "playwright": {
     "command": "npx",
-    "args": ["@playwright/mcp@latest"]
+    "args": ["@playwright/mcp@latest", "--headless", "--no-sandbox"]
   }
 }
 ```
