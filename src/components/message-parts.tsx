@@ -1011,8 +1011,51 @@ export const ToolMessagePart = memo(
                       )}
                     </div>
                     {isExpanded && (
-                      <div className="p-2 max-h-[300px] overflow-y-auto">
-                        <JsonView data={result} />
+                      <div className="p-2">
+                        {/* Check if result has content array with image type */}
+                        {(result as any)?.content &&
+                        Array.isArray((result as any).content) ? (
+                          <div className="flex flex-col gap-4">
+                            {(result as any).content.map(
+                              (content: any, index: number) => {
+                                if (content.type === "image") {
+                                  return (
+                                    <div
+                                      key={`image-${index}`}
+                                      className="relative group rounded-lg overflow-hidden border border-border hover:border-primary transition-all shadow-sm hover:shadow-md max-w-xl"
+                                    >
+                                      <img
+                                        src={
+                                          content.data.startsWith("http")
+                                            ? content.data
+                                            : `data:${content.mimeType};base64,${content.data}`
+                                        }
+                                        alt="Screenshot"
+                                        className="w-full h-auto object-cover"
+                                        loading="lazy"
+                                      />
+                                    </div>
+                                  );
+                                } else {
+                                  return (
+                                    <div
+                                      key={`text-${index}`}
+                                      className="max-h-[300px] overflow-y-auto"
+                                    >
+                                      <JsonView data={result} />
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              },
+                            )}
+                          </div>
+                        ) : (
+                          /* Fallback to original JSON view for non-content array results */
+                          <div className="max-h-[300px] overflow-y-auto">
+                            <JsonView data={result} />
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

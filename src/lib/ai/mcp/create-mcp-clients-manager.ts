@@ -20,6 +20,7 @@ import globalLogger from "logger";
 import { jsonSchema, ToolCallOptions } from "ai";
 import { createMemoryMCPConfigStorage } from "./memory-mcp-config-storage";
 import { colorize } from "consola/utils";
+import { serverFileStorage } from "lib/file-storage";
 
 /**
  * Interface for storage of MCP server configurations.
@@ -104,6 +105,36 @@ export class MCPClientsManager {
         this.initialized = true;
       })
       .unwrap();
+  }
+
+  /**
+   * Upload image content to storage and return the URL
+   */
+  private async uploadImageToStorage(
+    imageContent: any,
+    toolName: string,
+  ): Promise<string> {
+    try {
+      const filename = `${toolName}.png`; // Use tool name as filename
+
+      // Clean base64 data (remove data: prefix if present)
+      const base64Data = imageContent.data.replace(
+        /^data:image\/[^;]+;base64,/,
+        "",
+      );
+      const imageBuffer = Buffer.from(base64Data, "base64");
+
+      // Upload to storage
+      const uploadedImage = await serverFileStorage.upload(imageBuffer, {
+        filename,
+        contentType: imageContent.mimeType,
+      });
+
+      return uploadedImage.sourceUrl;
+    } catch (error) {
+      this.logger.error("Failed to upload image to storage:", error);
+      throw error;
+    }
   }
 
   /**
@@ -264,7 +295,7 @@ export class MCPClientsManager {
         return client.client;
       })
       .map((client) => client.callTool(toolName, input))
-      .map((res) => {
+      .map(async (res) => {
         if (res?.content && Array.isArray(res.content)) {
           const parsedResult = {
             ...res,
@@ -279,6 +310,42 @@ export class MCPClientsManager {
               return c;
             }),
           };
+
+          // Handle image upload
+          const hasImages = parsedResult.content.some(
+            (c: any) => c.type === "image",
+          );
+          if (hasImages) {
+            const processedContent = await Promise.all(
+              parsedResult.content.map(async (c: any) => {
+                if (c.type === "image") {
+                  try {
+                    const uploadedUrl = await this.uploadImageToStorage(
+                      c,
+                      toolName,
+                    );
+                    return {
+                      ...c,
+                      data: uploadedUrl,
+                    };
+                  } catch (error) {
+                    this.logger.error(
+                      `Failed to upload image for tool ${toolName}:`,
+                      error,
+                    );
+                    return c; // Keep original data on failure
+                  }
+                }
+                return c;
+              }),
+            );
+
+            return {
+              ...parsedResult,
+              content: processedContent,
+            };
+          }
+
           return parsedResult;
         }
         return res;
