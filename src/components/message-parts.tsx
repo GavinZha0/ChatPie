@@ -639,6 +639,17 @@ const CodeExecutor = dynamic(
   },
 );
 
+const PageAgentToolInvocation = dynamic(
+  () =>
+    import("./page-agent-tool-invocation").then(
+      (mod) => mod.PageAgentToolInvocation,
+    ),
+  {
+    ssr: false,
+    loading,
+  },
+);
+
 const ImageGeneratorToolInvocation = dynamic(
   () =>
     import("./tool-invocation/image-generator").then(
@@ -824,6 +835,20 @@ export const ToolMessagePart = memo(
             type="python"
           />
         );
+      }
+
+      if (toolName === DefaultToolName.PageAgent) {
+        // Only render PageAgent component when backend has provided configuration
+        if (
+          state === "output-available" &&
+          part.output &&
+          typeof part.output === "object" &&
+          "config" in part.output
+        ) {
+          return (
+            <PageAgentToolInvocation part={part} onResult={onToolCallDirect} />
+          );
+        }
       }
 
       if (state === "output-available") {

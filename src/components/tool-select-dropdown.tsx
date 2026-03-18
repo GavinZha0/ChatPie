@@ -7,13 +7,17 @@ import {
   ChartColumn,
   Check,
   ChevronRight,
+  Code,
   HammerIcon,
   ImagesIcon,
   InfoIcon,
   Loader,
+  Link as LinkIcon,
+  MousePointer,
   MousePointer2,
   Package,
   Plus,
+  Search,
   ShieldAlertIcon,
   Waypoints,
   Wrench,
@@ -902,7 +906,8 @@ function AppDefaultToolKitSelector() {
           toolkit !== AppDefaultToolkit.WebSearch &&
           toolkit !== AppDefaultToolkit.Code &&
           toolkit !== AppDefaultToolkit.Http &&
-          toolkit !== AppDefaultToolkit.Visualization,
+          toolkit !== AppDefaultToolkit.Visualization &&
+          toolkit !== AppDefaultToolkit.PageAgent,
       )
       .map((toolkit) => {
         const label = raw[toolkit] || toolkit;
@@ -911,6 +916,18 @@ function AppDefaultToolKitSelector() {
         switch (toolkit) {
           case AppDefaultToolkit.Visualization:
             icon = ChartColumn;
+            break;
+          case AppDefaultToolkit.PageAgent:
+            icon = MousePointer;
+            break;
+          case AppDefaultToolkit.WebSearch:
+            icon = Search;
+            break;
+          case AppDefaultToolkit.Code:
+            icon = Code;
+            break;
+          case AppDefaultToolkit.Http:
+            icon = LinkIcon;
             break;
         }
         return {
