@@ -6,7 +6,6 @@ import {
 } from "@/app/api/mcp/actions";
 import {
   ChevronDown,
-  ChevronRight,
   ChevronUp,
   Loader,
   Search,
@@ -35,6 +34,63 @@ import JsonView from "@/components/ui/json-view";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "ui/alert";
 import { safeJSONParse, isNull, isString } from "lib/utils";
+import { withTheme } from "@rjsf/core";
+import { Theme as shadcnTheme } from "@rjsf/shadcn";
+import validator from "@rjsf/validator-ajv8";
+import type { FieldTemplateProps } from "@rjsf/utils";
+
+const Form = withTheme(shadcnTheme);
+
+/** Custom FieldTemplate: renders the required asterisk in red */
+function CustomFieldTemplate(props: FieldTemplateProps) {
+  const {
+    id,
+    label,
+    required,
+    displayLabel,
+    rawErrors = [],
+    errors,
+    help,
+    description,
+    rawDescription,
+    children,
+    uiSchema,
+  } = props;
+
+  const isCheckbox = uiSchema?.["ui:widget"] === "checkbox";
+  const hasError = rawErrors.length > 0;
+
+  return (
+    <div className="flex flex-col gap-2">
+      {displayLabel && !isCheckbox && (
+        <label
+          htmlFor={id}
+          className={[
+            "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+            hasError ? " text-destructive" : "",
+          ].join(" ")}
+        >
+          {label}
+          {required && <span className="text-destructive ml-0.5">*</span>}
+        </label>
+      )}
+      {children}
+      {displayLabel && rawDescription && !isCheckbox && (
+        <span
+          className={[
+            "text-xs font-medium text-muted-foreground",
+            hasError ? " text-destructive" : "",
+          ].join(" ")}
+        >
+          {description}
+        </span>
+      )}
+      {errors}
+      {help}
+    </div>
+  );
+}
+
 import {
   Dialog,
   DialogClose,
@@ -45,7 +101,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "ui/dialog";
-import { Badge } from "ui/badge";
+
 import { handleErrorWithToast } from "ui/shared-toast";
 import { generateExampleToolSchemaAction } from "@/app/api/chat/actions";
 import { appStore } from "@/app/store";
@@ -58,15 +114,6 @@ import { ChatModel } from "app-types/chat";
 import { SelectModel } from "@/components/select-model";
 
 // Type definitions
-type SchemaProperty = {
-  type: string;
-  required: boolean;
-  enum?: string[];
-  properties?: Record<string, SchemaProperty>;
-};
-
-type SimplifiedSchema = Record<string, SchemaProperty>;
-
 type ToolInfo = {
   name: string;
   description: string;
@@ -77,111 +124,6 @@ type CallResult = {
   success: boolean;
   data?: any;
   error?: string;
-};
-
-// Helper function to create simplified schema view
-const createSimplifiedSchema = (schema: any): SimplifiedSchema => {
-  if (!schema || !schema.properties) return {};
-
-  const simplified: SimplifiedSchema = {};
-  const requiredFields = schema.required || [];
-
-  for (const [key, value] of Object.entries(schema.properties)) {
-    const prop = value as any;
-
-    simplified[key] = {
-      type: prop.type,
-      required: requiredFields.includes(key),
-    };
-
-    if (prop.enum) {
-      simplified[key].enum = prop.enum;
-    }
-
-    if (prop.type === "object" && prop.properties) {
-      simplified[key].properties = createSimplifiedSchema({
-        properties: prop.properties,
-        required: prop.required || [],
-      });
-    }
-  }
-
-  return simplified;
-};
-
-// Recursive schema property renderer component
-const SchemaProperty = ({
-  name,
-  schema,
-  level = 0,
-}: {
-  name: string;
-  schema: SchemaProperty;
-  level?: number;
-}) => {
-  const [isExpanded, setIsExpanded] = useState(level < 1);
-  const isObject = schema.type === "object" && schema.properties;
-  const t = useTranslations();
-
-  return (
-    <div
-      className={`pb-2 border-b border-border last:border-0 ${
-        level > 0 ? "ml-3 pl-2 border-l" : ""
-      }`}
-    >
-      <div className="flex items-center gap-2">
-        {isObject && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="p-0 h-5 w-5"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            {isExpanded ? (
-              <ChevronDown className="h-3 w-3" />
-            ) : (
-              <ChevronRight className="h-3 w-3" />
-            )}
-          </Button>
-        )}
-        <span className="text-sm font-medium">{name}</span>
-        {schema.required && (
-          <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
-            {t("Common.required")}
-          </Badge>
-        )}
-      </div>
-
-      <div className="text-xs text-muted-foreground mt-1">
-        <span>type: {schema.type}</span>
-        {schema.enum && (
-          <div className="mt-1">
-            <span>{t("MCP.enum")}: </span>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {schema.enum.map((item) => (
-                <Badge key={item} variant="secondary" className="text-[10px]">
-                  {item}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {isObject && isExpanded && schema.properties && (
-        <div className="mt-2 space-y-2">
-          {Object.entries(schema.properties).map(([key, value]) => (
-            <SchemaProperty
-              key={key}
-              name={key}
-              schema={value}
-              level={level + 1}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
 };
 
 // Tool list item component
@@ -302,14 +244,19 @@ const GenerateExampleInputJsonDialog = ({
             {t("MCP.enterPromptToGenerateExampleInputJSON")}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-2 py-4 text-foreground">
-          <Label>{t("MCP.model")}</Label>
-          <SelectModel
-            modelTypes={["chat"]}
-            currentModel={option.model as ChatModel}
-            onSelect={(model) => setOption({ model })}
-          />
-          <div className="my-2" />
+        <div className="flex flex-col gap-2 py-2">
+          <div className="flex items-center gap-2">
+            <Label className="shrink-0">{t("MCP.model")}</Label>
+            <div className="flex-1">
+              <SelectModel
+                modelTypes={["chat"]}
+                currentModel={option.model as ChatModel}
+                onSelect={(model) => setOption({ model })}
+                buttonClassName="w-full"
+              />
+            </div>
+          </div>
+          <div />
           <Label>
             {t("MCP.prompt")}{" "}
             <span className="text-muted-foreground text-xs">
@@ -379,12 +326,13 @@ export default function Page() {
     return filteredTools?.[selectedToolIndex];
   }, [filteredTools, selectedToolIndex]);
 
-  const simplifiedSchema = useMemo(() => {
-    if (!selectedTool?.inputSchema) return null;
-    return createSimplifiedSchema(selectedTool.inputSchema);
-  }, [selectedTool]);
-
   const toggleDescription = () => setShowFullDescription(!showFullDescription);
+
+  const formDataRef = useMemo(() => {
+    if (!jsonInput) return {};
+    const parsed = safeJSONParse(jsonInput);
+    return parsed.success ? parsed.value : {};
+  }, [jsonInput]);
 
   const handleInputChange = (data: string) => {
     setJsonInput(data);
@@ -465,9 +413,9 @@ export default function Page() {
 
   return (
     <div className="relative flex flex-col px-4 w-full h-full py-2">
-      <div className="bg-background pb-2">
+      <div className="bg-background">
         <header>
-          <h2 className="text-2xl font-semibold my-2">
+          <h2 className="text-2xl font-semibold">
             {decodeURIComponent(client?.name ?? "")}
           </h2>
         </header>
@@ -536,107 +484,106 @@ export default function Page() {
                 <div className="flex-1 min-h-0 grid grid-cols-2 gap-2">
                   {selectedTool.inputSchema ? (
                     <>
-                      {/* Left column: JSON on top, Schema below (equal height) */}
+                      {/* Left column: single tab group with Form / JSON Input / JSON Schema */}
                       <div className="flex flex-col min-h-0">
-                        {/* JSON Input (top) */}
                         <div className="flex-1 min-h-0 flex flex-col">
-                          <div className="flex justify-between items-center mb-2">
-                            <h5 className="text-xs font-medium flex items-center">
-                              {t("MCP.inputJSON")}
-                            </h5>
-                            <GenerateExampleInputJsonDialog
-                              toolInfo={selectedTool}
-                              onGenerated={(json) => setJsonInput(json)}
-                            >
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 px-2 text-xs"
-                              >
-                                {t("MCP.createInputWithAI")}
-                                <WandSparkles className="ml-1 size-3" />
-                              </Button>
-                            </GenerateExampleInputJsonDialog>
-                          </div>
-                          <div className="flex-1 min-h-0 flex flex-col">
-                            <Textarea
-                              autoFocus
-                              value={jsonInput}
-                              onChange={(e) =>
-                                handleInputChange(e.target.value)
-                              }
-                              className="font-mono resize-none overflow-y-auto h-full"
-                              placeholder="{}"
-                            />
-                            {jsonError && jsonInput && (
-                              <Alert variant="destructive" className="mt-2">
-                                <AlertTitle className="text-xs font-semibold">
-                                  {t("MCP.jsonError")}
-                                </AlertTitle>
-                                <AlertDescription className="text-xs">
-                                  {jsonError}
-                                </AlertDescription>
-                              </Alert>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Definition / Schema (bottom) */}
-                        <div className="flex-1 min-h-0 flex flex-col mt-2">
                           <Tabs
-                            defaultValue="definition"
-                            className="flex-1 min-h-0"
+                            defaultValue="form"
+                            className="flex-1 min-h-0 border border-input rounded-md overflow-hidden flex flex-col"
                           >
-                            <div className="flex-1 min-h-0 border border-input rounded-md overflow-hidden flex flex-col">
-                              <div className="bg-muted/60 border-b border-input px-1.5 py-1">
-                                <TabsList className="bg-transparent p-0">
-                                  <TabsTrigger
-                                    value="definition"
-                                    className="px-2 py-1"
-                                  >
-                                    {t("MCP.inputDefinition")}
-                                  </TabsTrigger>
-                                  <TabsTrigger
-                                    value="json"
-                                    className="px-2 py-1"
-                                  >
-                                    {t("MCP.jsonSchema")}
-                                  </TabsTrigger>
-                                </TabsList>
-                              </div>
-
-                              <div className="flex-1 min-h-0 p-4 overflow-y-auto">
-                                <TabsContent
-                                  value="definition"
-                                  className="h-full"
+                            <div className="bg-muted/60 border-b border-input px-1.5 py-1 flex justify-between items-center">
+                              <TabsList className="bg-transparent p-0">
+                                <TabsTrigger value="form" className="px-2 py-1">
+                                  {t("MCP.formInput") || "Form Input"}
+                                </TabsTrigger>
+                                <TabsTrigger value="json" className="px-2 py-1">
+                                  {t("MCP.inputJSON") || "JSON Input"}
+                                </TabsTrigger>
+                                <TabsTrigger
+                                  value="schema"
+                                  className="px-2 py-1"
                                 >
-                                  {simplifiedSchema &&
-                                  Object.keys(simplifiedSchema).length > 0 ? (
-                                    <div className="space-y-2">
-                                      {Object.entries(simplifiedSchema).map(
-                                        ([key, value]) => (
-                                          <SchemaProperty
-                                            key={key}
-                                            name={key}
-                                            schema={value}
-                                          />
-                                        ),
-                                      )}
-                                    </div>
-                                  ) : (
-                                    <p className="text-xs text-muted-foreground italic">
-                                      {t("MCP.noSchemaPropertiesAvailable")}
-                                    </p>
-                                  )}
-                                </TabsContent>
+                                  {t("MCP.jsonSchema") || "JSON Schema"}
+                                </TabsTrigger>
+                              </TabsList>
 
-                                <TabsContent value="json" className="h-full">
-                                  <JsonView
-                                    data={selectedTool.inputSchema}
-                                    initialExpandDepth={3}
-                                  />
-                                </TabsContent>
-                              </div>
+                              <GenerateExampleInputJsonDialog
+                                toolInfo={selectedTool}
+                                onGenerated={(json) => setJsonInput(json)}
+                              >
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground hover:bg-transparent"
+                                >
+                                  {t("MCP.createInputWithAI")}
+                                  <WandSparkles className="ml-1 size-3" />
+                                </Button>
+                              </GenerateExampleInputJsonDialog>
+                            </div>
+
+                            <div className="flex-1 min-h-0 p-4 flex flex-col overflow-y-auto">
+                              <TabsContent
+                                value="form"
+                                className="h-full m-0 min-h-0 flex flex-col"
+                              >
+                                <Form
+                                  schema={
+                                    (selectedTool.inputSchema as Record<
+                                      string,
+                                      any
+                                    >) || {}
+                                  }
+                                  validator={validator}
+                                  formData={formDataRef}
+                                  onChange={(e) =>
+                                    handleInputChange(
+                                      JSON.stringify(e.formData, null, 2),
+                                    )
+                                  }
+                                  templates={{
+                                    FieldTemplate: CustomFieldTemplate,
+                                  }}
+                                >
+                                  <></>
+                                </Form>
+                              </TabsContent>
+                              <TabsContent
+                                value="json"
+                                className="h-full m-0 min-h-0 flex flex-col"
+                              >
+                                <Textarea
+                                  autoFocus
+                                  value={jsonInput}
+                                  onChange={(e) =>
+                                    handleInputChange(e.target.value)
+                                  }
+                                  className="font-mono resize-none overflow-y-auto flex-1 focus-visible:ring-0 focus-visible:ring-offset-0 border-0 p-0"
+                                  placeholder="{}"
+                                />
+                                {jsonError && jsonInput && (
+                                  <Alert
+                                    variant="destructive"
+                                    className="mt-2 shrink-0"
+                                  >
+                                    <AlertTitle className="text-xs font-semibold">
+                                      {t("MCP.jsonError")}
+                                    </AlertTitle>
+                                    <AlertDescription className="text-xs">
+                                      {jsonError}
+                                    </AlertDescription>
+                                  </Alert>
+                                )}
+                              </TabsContent>
+                              <TabsContent
+                                value="schema"
+                                className="h-full m-0"
+                              >
+                                <JsonView
+                                  data={selectedTool.inputSchema}
+                                  initialExpandDepth={3}
+                                />
+                              </TabsContent>
                             </div>
                           </Tabs>
                         </div>
