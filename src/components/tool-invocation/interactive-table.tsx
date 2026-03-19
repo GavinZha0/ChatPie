@@ -308,7 +308,7 @@ export function InteractiveTable(props: InteractiveTableProps) {
   );
 
   return (
-    <div className="px-6">
+    <div className="px-4">
       <Card className="w-full px-0">
         <CardHeader>
           <div className="flex flex-col">

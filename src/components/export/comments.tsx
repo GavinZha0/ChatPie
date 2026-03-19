@@ -131,7 +131,7 @@ export default function Comments({
           </div>
 
           <div
-            className="flex-1 overflow-y-auto p-4 pt-0 space-y-4"
+            className="flex-1 overflow-y-auto p-4 pt-0 space-y-2"
             ref={scrollRef}
           >
             {isLoading ? (
@@ -143,7 +143,7 @@ export default function Comments({
               </>
             ) : data?.length === 0 ? (
               <div
-                className="text-center py-8 h-full flex justify-center items-center"
+                className="text-center py-2 h-full flex justify-center items-center"
                 data-testid="comments-empty"
               >
                 <p className="text-muted-foreground">

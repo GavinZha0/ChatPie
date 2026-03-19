@@ -404,6 +404,10 @@ export function ChatMentionInputSuggestion({
           label = "python-execution";
           description = "Execute simple python code";
           break;
+        case DefaultToolName.PageAgent:
+          label = "page-agent";
+          description = "Control web page with AI";
+          break;
       }
       return {
         id: toolName,
@@ -746,7 +750,7 @@ export function ChatMentionInputSuggestion({
                             />
                           ))
                         ) : (
-                          <div className="px-2 py-3 text-xs text-muted-foreground text-center">
+                          <div className="px-2 py-2 text-xs text-muted-foreground text-center">
                             No agents found
                           </div>
                         )}
@@ -835,7 +839,7 @@ export function ChatMentionInputSuggestion({
                               />
                             ))
                           ) : (
-                            <div className="px-2 py-3 text-xs text-muted-foreground text-center">
+                            <div className="px-2 py-2 text-xs text-muted-foreground text-center">
                               No app tools found
                             </div>
                           )}

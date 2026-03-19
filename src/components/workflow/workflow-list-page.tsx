@@ -100,8 +100,8 @@ export default function WorkflowListPage({
     : [...myWorkflows, ...sharedWorkflows];
 
   return (
-    <div className="w-full flex flex-col gap-4 p-8">
-      <div className="flex items-center gap-3">
+    <div className="w-full flex flex-col gap-2 p-4">
+      <div className="flex items-center gap-2">
         <h1 className="text-2xl font-bold" data-testid="workflows-title">
           {t("Workflow.title")}
         </h1>
@@ -121,7 +121,7 @@ export default function WorkflowListPage({
 
       {/* My Workflows / Available Workflows Section */}
       {(canCreate || displayWorkflows.length > 0) && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold">
               {canCreate
@@ -131,7 +131,7 @@ export default function WorkflowListPage({
             <div className="flex-1 h-px bg-border" />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
             {isLoading
               ? Array(6)
                   .fill(null)
@@ -165,7 +165,7 @@ export default function WorkflowListPage({
 
       {/* Only show Shared Workflows section for users who can create (to differentiate between owned and shared) */}
       {canCreate && sharedWorkflows.length > 0 && (
-        <div className="flex flex-col gap-4 mt-8">
+        <div className="flex flex-col gap-2 mt-8">
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold">
               {t("Workflow.sharedWorkflows")}
@@ -173,7 +173,7 @@ export default function WorkflowListPage({
             <div className="flex-1 h-px bg-border" />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
             {sharedWorkflows?.map((workflow) => (
               <ShareableCard
                 key={workflow.id}
@@ -190,7 +190,7 @@ export default function WorkflowListPage({
       {/* Empty state for users without create permission and no available workflows */}
       {!canCreate && displayWorkflows.length === 0 && !isLoading && (
         <Card className="col-span-full bg-transparent border-none">
-          <CardHeader className="text-center py-12">
+          <CardHeader className="text-center py-2">
             <CardTitle>{t("Workflow.noAvailableWorkflows")}</CardTitle>
             <CardDescription>
               {t("Workflow.noAvailableWorkflowsDescription")}

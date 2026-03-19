@@ -7,13 +7,17 @@ import {
   ChartColumn,
   Check,
   ChevronRight,
+  Code,
   HammerIcon,
   ImagesIcon,
   InfoIcon,
   Loader,
+  Link as LinkIcon,
+  MousePointer,
   MousePointer2,
   Package,
   Plus,
+  Search,
   ShieldAlertIcon,
   Waypoints,
   Wrench,
@@ -486,7 +490,7 @@ function WorkflowToolSelector({
         <DropdownMenuPortal>
           <DropdownMenuSubContent className="w-80 relative">
             {myWorkflows.length === 0 && sharedWorkflows.length === 0 ? (
-              <div className="text-sm text-muted-foreground flex flex-col py-6 px-6 gap-4 items-center">
+              <div className="text-sm text-muted-foreground flex flex-col p-4 gap-2 items-center">
                 <InfoIcon className="size-4" />
                 <p className="whitespace-pre-wrap">{t("Workflow.noTools")}</p>
 
@@ -902,7 +906,8 @@ function AppDefaultToolKitSelector() {
           toolkit !== AppDefaultToolkit.WebSearch &&
           toolkit !== AppDefaultToolkit.Code &&
           toolkit !== AppDefaultToolkit.Http &&
-          toolkit !== AppDefaultToolkit.Visualization,
+          toolkit !== AppDefaultToolkit.Visualization &&
+          toolkit !== AppDefaultToolkit.PageAgent,
       )
       .map((toolkit) => {
         const label = raw[toolkit] || toolkit;
@@ -912,6 +917,18 @@ function AppDefaultToolKitSelector() {
           case AppDefaultToolkit.Visualization:
             icon = ChartColumn;
             break;
+          case AppDefaultToolkit.PageAgent:
+            icon = MousePointer;
+            break;
+          case AppDefaultToolkit.WebSearch:
+            icon = Search;
+            break;
+          case AppDefaultToolkit.Code:
+            icon = Code;
+            break;
+          case AppDefaultToolkit.Http:
+            icon = LinkIcon;
+            break;
         }
         return {
           label,
@@ -919,7 +936,7 @@ function AppDefaultToolKitSelector() {
           icon,
         };
       });
-  }, []);
+  }, [t]);
 
   return (
     <DropdownMenuGroup>

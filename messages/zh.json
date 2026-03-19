@@ -533,6 +533,7 @@
     "teamMembers": "团队成员",
     "modelAvailable": "模型可用",
     "modelUnavailable": "模型不可用",
+    "noAgentsAvailable": "没有可用智能体",
     "promotion": {
       "description": "相关资源将设置为公开：",
       "demotionDescription": "以下未使用的资源将设置为私有：",
@@ -985,6 +986,7 @@
     "jsonSchema": "JSON 模式",
     "inputSchema": "输入参数",
     "inputJSON": "输入 JSON",
+    "formInput": "表单输入",
     "jsonError": "JSON 错误",
     "noInputSchemaDefined": "该工具未定义输入参数",
     "selectToolToTest": "从左侧选择一个工具进行测试",

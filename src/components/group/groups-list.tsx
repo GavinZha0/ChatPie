@@ -62,8 +62,8 @@ export function GroupsList({ initialGroups }: { initialGroups: AgentGroup[] }) {
   };
 
   return (
-    <div className="w-full flex flex-col gap-4 p-8">
-      <div className="flex items-center gap-3">
+    <div className="w-full flex flex-col gap-2 p-4">
+      <div className="flex items-center gap-2">
         <h1 className="text-2xl font-bold">{t("Agent.agentTeam")}</h1>
         <Button variant="outline" size="sm" onClick={handleCreateGroup}>
           <Plus />
@@ -73,7 +73,7 @@ export function GroupsList({ initialGroups }: { initialGroups: AgentGroup[] }) {
 
       <Separator />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
         {groups.map((g) => (
           <GroupCard
             key={g.id}
@@ -85,7 +85,7 @@ export function GroupsList({ initialGroups }: { initialGroups: AgentGroup[] }) {
         ))}
         {groups.length === 0 && !isLoading && (
           <Card className="col-span-full bg-transparent border-none">
-            <CardHeader className="text-center py-12">
+            <CardHeader className="text-center py-2">
               <CardTitle>No groups</CardTitle>
               <CardDescription>Create your first group</CardDescription>
             </CardHeader>

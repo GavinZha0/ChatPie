@@ -132,7 +132,7 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
     <div className="relative h-full w-full overflow-hidden">
       {particle}
       <ScrollArea className="h-full w-full z-40 ">
-        <div className="pt-8 flex-1 relative flex flex-col gap-4 px-8 h-full pb-8">
+        <div className="flex-1 relative flex flex-col gap-2 p-4 h-full">
           <div className={cn("flex items-center gap-2")}>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               {t("mcpServers")}
@@ -225,7 +225,7 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
             </div>
           </div>
           {isLoading ? (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
               <Skeleton className="h-60 w-full" />
               <Skeleton className="h-60 w-full" />
               <Skeleton className="h-60 w-full" />
@@ -236,7 +236,7 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
               data-testid="mcp-servers-section"
             >
               {myServers?.length > 0 && (
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
                     <h2 className="text-lg font-semibold text-muted-foreground">
                       {t("myMcpServers")}
@@ -244,7 +244,7 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
                     <div className="flex-1 h-px bg-border" />
                   </div>
                   <div
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2"
                     data-testid="my-mcp-servers-section"
                   >
                     {myServers.map((mcp) => (
@@ -262,7 +262,7 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
                 </div>
               )}
               {sharedServers?.length > 0 && (
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
                     <h2 className="text-lg font-semibold text-muted-foreground">
                       {t("sharedMcpServers")}
@@ -270,7 +270,7 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
                     <div className="flex-1 h-px bg-border" />
                   </div>
                   <div
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2"
                     data-testid="shared-mcp-servers-section"
                   >
                     {sharedServers.map((mcp) => (
@@ -297,7 +297,7 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
               }}
             />
           ) : (
-            <div className="flex flex-col items-center justify-center space-y-4 my-20 text-center">
+            <div className="flex flex-col items-center justify-center space-y-2 my-20 text-center">
               <h3 className="text-2xl md:text-4xl font-semibold">
                 {t("noMcpServersAvailable")}
               </h3>

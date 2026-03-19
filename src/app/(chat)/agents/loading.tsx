@@ -7,20 +7,20 @@ export default async function AgentsLoading() {
   const t = await getTranslations();
 
   return (
-    <div className="w-full flex flex-col gap-4 p-8">
+    <div className="w-full flex flex-col gap-2 p-4">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">{t("Layout.agents")}</h1>
         <Skeleton className="h-10 w-32" />
       </div>
 
       {/* My Agents Section */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold">{t("Agent.myAgents")}</h2>
           <div className="flex-1 h-px bg-border" />
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
           {/* Create new agent card */}
           <Card className="relative bg-secondary overflow-hidden h-[196px]">
             <div className="absolute inset-0 w-full h-full opacity-50">

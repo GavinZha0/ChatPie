@@ -16,11 +16,11 @@ export function UsersTableSkeleton() {
   const skeletonRows = Array.from({ length: 8 }, (_, i) => i);
 
   return (
-    <div className="space-y-4 w-full">
+    <div className="space-y-2 w-full">
       {/* Search Bar Section */}
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search by name or email..."
             className="pl-9"
@@ -50,7 +50,7 @@ export function UsersTableSkeleton() {
               <TableRow key={index}>
                 {/* User Column */}
                 <TableCell>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <Avatar className="h-10 w-10 shrink-0">
                       <AvatarFallback>
                         <Skeleton className="h-full w-full rounded-full" />

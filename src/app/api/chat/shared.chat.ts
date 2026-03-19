@@ -40,7 +40,8 @@ import { createWorkflowExecutor } from "lib/ai/workflow/executor/workflow-execut
 import { NodeKind } from "lib/ai/workflow/workflow.interface";
 import { mcpClientsManager } from "lib/ai/mcp/mcp-manager";
 import { APP_DEFAULT_TOOL_KIT } from "lib/ai/tools/tool-kit";
-import { AppDefaultToolkit } from "lib/ai/tools";
+import { AppDefaultToolkit, DefaultToolName } from "lib/ai/tools";
+import { createPageAgentTool } from "lib/ai/tools/page-agent";
 
 export function filterMCPToolsByMentions(
   tools: Record<string, VercelAIMcpTool>,
@@ -428,31 +429,50 @@ export const loadWorkFlowTools = (opt: {
 export const loadAppDefaultTools = (opt?: {
   mentions?: ChatMention[];
   allowedAppDefaultToolkit?: string[];
+  chatModel?: { provider: string; model: string };
 }) =>
   safe(APP_DEFAULT_TOOL_KIT)
     .map((tools) => {
+      let result: Record<string, Tool>;
+      let shouldIncludePageAgent: boolean;
+
       if (opt?.mentions?.length) {
         const defaultToolMentions = opt.mentions.filter(
           (m) => m.type == "defaultTool",
         );
-        return Array.from(Object.values(tools)).reduce((acc, t) => {
+        result = Array.from(Object.values(tools)).reduce((acc, t) => {
           const allowed = objectFlow(t).filter((_, k) => {
             return defaultToolMentions.some((m) => m.name == k);
           });
           return { ...acc, ...allowed };
         }, {});
-      }
-      const allowedAppDefaultToolkit =
-        opt?.allowedAppDefaultToolkit ?? Object.values(AppDefaultToolkit);
+        shouldIncludePageAgent = defaultToolMentions.some(
+          (m) => m.name === DefaultToolName.PageAgent,
+        );
+      } else {
+        const allowedAppDefaultToolkit =
+          opt?.allowedAppDefaultToolkit ?? Object.values(AppDefaultToolkit);
 
-      return (
-        allowedAppDefaultToolkit.reduce(
-          (acc, key) => {
-            return { ...acc, ...tools[key] };
-          },
-          {} as Record<string, Tool>,
-        ) || {}
-      );
+        result =
+          allowedAppDefaultToolkit.reduce(
+            (acc, key) => {
+              return { ...acc, ...tools[key as AppDefaultToolkit] };
+            },
+            {} as Record<string, Tool>,
+          ) || {};
+
+        shouldIncludePageAgent = allowedAppDefaultToolkit.includes(
+          AppDefaultToolkit.PageAgent,
+        );
+      }
+
+      // PageAgent is created dynamically per-request so that the user's
+      // selected model (provider + model name) can be bound via closure.
+      if (shouldIncludePageAgent && opt?.chatModel) {
+        result[DefaultToolName.PageAgent] = createPageAgentTool(opt.chatModel);
+      }
+
+      return result;
     })
     .ifFail((e) => {
       console.error(e);
@@ -479,6 +499,29 @@ export const convertToSavePart = <T extends UIMessagePart<any, any>>(
                   result: undefined,
                 };
               }),
+            },
+          };
+        }
+
+        // The PageAgent tool's intermediate output contains provider
+        // credentials (apiKey) that the client-side executor needs at
+        // runtime. Strip apiKey before persisting to DB so that secrets
+        // are never stored in the message-parts column.
+        if (
+          getToolName(v) === DefaultToolName.PageAgent &&
+          typeof v.output === "object" &&
+          v.output !== null &&
+          "config" in v.output
+        ) {
+          const { config, ...restOutput } = v.output as {
+            config: Record<string, unknown>;
+            [k: string]: unknown;
+          };
+          return {
+            ...v,
+            output: {
+              ...restOutput,
+              config: exclude(config as any, ["apiKey"]),
             },
           };
         }

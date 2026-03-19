@@ -196,7 +196,7 @@ export function ArchiveExplorer({
         <Card className="border border-border bg-background flex w-full flex-col lg:h-full lg:w-80 lg:shrink-0">
           <CardContent className="flex-1 overflow-y-auto px-0">
             <div
-              className="flex flex-col gap-3 px-4 pb-4"
+              className="flex flex-col gap-2 px-4 pb-4"
               role="listbox"
               aria-label={t("Archive.archives")}
             >
@@ -222,7 +222,7 @@ export function ArchiveExplorer({
                         : "hover:border-primary hover:bg-primary/5",
                     )}
                   >
-                    <div className="flex flex-col gap-3 pr-12">
+                    <div className="flex flex-col gap-2 pr-12">
                       <h3 className="truncate text-base font-medium">
                         {archive.name}
                       </h3>
@@ -271,7 +271,7 @@ export function ArchiveExplorer({
 
         <Card className="border border-border bg-background flex flex-1 min-h-[320px] flex-col lg:h-full lg:min-h-0">
           <CardContent className="flex-1 overflow-y-auto px-0">
-            <div className="flex flex-col gap-3 px-4 pb-4">
+            <div className="flex flex-col gap-2 px-4 pb-4">
               {archives.length === 0 ? (
                 <EmptyState message={t("Archive.noArchivesAvailable")} />
               ) : selectedArchive ? (

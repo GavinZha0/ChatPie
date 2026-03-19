@@ -842,7 +842,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
         ) : (
           <>
             <div
-              className={"flex flex-col gap-2 overflow-y-auto py-6 z-10"}
+              className={"flex flex-col gap-2 overflow-y-auto py-2 z-10"}
               ref={containerRef}
               onScroll={handleScroll}
             >
@@ -868,7 +868,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
               })}
               {space && (
                 <div
-                  className={cn("w-full mx-auto relative", "max-w-6xl px-6")}
+                  className={cn("w-full mx-auto relative", "max-w-6xl px-4")}
                 >
                   <div className={space == "space" ? "opacity-0" : ""}>
                     <Think />
@@ -891,7 +891,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           <div
             className={cn(
               "mx-auto relative flex justify-center items-center -top-2",
-              "max-w-6xl px-6",
+              "max-w-6xl px-4",
             )}
           >
             <ScrollToBottomButton

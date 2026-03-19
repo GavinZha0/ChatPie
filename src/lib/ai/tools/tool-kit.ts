@@ -30,4 +30,8 @@ export const APP_DEFAULT_TOOL_KIT: Record<
     [DefaultToolName.JavascriptExecution]: jsExecutionTool,
     [DefaultToolName.PythonExecution]: pythonExecutionTool,
   },
+  // PageAgent is intentionally empty here — the tool instance is created
+  // dynamically per-request by loadAppDefaultTools via createPageAgentTool,
+  // so that the user's currently selected model can be bound via closure.
+  [AppDefaultToolkit.PageAgent]: {},
 };

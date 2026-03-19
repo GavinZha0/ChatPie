@@ -94,7 +94,7 @@ export default async function ArchivePage({
   }));
 
   return (
-    <div className="w-full px-6 py-10">
+    <div className="w-full p-4">
       <ArchiveExplorer archives={clientArchives} userId={session.user.id} />
     </div>
   );
