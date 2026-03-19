@@ -48,7 +48,7 @@ import { getSession } from "auth/server";
 import { colorize } from "consola/utils";
 import { generateUUID } from "lib/utils";
 import { nanoBananaTool, openaiImageAdapterTool } from "lib/ai/tools/image";
-import { ImageToolName } from "lib/ai/tools";
+import { ImageToolName, DefaultToolName } from "lib/ai/tools";
 import { buildCsvIngestionPreviewParts } from "@/lib/ai/ingest/csv-ingest";
 import { serverFileStorage } from "lib/file-storage";
 
@@ -348,6 +348,7 @@ async function handleChatModels(
               loadAppDefaultTools({
                 mentions: agentMentions,
                 allowedAppDefaultToolkit,
+                chatModel: modelToUse,
               }),
             )
             .orElse({});
@@ -407,14 +408,27 @@ async function handleChatModels(
             ...WORKFLOW_TOOLS,
           })
             .map((t) => {
-              const bindingTools =
+              const isApproval =
                 toolChoice === "approval" ||
-                (message.metadata as ChatMetadata)?.toolChoice === "approval"
-                  ? excludeToolExecution(t)
-                  : t;
+                (message.metadata as ChatMetadata)?.toolChoice === "approval";
+              const bindingTools = isApproval ? excludeToolExecution(t) : t;
+
+              // In approval mode PageAgent should also surface the approve/reject
+              // buttons, matching MCP/workflow behaviour. APP_DEFAULT_TOOLS keeps
+              // its execute so manualToolExecuteByLastMessage can call it after
+              // the user approves. Only the copy sent to streamText is stripped.
+              const pageAgentForStream =
+                isApproval && APP_DEFAULT_TOOLS[DefaultToolName.PageAgent]
+                  ? excludeToolExecution({
+                      [DefaultToolName.PageAgent]:
+                        APP_DEFAULT_TOOLS[DefaultToolName.PageAgent],
+                    })
+                  : {};
+
               return {
                 ...bindingTools,
                 ...APP_DEFAULT_TOOLS,
+                ...pageAgentForStream, // overrides PageAgent entry in approval mode
                 ...IMAGE_TOOL,
               };
             })

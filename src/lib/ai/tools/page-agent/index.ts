@@ -11,87 +11,54 @@ const pageAgentSchema = z.object({
     ),
 });
 
-// Create Page Agent tool - get configuration dynamically
-export const pageAgentTool = createTool({
-  description:
-    "Control web interfaces with natural language. Click buttons, fill forms, navigate pages, and perform other web interactions using simple commands. This tool executes on the client side using your selected model.",
-  inputSchema: pageAgentSchema,
-  execute: async (params) => {
-    try {
-      console.log("=== Page Agent Tool Debug ===");
-      console.log("params:", JSON.stringify(params, null, 2));
-      console.log("==========================");
+/**
+ * Factory that creates a Page Agent tool bound to the user's currently selected
+ * model. Must be called per-request inside the chat API handler so that the
+ * correct provider configuration is resolved at runtime.
+ *
+ * This follows the same pattern as `workflowToVercelAITool`, where runtime
+ * context is closed over instead of being accessed through global state.
+ */
+export const createPageAgentTool = (chatModel: {
+  provider: string;
+  model: string;
+}) =>
+  createTool({
+    description:
+      "Control web interfaces with natural language. Click buttons, fill forms, navigate pages, and perform other web interactions using simple commands. This tool executes on the client side.",
+    inputSchema: pageAgentSchema,
+    execute: async (params) => {
+      try {
+        // chatModel is provided via closure from the request context —
+        const selectedProvider = await providerRepository.selectByName(
+          chatModel.provider,
+        );
 
-      // Get user selected model from messages metadata
-      let selectedModel;
-
-      // Method 2: Try to get from global app state (fallback)
-      if (!selectedModel) {
-        try {
-          const { appStore } = await import("@/app/store");
-          selectedModel = appStore.getState().chatModel;
-          console.log("✅ Got model from global state:", selectedModel);
-        } catch (error) {
-          console.log("❌ Failed to get from global state:", error);
+        if (!selectedProvider) {
+          return {
+            isError: true,
+            error: `Model "${chatModel.model}" not found.`,
+          };
         }
-      }
 
-      selectedModel = {
-        provider: "openai",
-        model: "gpt-5.4",
-      };
+        const config = {
+          model: chatModel.model,
+          baseURL: selectedProvider.baseUrl,
+          apiKey: selectedProvider.apiKey || "",
+          language: "en-US" as const,
+        };
 
-      if (!selectedModel) {
-        console.log("❌ No model found in any source");
+        return {
+          command: params.command,
+          config,
+          message:
+            "This command will be executed on the client side by Page Agent.",
+        };
+      } catch (error) {
         return {
           isError: true,
-          error: "No model selected. Please select a model from the dropdown.",
+          error: `Failed to get model configuration: ${error instanceof Error ? error.message : "Unknown error"}`,
         };
       }
-
-      console.log("🎯 Final selectedModel:", selectedModel);
-
-      // Get provider configuration from database
-      const selectedProvider = await providerRepository.selectByName(
-        selectedModel.provider,
-      );
-
-      if (!selectedProvider) {
-        console.log("❌ Provider not found:", selectedModel.provider);
-        return {
-          isError: true,
-          error: `Provider ${selectedModel.provider} not found in database.`,
-        };
-      }
-
-      console.log("✅ Got provider from database:", selectedProvider.name);
-
-      // Build configuration from user's actual selection
-      const config = {
-        model: selectedModel.model,
-        baseURL: selectedProvider.baseUrl,
-        apiKey: selectedProvider.apiKey || "empty",
-        language: "en-US", // Default language
-      };
-
-      console.log("🔧 Final config:", config);
-
-      return {
-        requiresClientSide: true,
-        command: params.command, // User's actual command
-        config,
-        message:
-          "This command will be executed on the client side by Page Agent.",
-      };
-    } catch (error) {
-      console.log("❌ Error in execute:", error);
-      return {
-        isError: true,
-        error: `Failed to get model configuration: ${error instanceof Error ? error.message : "Unknown error"}`,
-      };
-    }
-  },
-});
-
-// Export tool name for reference
-export const PAGE_AGENT_TOOL_NAME = "page-agent";
+    },
+  });

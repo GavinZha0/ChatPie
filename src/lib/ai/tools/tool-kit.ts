@@ -8,7 +8,6 @@ import { Tool } from "ai";
 import { httpFetchTool } from "./http/fetch";
 import { jsExecutionTool } from "./code/js-run-tool";
 import { pythonExecutionTool } from "./code/python-run-tool";
-import { pageAgentTool } from "./page-agent";
 
 export const APP_DEFAULT_TOOL_KIT: Record<
   AppDefaultToolkit,
@@ -31,7 +30,8 @@ export const APP_DEFAULT_TOOL_KIT: Record<
     [DefaultToolName.JavascriptExecution]: jsExecutionTool,
     [DefaultToolName.PythonExecution]: pythonExecutionTool,
   },
-  [AppDefaultToolkit.PageAgent]: {
-    [DefaultToolName.PageAgent]: pageAgentTool,
-  },
+  // PageAgent is intentionally empty here — the tool instance is created
+  // dynamically per-request by loadAppDefaultTools via createPageAgentTool,
+  // so that the user's currently selected model can be bound via closure.
+  [AppDefaultToolkit.PageAgent]: {},
 };
