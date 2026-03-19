@@ -505,6 +505,7 @@
     "public": "公開",
     "privateDescription": "あなただけがこのエージェントを表示、編集、使用できます。",
     "publicDescription": "誰でもこのエージェントをツールとして表示、編集、使用できます。",
+    "noAgentsAvailable": "利用可能なエージェントはありません",
     "promotion": {
       "description": "関連リソースが公開に設定されます：",
       "demotionDescription": "関連リソースが非公開に設定されます：",

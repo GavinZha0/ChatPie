@@ -37,8 +37,8 @@ export const pageAgentTool = createTool({
       }
 
       selectedModel = {
-        provider: "ollama",
-        model: "qwen3.5:9b",
+        provider: "openai",
+        model: "gpt-5.4",
       };
 
       if (!selectedModel) {

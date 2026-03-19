@@ -533,6 +533,7 @@
     "teamMembers": "Team members",
     "modelAvailable": "Model available",
     "modelUnavailable": "Model unavailable",
+    "noAgentsAvailable": "No agents available",
     "promotion": {
       "description": "Related resources will be set to public:",
       "demotionDescription": "Related resources will be set to private:",

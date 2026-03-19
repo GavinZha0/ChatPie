@@ -6,8 +6,9 @@ export interface PageAgentConfig {
   language?: "en-US" | "zh-CN";
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface PageAgentResult {
   success: boolean;
-  history: any;
-  data?: any;
+  history: Array<unknown>;
+  data: string | unknown;
 }

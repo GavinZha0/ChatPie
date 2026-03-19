@@ -506,6 +506,7 @@
     "public": "Public",
     "privateDescription": "Seul vous pouvez voir, modifier et utiliser cet agent.",
     "publicDescription": "Tout le monde peut voir, modifier et utiliser cet agent comme outil.",
+    "noAgentsAvailable": "Aucun agent disponible",
     "promotion": {
       "description": "Les ressources associées seront définies comme publiques :",
       "demotionDescription": "Les ressources associées seront définies comme privées :",

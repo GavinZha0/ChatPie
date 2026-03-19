@@ -936,7 +936,7 @@ function AppDefaultToolKitSelector() {
           icon,
         };
       });
-  }, []);
+  }, [t]);
 
   return (
     <DropdownMenuGroup>

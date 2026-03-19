@@ -506,6 +506,7 @@
     "public": "Público",
     "privateDescription": "Solo tú puedes ver, editar y usar este agente.",
     "publicDescription": "Cualquiera puede ver, editar y usar este agente como herramienta.",
+    "noAgentsAvailable": "No hay agentes disponibles",
     "promotion": {
       "description": "Los recursos relacionados se configurarán como públicos:",
       "demotionDescription": "Los recursos relacionados se configurarán como privados:",
