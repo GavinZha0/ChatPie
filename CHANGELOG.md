@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/GavinZha0/ChatPie/compare/v0.9.0...v0.10.0) (2026-03-20)
+
+
+### Features
+
+* support uvx MCP server ([#18](https://github.com/GavinZha0/ChatPie/issues/18)) ([84b33e3](https://github.com/GavinZha0/ChatPie/commit/84b33e3063b9d1c56ce121c23db3b34e7a341c9e))
+
 ## [0.9.0](https://github.com/GavinZha0/ChatPie/compare/v0.8.0...v0.9.0) (2026-03-13)
 
 
