@@ -52,6 +52,11 @@ RUN mkdir -p /home/nextjs/.npm && chown -R nextjs:nogroup /home/nextjs
 # Create outputs directory for Playwright files
 RUN mkdir -p /app/outputs && chown 1001:65534 /app/outputs
 
+# Create logs directory for MCP servers
+RUN mkdir -p /app/logs && chown nextjs:nogroup /app/logs
+RUN mkdir -p /app/logs/audit && chown nextjs:nogroup /app/logs/audit
+RUN chmod 700 /app/logs/audit
+
 # Set Playwright browsers path and ensure permissions
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 RUN chown -R nextjs:nogroup /ms-playwright
@@ -60,6 +65,17 @@ RUN chown -R nextjs:nogroup /ms-playwright
 USER root
 RUN npx playwright install --with-deps chromium
 RUN CHROMIUM_PATH=$(find /ms-playwright -maxdepth 1 -type d -name "chromium-*" | head -n 1) && mkdir -p /opt/google/chrome/ && ln -sf "${CHROMIUM_PATH}/chrome-linux64/chrome" /opt/google/chrome/chrome
+
+# Install uv for uvx-based MCP servers
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+RUN curl -LsSf https://astral.sh/uv/install.sh | UV_INSTALL_DIR="/usr/local/bin" sh
+RUN /usr/local/bin/uv --version
+RUN chmod +x /usr/local/bin/uv
+RUN chmod +x /usr/local/bin/uvx
+
 USER nextjs
 
 # Set npm cache directory for nextjs user
