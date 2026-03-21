@@ -378,6 +378,7 @@ export function EditAgentDialog({
                   visibility={fullAgent.visibility || "private"}
                   isBookmarked={fullAgent?.isBookmarked || false}
                   isOwner={isOwner}
+                  canChangeVisibility={false}
                   onVisibilityChange={updateVisibility}
                   isVisibilityChangeLoading={isVisibilityChangeLoading}
                   disabled={headerDisabled}

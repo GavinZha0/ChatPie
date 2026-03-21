@@ -130,7 +130,7 @@ export function ShareableActions({
           ) : (
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center justify-center size-8">
+                <div className="flex items-center justify-center size-4">
                   <VisibilityIcon className="size-4 text-muted-foreground" />
                 </div>
               </TooltipTrigger>
