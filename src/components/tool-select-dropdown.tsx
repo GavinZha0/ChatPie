@@ -4,20 +4,15 @@ import { appStore } from "@/app/store";
 import { AllowedMCPServer, MCPServerInfo } from "app-types/mcp";
 import { cn, objectFlow } from "lib/utils";
 import {
-  ChartColumn,
   Check,
   ChevronRight,
-  Code,
   HammerIcon,
   ImagesIcon,
   InfoIcon,
   Loader,
-  Link as LinkIcon,
-  MousePointer,
   MousePointer2,
   Package,
   Plus,
-  Search,
   ShieldAlertIcon,
   Waypoints,
   Wrench,
@@ -63,7 +58,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
 import { getEmojiUrl } from "lib/emoji";
 import { WorkflowSummary } from "app-types/workflow";
 import { WorkflowGreeting } from "./workflow/workflow-greeting";
-import { AppDefaultToolkit } from "lib/ai/tools";
+import { AppDefaultToolkit, getAllToolkitInfos } from "lib/ai/tools";
 import { ChatMention } from "app-types/chat";
 import { CountAnimation } from "ui/count-animation";
 
@@ -900,36 +895,20 @@ function AppDefaultToolKitSelector() {
 
   const defaultToolInfo = useMemo(() => {
     const raw = t.raw("Chat.Tool.defaultToolKit");
-    return Object.values(AppDefaultToolkit)
+    return getAllToolkitInfos()
       .filter(
-        (toolkit) =>
-          toolkit !== AppDefaultToolkit.WebSearch &&
-          toolkit !== AppDefaultToolkit.Code &&
-          toolkit !== AppDefaultToolkit.Http &&
-          toolkit !== AppDefaultToolkit.Visualization &&
-          toolkit !== AppDefaultToolkit.PageAgent,
+        (toolkitInfo) =>
+          toolkitInfo.id !== AppDefaultToolkit.WebSearch &&
+          toolkitInfo.id !== AppDefaultToolkit.Code &&
+          toolkitInfo.id !== AppDefaultToolkit.Http &&
+          toolkitInfo.id !== AppDefaultToolkit.Visualization &&
+          toolkitInfo.id !== AppDefaultToolkit.PageAgent,
       )
-      .map((toolkit) => {
-        const label = raw[toolkit] || toolkit;
-        const id = toolkit;
-        let icon = Wrench;
-        switch (toolkit) {
-          case AppDefaultToolkit.Visualization:
-            icon = ChartColumn;
-            break;
-          case AppDefaultToolkit.PageAgent:
-            icon = MousePointer;
-            break;
-          case AppDefaultToolkit.WebSearch:
-            icon = Search;
-            break;
-          case AppDefaultToolkit.Code:
-            icon = Code;
-            break;
-          case AppDefaultToolkit.Http:
-            icon = LinkIcon;
-            break;
-        }
+      .map((toolkitInfo) => {
+        const label = raw[toolkitInfo.id] || toolkitInfo.label;
+        const id = toolkitInfo.id;
+        const icon = toolkitInfo.icon;
+
         return {
           label,
           id,

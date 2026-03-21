@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { ChatMention } from "app-types/chat";
-import { DefaultToolName } from "lib/ai/tools";
+import { DefaultToolName, getAllBuiltinTools } from "lib/ai/tools";
 import { cn } from "lib/utils";
 import equal from "lib/equal";
 import { Loader, HammerIcon, Check, SearchIcon } from "lucide-react";
@@ -314,71 +314,28 @@ export function AgentToolsTab({
     });
 
     // Default Tools
-    const defaultToolItems = Object.values(DefaultToolName)
-      .filter((toolName) => {
+    const defaultToolItems = getAllBuiltinTools()
+      .filter((toolInfo) => {
         if (!searchQuery) return true;
-        return toolName.toLowerCase().includes(searchQuery.toLowerCase());
+        return (
+          toolInfo.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          toolInfo.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
       })
-      .map((toolName) => {
-        let label = toolName as string;
-        let description = "";
-
-        switch (toolName) {
-          case DefaultToolName.CreatePieChart:
-            label = "pie-chart";
-            description = "Create a pie chart";
-            break;
-          case DefaultToolName.CreateBarChart:
-            label = "bar-chart";
-            description = "Create a bar chart";
-            break;
-          case DefaultToolName.CreateLineChart:
-            label = "line-chart";
-            description = "Create a line chart";
-            break;
-          case DefaultToolName.CreateTable:
-            label = "table";
-            description = "Create a table";
-            break;
-          case DefaultToolName.WebSearch:
-            label = "web-search";
-            description = "Search the web";
-            break;
-          case DefaultToolName.WebContent:
-            label = "web-content";
-            description = "Get the content of a web page";
-            break;
-          case DefaultToolName.Http:
-            label = "http";
-            description = "Send an http request";
-            break;
-          case DefaultToolName.JavascriptExecution:
-            label = "js-execution";
-            description = "Execute simple javascript code";
-            break;
-          case DefaultToolName.PythonExecution:
-            label = "python-execution";
-            description = "Execute simple python code";
-            break;
-          case DefaultToolName.PageAgent:
-            label = "page-agent";
-            description = "Control web page with AI";
-            break;
-        }
-
+      .map((toolInfo) => {
         const mention: ChatMention = {
           type: "defaultTool",
-          name: toolName,
-          label,
-          description,
+          name: toolInfo.name,
+          label: toolInfo.label,
+          description: toolInfo.description,
         };
 
         return {
           id: JSON.stringify(mention),
           type: "defaultTool",
-          label,
-          description,
-          icon: <DefaultToolIcon name={toolName} className="size-4" />,
+          label: toolInfo.label,
+          description: toolInfo.description,
+          icon: <DefaultToolIcon name={toolInfo.name} className="size-4" />,
           mention,
         };
       });

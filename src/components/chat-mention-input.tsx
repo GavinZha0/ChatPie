@@ -23,7 +23,7 @@ import { useShallow } from "zustand/shallow";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
 import { getEmojiUrl } from "lib/emoji";
 import { Editor } from "@tiptap/react";
-import { DefaultToolName } from "lib/ai/tools";
+import { getAllBuiltinTools } from "lib/ai/tools";
 import { DefaultToolIcon } from "./default-tool-icon";
 import equal from "lib/equal";
 import { EMOJI_DATA } from "lib/const";
@@ -363,57 +363,14 @@ export function ChatMentionInputSuggestion({
 
   const defaultToolMentions = useMemo(() => {
     if (disabledType?.includes("defaultTool")) return [];
-    const items = Object.values(DefaultToolName).map((toolName) => {
-      let label = toolName as string;
-      const icon = <DefaultToolIcon name={toolName} />;
-      let description = "";
-      switch (toolName) {
-        case DefaultToolName.CreatePieChart:
-          label = "pie-chart";
-          description = "Create a pie chart";
-          break;
-        case DefaultToolName.CreateBarChart:
-          label = "bar-chart";
-          description = "Create a bar chart";
-          break;
-        case DefaultToolName.CreateLineChart:
-          label = "line-chart";
-          description = "Create a line chart";
-          break;
-        case DefaultToolName.CreateTable:
-          label = "table";
-          description = "Create a table";
-          break;
-        case DefaultToolName.WebSearch:
-          label = "web-search";
-          description = "Search the web";
-          break;
-        case DefaultToolName.WebContent:
-          label = "web-content";
-          description = "Get the content of a web page";
-          break;
-        case DefaultToolName.Http:
-          label = "HTTP";
-          description = "Send an http request";
-          break;
-        case DefaultToolName.JavascriptExecution:
-          label = "js-execution";
-          description = "Execute simple javascript code";
-          break;
-        case DefaultToolName.PythonExecution:
-          label = "python-execution";
-          description = "Execute simple python code";
-          break;
-        case DefaultToolName.PageAgent:
-          label = "page-agent";
-          description = "Control web page with AI";
-          break;
-      }
+    const items = getAllBuiltinTools().map((toolInfo) => {
+      const icon = <DefaultToolIcon name={toolInfo.name} />;
+
       return {
-        id: toolName,
-        label,
+        id: toolInfo.name,
+        label: toolInfo.label,
         icon,
-        description,
+        description: toolInfo.description,
       };
     });
 
