@@ -68,7 +68,7 @@ RUN CHROMIUM_DIR=$(find /ms-playwright -maxdepth 1 -type d -name "chromium-*" | 
     CHROMIUM_PATH=$(find "${CHROMIUM_DIR}" -name "chrome" -type f 2>/dev/null | head -n 1) && \
     echo "Found chromium at: ${CHROMIUM_PATH}" && \
     mkdir -p /opt/google/chrome/ && \
-    ln -sf "${CHROMIUM_PATH}/chrome" /opt/google/chrome/chrome
+    ln -sf "${CHROMIUM_PATH}" /opt/google/chrome/chrome
 
 # Install uv for uvx-based MCP servers
 RUN apt-get update && apt-get install -y --no-install-recommends \
