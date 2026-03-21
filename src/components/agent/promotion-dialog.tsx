@@ -66,7 +66,7 @@ export function PromotionDialog({
 
         <div className="space-y-4 py-4">
           {(mcpServersCount > 0 || workflowsCount > 0) && (
-            <div className="rounded-lg bg-muted/50 p-4 space-y-3">
+            <div className="rounded-lg bg-muted/50 p-2 space-y-2">
               {mcpServersCount > 0 && (
                 <div className="flex items-center gap-2">
                   <MCPIcon className="size-4 text-blue-500" />

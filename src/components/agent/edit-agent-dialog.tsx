@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -21,19 +21,16 @@ import { BACKGROUND_COLORS, EMOJI_DATA } from "lib/const";
 import { cn, fetcher } from "lib/utils";
 import { safe } from "ts-safe";
 import { handleErrorWithToast } from "ui/shared-toast";
-import { Loader } from "lucide-react";
+import { Loader, User, FileText, Cpu, Wrench } from "lucide-react";
 import { Button } from "ui/button";
-import { Input } from "ui/input";
-import { Label } from "ui/label";
-import { Textarea } from "ui/textarea";
-import { ScrollArea } from "ui/scroll-area";
 import { Skeleton } from "ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "ui/tabs";
 import { ShareableActions, Visibility } from "@/components/shareable-actions";
-import { SelectModel } from "@/components/select-model";
-import { AgentIconPicker } from "./agent-icon-picker";
-import { AgentToolSelector } from "./agent-tool-selector";
-import { notify } from "lib/notify";
+import { AgentBasicInfoTab } from "./tabs/AgentBasicInfoTab";
+import { AgentPromptTab } from "./tabs/AgentPromptTab";
+import { AgentModelTab } from "./tabs/AgentModelTab";
+import { AgentToolsTab } from "./tabs/AgentToolsTab";
 import { appStore } from "@/app/store";
 
 const defaultConfig = (): PartialBy<
@@ -76,7 +73,6 @@ export function AgentEditor({
   const isCreating = !initialAgentProp?.id;
 
   const [isSaving, setIsSaving] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Agent state management
   const [agent, setAgent] = useObjectState<PartialBy<Agent, "id">>(
@@ -176,194 +172,89 @@ export function AgentEditor({
     }
   }, [agent, userId, mutateAgents, t, onClose]);
 
-  const deleteAgent = useCallback(async () => {
-    if (!agent?.id) return;
-    const ok = await notify.confirm({
-      description: t("Agent.deleteConfirm"),
-    });
-    if (!ok) return;
-    const agentId = agent.id as string;
-    safe(() => setIsSaving(true))
-      .map(() =>
-        fetcher(`/api/agent/${agentId}`, {
-          method: "DELETE",
-        }),
-      )
-      .ifOk(() => {
-        mutateAgents({ id: agentId }, true);
-        toast.success(t("Agent.deleted"));
-        onClose();
-      })
-      .ifFail(handleErrorWithToast)
-      .watch(() => setIsSaving(false));
-  }, [agent?.id, mutateAgents, t, onClose]);
-
   const isLoading = useMemo(() => {
     return isLoadingTool || isSaving;
   }, [isLoadingTool, isSaving]);
 
   return (
-    <ScrollArea className="h-full w-full relative">
-      <div className="w-full h-4 absolute bottom-0 left-0 bg-gradient-to-t from-background to-transparent z-20 pointer-events-none" />
-      <div className="relative flex flex-col gap-4 pb-4 h-full">
-        {/* Name and Icon */}
-        <div className="flex gap-4 items-end">
-          <div className="flex flex-col gap-2 flex-1">
-            <Label htmlFor="agent-name">
-              {t("Agent.agentNameAndIconLabel")}
-            </Label>
-            <div className="flex items-center gap-3">
-              <Input
-                value={agent.name || ""}
-                onChange={(e) => setAgent({ name: e.target.value })}
-                autoFocus
-                disabled={isLoading || !hasEditAccess}
-                className="hover:bg-input bg-secondary/40 transition-colors border-transparent !border-none !focus-visible:bg-input !ring-0"
-                id="agent-name"
-                data-testid="agent-name-input"
-                placeholder={t("Agent.agentNamePlaceholder")}
-                readOnly={!hasEditAccess}
-              />
-            </div>
-          </div>
-          <AgentIconPicker
-            icon={agent.icon}
-            disabled={!hasEditAccess}
-            onChange={(icon) => setAgent({ icon })}
-          />
-        </div>
+    <div className="flex flex-col h-full p-2">
+      <Tabs defaultValue="basic" className="flex-1 flex flex-col">
+        <TabsList className="grid w-full grid-cols-4 mb-2">
+          <TabsTrigger value="basic" className="flex items-center gap-2">
+            <User className="size-4" />
+            Basic Info
+          </TabsTrigger>
+          <TabsTrigger value="prompt" className="flex items-center gap-2">
+            <FileText className="size-4" />
+            Prompt
+          </TabsTrigger>
+          <TabsTrigger value="model" className="flex items-center gap-2">
+            <Cpu className="size-4" />
+            Model
+          </TabsTrigger>
+          <TabsTrigger value="tools" className="flex items-center gap-2">
+            <Wrench className="size-4" />
+            Tools
+          </TabsTrigger>
+        </TabsList>
 
-        {/* Description */}
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="agent-description">
-            {t("Agent.agentDescriptionLabel")}
-          </Label>
-          <Input
-            id="agent-description"
-            data-testid="agent-description-input"
+        <TabsContent value="basic" className="mt-0">
+          <AgentBasicInfoTab
+            agent={agent}
+            setAgent={setAgent}
+            isLoading={isLoading}
+            hasEditAccess={hasEditAccess}
+            isSelectedModelAgentType={isSelectedModelAgentType}
+          />
+        </TabsContent>
+
+        <TabsContent value="prompt" className="mt-0 h-full">
+          <AgentPromptTab
+            agent={agent}
+            setAgent={setAgent}
+            isLoading={isLoading}
+            hasEditAccess={hasEditAccess}
+            isSelectedModelAgentType={isSelectedModelAgentType}
+          />
+        </TabsContent>
+
+        <TabsContent value="model" className="mt-0">
+          <AgentModelTab
+            agent={agent}
+            setAgent={setAgent}
+            isLoading={isLoading}
+            hasEditAccess={hasEditAccess}
+          />
+        </TabsContent>
+
+        <TabsContent value="tools" className="mt-0 flex-1">
+          <AgentToolsTab
+            agent={agent}
+            setAgent={setAgent}
+            isLoadingTool={isLoadingTool}
+            isLoading={isLoading}
+            hasEditAccess={hasEditAccess}
+            isSelectedModelAgentType={isSelectedModelAgentType}
+          />
+        </TabsContent>
+      </Tabs>
+
+      {/* Action buttons */}
+      {hasEditAccess && (
+        <div className={cn("flex justify-end gap-2 pt-2 border-t mt-2")}>
+          {/* Save button */}
+          <Button
+            className="ml-auto"
+            onClick={saveAgent}
             disabled={isLoading || !hasEditAccess}
-            placeholder={t("Agent.agentDescriptionPlaceholder")}
-            className="hover:bg-input placeholder:text-xs bg-secondary/40 transition-colors border-transparent !border-none !focus-visible:bg-input !ring-0"
-            value={agent.description || ""}
-            onChange={(e) => setAgent({ description: e.target.value })}
-            readOnly={!hasEditAccess}
-          />
+            data-testid="agent-save-button"
+          >
+            {isSaving ? t("Common.saving") : t("Common.save")}
+            {isSaving && <Loader className="size-4 animate-spin" />}
+          </Button>
         </div>
-
-        {/* Role, Instructions, Tools, and Model */}
-        <div className="flex flex-col gap-6">
-          {/* Role */}
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="agent-role">{t("Agent.agentRole")}</Label>
-            <Input
-              id="agent-role"
-              data-testid="agent-role-input"
-              disabled={isLoading || !hasEditAccess || isSelectedModelAgentType}
-              placeholder={
-                isSelectedModelAgentType
-                  ? "Built-in agent model configuration"
-                  : t("Agent.agentRolePlaceholder")
-              }
-              className="hover:bg-input placeholder:text-xs bg-secondary/40 transition-colors border-transparent !border-none !focus-visible:bg-input !ring-0"
-              value={agent.role || ""}
-              onChange={(e) => setAgent({ role: e.target.value || "" })}
-              readOnly={!hasEditAccess || isSelectedModelAgentType}
-            />
-          </div>
-
-          {/* Instructions */}
-          <div className="flex gap-2 flex-col">
-            <Label htmlFor="agent-prompt" className="text-base">
-              {t("Agent.agentInstructionsLabel")}
-            </Label>
-            <Textarea
-              id="agent-prompt"
-              data-testid="agent-prompt-textarea"
-              ref={textareaRef}
-              disabled={isLoading || !hasEditAccess || isSelectedModelAgentType}
-              placeholder={
-                isSelectedModelAgentType
-                  ? "Built-in agent model configuration"
-                  : t("Agent.agentInstructionsPlaceholder")
-              }
-              className="p-6 hover:bg-input min-h-48 max-h-96 overflow-y-auto resize-none placeholder:text-xs bg-secondary/40 transition-colors border-transparent !border-none !focus-visible:bg-input !ring-0"
-              value={agent.systemPrompt || ""}
-              onChange={(e) => setAgent({ systemPrompt: e.target.value || "" })}
-              readOnly={!hasEditAccess || isSelectedModelAgentType}
-            />
-          </div>
-
-          {/* Tools */}
-          <div className="flex gap-2 flex-col">
-            <Label htmlFor="agent-tool-bindings" className="text-base">
-              {t("Agent.agentToolsLabel")}
-            </Label>
-            <AgentToolSelector
-              mentions={agent.tools || []}
-              isLoading={isLoadingTool}
-              disabled={isLoading || isSelectedModelAgentType}
-              hasEditAccess={hasEditAccess && !isSelectedModelAgentType}
-              onChange={(mentions) => setAgent({ tools: mentions })}
-            />
-
-            {/* Model */}
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="agent-model-select" className="text-base">
-                {t("Agent.agentModelLabel")}
-              </Label>
-              <div
-                className={cn(
-                  "w-full",
-                  (isLoading || !hasEditAccess) &&
-                    "pointer-events-none opacity-60",
-                )}
-              >
-                <SelectModel
-                  currentModel={agent.model}
-                  modelTypes={["chat", "agent"]}
-                  buttonClassName="w-full justify-between"
-                  onSelect={(model) => {
-                    if (isLoading || !hasEditAccess) {
-                      return;
-                    }
-
-                    setAgent({ model });
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Action buttons */}
-        {hasEditAccess && (
-          <div className={cn("flex justify-end gap-2")}>
-            {/* Delete button - only for owners */}
-            {agent.id && isOwner && (
-              <Button
-                className="mt-2 hover:text-destructive"
-                variant="ghost"
-                onClick={deleteAgent}
-                disabled={isLoading}
-              >
-                {t("Common.delete")}
-              </Button>
-            )}
-
-            {/* Save button */}
-            <Button
-              className={cn("mt-2", !agent.id || !isOwner ? "ml-auto" : "")}
-              onClick={saveAgent}
-              disabled={isLoading || !hasEditAccess}
-              data-testid="agent-save-button"
-            >
-              {isSaving ? t("Common.saving") : t("Common.save")}
-              {isSaving && <Loader className="size-4 animate-spin" />}
-            </Button>
-          </div>
-        )}
-      </div>
-    </ScrollArea>
+      )}
+    </div>
   );
 }
 
@@ -474,9 +365,9 @@ export function EditAgentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh]">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] h-[900px] flex flex-col">
         <DialogHeader>
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-2">
             <DialogTitle>
               {isCreating ? t("Agent.newAgent") : t("Agent.editAgent")}
             </DialogTitle>
@@ -499,7 +390,7 @@ export function EditAgentDialog({
         </DialogHeader>
         {/* Show loading skeleton when editing and data is incomplete */}
         {!hasCompleteData && isLoadingAgent ? (
-          <div className="p-6 space-y-4 min-h-[600px]">
+          <div className="p-2 space-y-2 flex-1">
             <Skeleton className="h-8 w-48" />
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-12 w-full" />
