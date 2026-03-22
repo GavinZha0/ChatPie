@@ -227,7 +227,7 @@ export function AgentToolsTab({
         type: "mcpServer",
         name: mcp.name,
         serverId: mcp.id,
-        description: `${mcp.name} has ${mcp.toolInfo?.length ?? 0} tool(s).`,
+        description: `${mcp.toolInfo?.length ?? 0} tools.`,
         toolCount: mcp.toolInfo?.length ?? 0,
       };
 
@@ -265,7 +265,7 @@ export function AgentToolsTab({
         id: JSON.stringify(serverMention),
         type: "mcpServer",
         label: mcp.name,
-        description: `${mcp.toolInfo?.length ?? 0} tools available`,
+        description: `${mcp.toolInfo?.length ?? 0} tools`,
         icon: <MCPIcon className="size-4" />,
         mention: serverMention,
         children: filteredChildTools,
@@ -423,6 +423,8 @@ export function AgentToolsTab({
               className="size-3"
             />
           ) : m.type === "mcpServer" ? (
+            <MCPIcon className="size-3" />
+          ) : m.type === "mcpTool" ? (
             <MCPIcon className="size-3" />
           ) : m.type === "workflow" ? (
             <Avatar
