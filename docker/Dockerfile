@@ -11,11 +11,6 @@ COPY . .
 RUN corepack enable pnpm
 RUN pnpm install --frozen-lockfile
 
-# Install Playwright browsers with dependencies
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-RUN npx playwright install --with-deps chromium
-RUN chmod -R 755 /ms-playwright
-
 # Makes the next output standalone
 ENV NEXT_STANDALONE_OUTPUT="true"
 RUN pnpm build
@@ -40,45 +35,33 @@ COPY --from=builder --chown=nextjs:nogroup /app/.next/static ./.next/static
 # Copy migrations content
 COPY --from=builder /app/src/lib/db/migrations ./src/lib/db/migrations
 
-# Copy Playwright browsers from builder
-COPY --from=builder /ms-playwright /ms-playwright
-
-# Copy node_modules for Playwright
-COPY --from=builder /app/node_modules ./node_modules
-
-# Create and set permissions for npm cache directory
-RUN mkdir -p /home/nextjs/.npm && chown -R nextjs:nogroup /home/nextjs
-
-# Create outputs directory for Playwright files
-RUN mkdir -p /app/outputs && chown 1001:65534 /app/outputs
-
-# Create logs directory for MCP servers
-RUN mkdir -p /app/logs && chown nextjs:nogroup /app/logs
-RUN mkdir -p /app/logs/audit && chown nextjs:nogroup /app/logs/audit
-RUN chmod 700 /app/logs/audit
-
-# Set Playwright browsers path and ensure permissions
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-RUN chown -R nextjs:nogroup /ms-playwright
-
-# Create symlink for MCP chrome compatibility
 USER root
-RUN npx playwright install --with-deps chromium
+
+# Set Playwright configurations
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+
+# 1. Install system dependencies (curl) \
+# 2. Install uv and uvx \
+# 3. Install Playwright browser and system libraries \
+# 4. Clean apt cache to reduce image size
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates && \
+    curl -LsSf https://astral.sh/uv/install.sh | UV_INSTALL_DIR="/usr/local/bin" sh && \
+    chmod +x /usr/local/bin/uv /usr/local/bin/uvx && \
+    npx -y playwright install --with-deps chromium && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create symlink for MCP chrome compatibility and ensure proper ownership
 RUN CHROMIUM_DIR=$(find /ms-playwright -maxdepth 1 -type d -name "chromium-*" | head -n 1) && \
     CHROMIUM_PATH=$(find "${CHROMIUM_DIR}" -name "chrome" -type f 2>/dev/null | head -n 1) && \
     echo "Found chromium at: ${CHROMIUM_PATH}" && \
     mkdir -p /opt/google/chrome/ && \
     ln -sf "${CHROMIUM_PATH}" /opt/google/chrome/chrome
 
-# Install uv for uvx-based MCP servers
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-RUN curl -LsSf https://astral.sh/uv/install.sh | UV_INSTALL_DIR="/usr/local/bin" sh
-RUN /usr/local/bin/uv --version
-RUN chmod +x /usr/local/bin/uv
-RUN chmod +x /usr/local/bin/uvx
+# Centralize directory creation and permission assignment to reduce image layers
+RUN mkdir -p /home/nextjs/.npm /app/outputs /app/logs/audit && \
+    chown -R nextjs:nogroup /home/nextjs /app/logs /ms-playwright && \
+    chown 1001:65534 /app/outputs && \
+    chmod 700 /app/logs/audit
 
 USER nextjs
 

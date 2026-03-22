@@ -19,6 +19,7 @@ import {
   useMemo,
   useState,
   useCallback,
+  useRef,
 } from "react";
 import { Input } from "ui/input";
 import { Separator } from "ui/separator";
@@ -37,7 +38,7 @@ import { safeJSONParse, isNull, isString } from "lib/utils";
 import { withTheme } from "@rjsf/core";
 import { Theme as shadcnTheme } from "@rjsf/shadcn";
 import validator from "@rjsf/validator-ajv8";
-import type { FieldTemplateProps } from "@rjsf/utils";
+import type { FieldTemplateProps, FieldProps } from "@rjsf/utils";
 
 const Form = withTheme(shadcnTheme);
 
@@ -292,6 +293,116 @@ const GenerateExampleInputJsonDialog = ({
   );
 };
 
+const generateUiSchema = (schema: any): any => {
+  if (!schema || typeof schema !== "object") return {};
+
+  if (schema.type === "object") {
+    if (!schema.properties || Object.keys(schema.properties).length === 0) {
+      return { "ui:field": "json" };
+    }
+    const uiSchema: any = {};
+    for (const [key, propSchema] of Object.entries(schema.properties) as [
+      string,
+      any,
+    ]) {
+      const fieldUiSchema = generateUiSchema(propSchema);
+      if (Object.keys(fieldUiSchema).length > 0) {
+        uiSchema[key] = fieldUiSchema;
+      }
+    }
+    return uiSchema;
+  } else if (schema.type === "array" && schema.items) {
+    const itemsUiSchema = generateUiSchema(schema.items);
+    if (Object.keys(itemsUiSchema).length > 0) {
+      return { items: itemsUiSchema };
+    }
+  }
+  return {};
+};
+
+function JsonField(props: FieldProps) {
+  const { formData, onChange, idSchema, schema, name, required } = props;
+
+  const [text, setText] = useState(
+    formData ? JSON.stringify(formData, null, 2) : "{}",
+  );
+  const [error, setError] = useState<string | null>(null);
+
+  const lastFormDataRef = useRef(formData);
+
+  useEffect(() => {
+    if (JSON.stringify(formData) !== JSON.stringify(lastFormDataRef.current)) {
+      lastFormDataRef.current = formData;
+      setText(formData ? JSON.stringify(formData, null, 2) : "{}");
+      setError(null);
+    }
+  }, [formData]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setText(val);
+    try {
+      if (val.trim() === "") {
+        setError(null);
+        lastFormDataRef.current = undefined;
+        (onChange as any)(undefined);
+        return;
+      }
+      const parsed = JSON.parse(val);
+      setError(null);
+      lastFormDataRef.current = parsed;
+      (onChange as any)(parsed);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-2 w-full mt-1 mb-2">
+      {(schema.title || name) && (
+        <label
+          htmlFor={idSchema?.$id || name}
+          className={[
+            "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+            error ? " text-destructive" : "",
+          ].join(" ")}
+        >
+          {schema.title || name}
+          {required && <span className="text-destructive ml-0.5">*</span>}
+        </label>
+      )}
+      <Textarea
+        id={idSchema?.$id || name}
+        className="font-mono text-xs h-[180px] resize-none"
+        value={text}
+        onChange={handleChange}
+        onBlur={() => {
+          try {
+            if (text.trim() === "") {
+              (onChange as any)(undefined);
+              setText("{}");
+            } else {
+              const parsed = JSON.parse(text);
+              setText(JSON.stringify(parsed, null, 2));
+            }
+          } catch {}
+        }}
+      />
+      {schema.description && (
+        <span
+          className={[
+            "text-xs font-medium text-muted-foreground",
+            error ? " text-destructive" : "",
+          ].join(" ")}
+        >
+          {schema.description}
+        </span>
+      )}
+      {error && <span className="text-xs text-destructive">{error}</span>}
+    </div>
+  );
+}
+
 export default function Page() {
   const { id } = useParams() as { id: string };
 
@@ -325,6 +436,10 @@ export default function Page() {
   const selectedTool = useMemo(() => {
     return filteredTools?.[selectedToolIndex];
   }, [filteredTools, selectedToolIndex]);
+
+  const uiSchema = useMemo(() => {
+    return generateUiSchema(selectedTool?.inputSchema);
+  }, [selectedTool?.inputSchema]);
 
   const toggleDescription = () => setShowFullDescription(!showFullDescription);
 
@@ -534,6 +649,7 @@ export default function Page() {
                                       any
                                     >) || {}
                                   }
+                                  uiSchema={uiSchema}
                                   validator={validator}
                                   formData={formDataRef}
                                   onChange={(e) =>
@@ -543,6 +659,9 @@ export default function Page() {
                                   }
                                   templates={{
                                     FieldTemplate: CustomFieldTemplate,
+                                  }}
+                                  fields={{
+                                    json: JsonField,
                                   }}
                                 >
                                   <></>
