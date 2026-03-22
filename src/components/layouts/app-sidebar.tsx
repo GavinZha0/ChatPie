@@ -6,11 +6,7 @@ import { SidebarHeaderShared } from "./sidebar-header";
 import { BasicUser } from "app-types/user";
 import { APP_SLOGAN } from "lib/const";
 
-export function AppSidebar({
-  user,
-}: {
-  user?: BasicUser;
-}) {
+export function AppSidebar({ user }: { user?: BasicUser }) {
   const userRole = user?.role;
   const router = useRouter();
 

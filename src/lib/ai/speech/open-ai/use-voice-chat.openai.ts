@@ -191,7 +191,12 @@ export function useOpenAIVoiceChat(props?: VoiceChatOptions): VoiceChatSession {
       toolName,
       args,
       id,
-    }: { callId: string; toolName: string; args: string; id: string }) => {
+    }: {
+      callId: string;
+      toolName: string;
+      args: string;
+      id: string;
+    }) => {
       let toolResult: any = "success";
       stopListening();
       const toolArgs = JSON.parse(args);

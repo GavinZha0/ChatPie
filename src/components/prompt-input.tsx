@@ -673,6 +673,12 @@ export default function PromptInput({
                                         showText ? "size-3.5" : "size-4"
                                       }
                                     />
+                                  ) : mention.type == "mcpTool" ? (
+                                    <MCPIcon
+                                      className={
+                                        showText ? "size-3.5" : "size-4"
+                                      }
+                                    />
                                   ) : (
                                     <DefaultToolIcon
                                       name={mention.name as DefaultToolName}

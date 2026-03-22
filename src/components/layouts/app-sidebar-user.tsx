@@ -41,9 +41,7 @@ import { BasicUser } from "app-types/user";
 import { getUserAvatar } from "lib/user/utils";
 import { Skeleton } from "ui/skeleton";
 
-export function AppSidebarUserInner(props: {
-  user?: BasicUser;
-}) {
+export function AppSidebarUserInner(props: { user?: BasicUser }) {
   const { data: user } = useSWR<BasicUser>(`/api/user/details`, fetcher, {
     fallbackData: props.user,
     suspense: true,
@@ -226,11 +224,7 @@ export function AppSidebarUserSkeleton() {
   );
 }
 
-export function AppSidebarUser({
-  user,
-}: {
-  user?: BasicUser;
-}) {
+export function AppSidebarUser({ user }: { user?: BasicUser }) {
   return (
     <Suspense fallback={<AppSidebarUserSkeleton />}>
       <AppSidebarUserInner user={user} />

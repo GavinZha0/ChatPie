@@ -13,7 +13,10 @@ import Comments from "./comments";
 export default function ChatPreview({
   thread,
   comments,
-}: { thread: ChatExportWithUser; comments: ChatExportCommentWithUser[] }) {
+}: {
+  thread: ChatExportWithUser;
+  comments: ChatExportCommentWithUser[];
+}) {
   return (
     <div
       className="flex flex-col min-w-0 h-full relative"

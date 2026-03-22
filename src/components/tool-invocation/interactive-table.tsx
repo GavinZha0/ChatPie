@@ -221,9 +221,7 @@ export function InteractiveTable(props: InteractiveTableProps) {
     const visibleCols = columns.filter((col) => visibleColumns.has(col.key));
     const csvContent = [
       // Header
-      visibleCols
-        .map((col) => col.label)
-        .join(","),
+      visibleCols.map((col) => col.label).join(","),
       // Data rows
       ...processedData.map((row) =>
         visibleCols

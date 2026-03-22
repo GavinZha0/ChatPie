@@ -150,7 +150,7 @@ export function ToolDetailPopupContent({
             <Tooltip>
               <TooltipTrigger asChild>
                 <span className="text-xs font-medium flex-1 flex items-center">
-                  {t("MCP.additionalInstructions")}
+                  {t("MCP.customInstructions")}
                   <Info className="size-3 ml-1 text-muted-foreground" />
                 </span>
               </TooltipTrigger>

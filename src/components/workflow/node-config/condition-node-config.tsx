@@ -39,11 +39,7 @@ import { createAppendNode } from "../create-append-node";
 import { useTranslations } from "next-intl";
 import { Input } from "ui/input";
 
-export function ConditionNodeDataConfig({
-  data,
-}: {
-  data: ConditionNodeData;
-}) {
+export function ConditionNodeDataConfig({ data }: { data: ConditionNodeData }) {
   const t = useTranslations();
   const { updateNodeData, setEdges, getEdges } = useReactFlow();
 

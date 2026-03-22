@@ -6,7 +6,10 @@ import { useMemo } from "react";
 export function DefaultToolIcon({
   name,
   className,
-}: { name: DefaultToolName; className?: string }) {
+}: {
+  name: DefaultToolName;
+  className?: string;
+}) {
   return useMemo(() => {
     const toolInfo = getBuiltinToolInfo(name);
     const IconComponent = toolInfo.icon;

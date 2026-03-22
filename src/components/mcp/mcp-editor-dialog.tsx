@@ -11,6 +11,7 @@ import { Input } from "ui/input";
 import { Button } from "ui/button";
 import { Label } from "ui/label";
 import { Textarea } from "ui/textarea";
+import { Separator } from "ui/separator";
 import { toast } from "sonner";
 import { safe } from "ts-safe";
 import { createDebounce, fetcher, isNull, safeJSONParse } from "lib/utils";
@@ -24,6 +25,8 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "ui/alert";
 import { z } from "zod";
 import { existMcpClientByServerNameAction } from "@/app/api/mcp/actions";
+import useSWR from "swr";
+import type { McpServerCustomization } from "app-types/mcp";
 
 interface MCPEditorDialogProps {
   open: boolean;
@@ -31,6 +34,7 @@ interface MCPEditorDialogProps {
   initialConfig?: MCPServerConfig;
   name?: string;
   id?: string;
+  userId?: string;
 }
 
 const STDIO_ARGS_ENV_PLACEHOLDER = `/** STDIO Example */
@@ -55,15 +59,18 @@ function MCPEditor({
   initialConfig,
   name: initialName,
   id,
+  userId,
   onSaveSuccess,
 }: {
   initialConfig?: MCPServerConfig;
   name?: string;
   id?: string;
+  userId?: string;
   onSaveSuccess?: () => void;
 }) {
   const t = useTranslations();
   const shouldInsert = useMemo(() => isNull(id), [id]);
+  const isOwner = Boolean(userId);
 
   const [isLoading, setIsLoading] = useState(false);
   const [jsonError, setJsonError] = useState<string | null>(null);
@@ -79,6 +86,20 @@ function MCPEditor({
   const [jsonString, setJsonString] = useState<string>(
     initialConfig ? JSON.stringify(initialConfig, null, 2) : "",
   );
+  const [customInstructions, setCustomInstructions] = useState<string>("");
+
+  // Fetch server customization for existing servers
+  const { data: serverCustomization } = useSWR<McpServerCustomization | null>(
+    !shouldInsert && id ? `/api/mcp/server-customizations/${id}` : null,
+    fetcher,
+  );
+
+  // Initialize custom instructions when data loads
+  useEffect(() => {
+    if (serverCustomization?.prompt) {
+      setCustomInstructions(serverCustomization.prompt);
+    }
+  }, [serverCustomization]);
 
   useEffect(() => {
     setName(initialName ?? "");
@@ -161,6 +182,17 @@ function MCPEditor({
           }),
         }),
       )
+      .map(async () => {
+        // Save custom instructions if user is owner and we have an id (existing server)
+        if (isOwner && id) {
+          return fetch(`/api/mcp/server-customizations/${id}`, {
+            method: "POST",
+            body: JSON.stringify({
+              prompt: customInstructions.trim(),
+            }),
+          });
+        }
+      })
       .ifOk(() => {
         toast.success(t("MCP.configurationSavedSuccessfully"));
         mutate("/api/mcp/list");
@@ -189,7 +221,7 @@ function MCPEditor({
 
   return (
     <>
-      <div className="flex flex-col space-y-6">
+      <div className="flex flex-col space-y-4">
         {/* Name field */}
         <div className="space-y-2">
           <Label htmlFor="name">{t("Common.name")}</Label>
@@ -231,6 +263,24 @@ function MCPEditor({
           )}
         </div>
 
+        {/* Custom instructions field - only show for owners */}
+        {isOwner && (
+          <div className="space-y-2">
+            <Label htmlFor="custom-instructions">
+              {t("MCP.customInstructions")}
+            </Label>
+            <Textarea
+              id="custom-instructions"
+              value={customInstructions}
+              onChange={(e) => setCustomInstructions(e.target.value)}
+              placeholder={t("MCP.customInstructionsPlaceholder")}
+              className="resize-none h-20"
+              maxLength={300}
+              disabled={isLoading}
+            />
+          </div>
+        )}
+
         {/* Save button */}
         <Button onClick={handleSave} className="w-full" disabled={saveDisabled}>
           {isLoading ? (
@@ -250,22 +300,25 @@ export function MCPEditorDialog({
   initialConfig,
   name,
   id,
+  userId,
 }: MCPEditorDialogProps) {
   const t = useTranslations("MCP");
   const isCreating = !id;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
             {isCreating ? t("addMcpServer") : t("editMcpServer")}
           </DialogTitle>
         </DialogHeader>
+        <Separator />
         <MCPEditor
           initialConfig={initialConfig}
           name={name}
           id={id}
+          userId={userId}
           onSaveSuccess={() => onOpenChange(false)}
         />
       </DialogContent>

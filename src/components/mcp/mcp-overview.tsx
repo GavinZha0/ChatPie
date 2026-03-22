@@ -116,7 +116,9 @@ export const RECOMMENDED_MARKETS = [
 
 export function MCPOverview({
   onMcpSelect,
-}: { onMcpSelect: (mcp: any) => void }) {
+}: {
+  onMcpSelect: (mcp: any) => void;
+}) {
   const t = useTranslations("MCP");
 
   const handleMcpClick = (

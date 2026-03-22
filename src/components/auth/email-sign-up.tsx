@@ -21,11 +21,7 @@ import { existsByEmailAction, signUpAction } from "@/app/api/auth/actions";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
-export default function EmailSignUp({
-  isFirstUser,
-}: {
-  isFirstUser: boolean;
-}) {
+export default function EmailSignUp({ isFirstUser }: { isFirstUser: boolean }) {
   const t = useTranslations();
   const [step, setStep] = useState(1);
   const router = useRouter();

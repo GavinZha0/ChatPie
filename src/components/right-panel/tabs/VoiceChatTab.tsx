@@ -501,7 +501,9 @@ export function VoiceChatTab() {
 
 function ConversationView({
   messages,
-}: { messages: UIMessageWithCompleted[] }) {
+}: {
+  messages: UIMessageWithCompleted[];
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const { data: session } = authClient.useSession();
   const currentUser = session?.user;

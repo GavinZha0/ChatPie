@@ -88,6 +88,8 @@ export function AgentToolSelector({
             />
           ) : m.type === "mcpServer" ? (
             <MCPIcon className="size-3" />
+          ) : m.type === "mcpTool" ? (
+            <MCPIcon className="size-3" />
           ) : m.type === "workflow" ? (
             <Avatar
               style={m.icon?.style}

@@ -6,7 +6,9 @@ import { APP_NAME, APP_SLOGAN } from "lib/const";
 
 export default async function AuthLayout({
   children,
-}: { children: React.ReactNode }) {
+}: {
+  children: React.ReactNode;
+}) {
   const t = await getTranslations("Auth.Intro");
   return (
     <main className="relative w-full flex flex-col h-screen">

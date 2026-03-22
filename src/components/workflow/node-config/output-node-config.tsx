@@ -165,7 +165,9 @@ OutputNodeDataConfig.displayName = "OutputNodeDataConfig";
 
 export const OutputNodeDataOutputStack = memo(function ({
   data,
-}: { data: OutputNodeData }) {
+}: {
+  data: OutputNodeData;
+}) {
   const { getNodes } = useReactFlow();
   const outputVariables = useMemo(() => {
     const nodes = getNodes() as UINode[];

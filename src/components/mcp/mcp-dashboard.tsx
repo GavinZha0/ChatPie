@@ -314,6 +314,7 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
         id={editingMcp?.id}
         name={editingMcp?.name}
         initialConfig={editingMcp?.config}
+        userId={user?.id}
       />
     </div>
   );
