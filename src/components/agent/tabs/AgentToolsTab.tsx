@@ -62,7 +62,7 @@ function ToolList({
   }
 
   return (
-    <div className="overflow-y-auto h-[400px]">
+    <div className="overflow-y-auto h-[350px]">
       <div className="space-y-1 p-1">
         {tools.map((tool) => {
           const isSelected = isToolSelected(tool);

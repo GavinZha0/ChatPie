@@ -25,6 +25,7 @@ import { Loader, User, FileText, Cpu, Wrench } from "lucide-react";
 import { Button } from "ui/button";
 import { Skeleton } from "ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "ui/dialog";
+import { Separator } from "ui/separator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "ui/tabs";
 import { ShareableActions, Visibility } from "@/components/shareable-actions";
 import { AgentBasicInfoTab } from "./tabs/AgentBasicInfoTab";
@@ -389,6 +390,7 @@ export function EditAgentDialog({
             )}
           </div>
         </DialogHeader>
+        <Separator />
         {/* Show loading skeleton when editing and data is incomplete */}
         {!hasCompleteData && isLoadingAgent ? (
           <div className="p-2 space-y-2 flex-1">
