@@ -1,7 +1,7 @@
 ############################
 # Builder
 ############################
-FROM node:22-bookworm-slim AS builder
+FROM node:24-bookworm-slim AS builder
 ARG DOCKER_BUILD="1"
 WORKDIR /app
 
@@ -23,7 +23,7 @@ RUN pnpm build
 ############################
 # Runner (production + Playwright)
 ############################
-FROM node:22-bookworm-slim AS runner
+FROM node:24-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 # disable telemetry during runtime.
