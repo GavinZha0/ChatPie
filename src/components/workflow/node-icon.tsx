@@ -20,7 +20,11 @@ export function NodeIcon({
   type,
   className,
   iconClassName,
-}: { type: NodeKind; className?: string; iconClassName?: string }) {
+}: {
+  type: NodeKind;
+  className?: string;
+  iconClassName?: string;
+}) {
   const Icon = useMemo(() => {
     switch (type) {
       case NodeKind.Input:

@@ -96,7 +96,10 @@ const PurePreviewMessage = ({
             const renderPart = ({
               part,
               index,
-            }: { part: any; index: number }) => {
+            }: {
+              part: any;
+              index: number;
+            }) => {
               const key = `message-${messageIndex}-part-${part.type}-${index}`;
 
               // Fix: Determine if this is the last part within its respective group

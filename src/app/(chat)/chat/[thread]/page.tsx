@@ -12,7 +12,9 @@ const fetchThread = async (
 
 export default async function Page({
   params,
-}: { params: Promise<{ thread: string }> }) {
+}: {
+  params: Promise<{ thread: string }>;
+}) {
   const { thread: threadId } = await params;
 
   const thread = await fetchThread(threadId);

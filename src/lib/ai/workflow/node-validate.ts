@@ -49,7 +49,10 @@ type NodeValidate<T> = (context: {
 export function allNodeValidate({
   nodes,
   edges,
-}: { nodes: UINode[]; edges: Edge[] }):
+}: {
+  nodes: UINode[];
+  edges: Edge[];
+}):
   | true
   | {
       node?: UINode;

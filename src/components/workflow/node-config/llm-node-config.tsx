@@ -290,7 +290,9 @@ LLMNodeDataConfig.displayName = "LLMNodeDataConfig";
 
 export const LLMNodeDataStack = memo(function ({
   data,
-}: { data: LLMNodeData }) {
+}: {
+  data: LLMNodeData;
+}) {
   if (!data.model) return null;
   const isTextResponse =
     data.outputSchema.properties?.answer?.type === "string";

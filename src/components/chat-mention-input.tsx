@@ -68,7 +68,10 @@ export default function ChatMentionInput({
     ({
       text,
       mentions,
-    }: { text: string; mentions: { label: string; id: string }[] }) => {
+    }: {
+      text: string;
+      mentions: { label: string; id: string }[];
+    }) => {
       onChange(text);
       const mentionsIds = mentions.map((mention) => mention.id);
       const parsedMentions = mentionsIds.map(

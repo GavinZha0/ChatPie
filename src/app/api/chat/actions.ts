@@ -47,7 +47,10 @@ export async function getUserId() {
 export async function generateTitleFromUserMessageAction({
   message,
   model,
-}: { message: UIMessage; model: LanguageModel }) {
+}: {
+  message: UIMessage;
+  model: LanguageModel;
+}) {
   const session = await getSession();
   if (!session) {
     throw new Error("Unauthorized");

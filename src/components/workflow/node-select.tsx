@@ -37,7 +37,9 @@ export function NodeSelect({
 
 function NodeSelectContent({
   onChange,
-}: { onChange: (nodeKind: NodeKind) => void }) {
+}: {
+  onChange: (nodeKind: NodeKind) => void;
+}) {
   const t = useTranslations();
   const descriptions = useMemo(() => {
     return t.raw("Workflow.kindsDescription") ?? {};

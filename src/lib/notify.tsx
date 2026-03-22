@@ -30,7 +30,10 @@ export const notify = {
   component({
     children,
     className,
-  }: { children: ReactNode; className?: string }) {
+  }: {
+    children: ReactNode;
+    className?: string;
+  }) {
     return new Promise<void>((resolve) => {
       const container = createContainer();
       const root = createRoot(container);

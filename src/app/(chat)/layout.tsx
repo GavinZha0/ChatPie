@@ -18,7 +18,9 @@ export const experimental_ppr = true;
 
 export default async function ChatLayout({
   children,
-}: { children: React.ReactNode }) {
+}: {
+  children: React.ReactNode;
+}) {
   const cookieStore = await cookies();
   const session = await getSession();
   if (!session) {

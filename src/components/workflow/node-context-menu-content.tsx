@@ -7,11 +7,7 @@ import { useTranslations } from "next-intl";
 import { useCallback } from "react";
 import { toast } from "sonner";
 
-export function NodeContextMenuContent({
-  node,
-}: {
-  node: WorkflowNodeData;
-}) {
+export function NodeContextMenuContent({ node }: { node: WorkflowNodeData }) {
   const { setEdges, setNodes } = useReactFlow();
   const t = useTranslations();
 

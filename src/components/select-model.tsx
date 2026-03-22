@@ -239,7 +239,10 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
 const ProviderHeader = memo(function ProviderHeader({
   providerAlias,
   providerNames,
-}: { providerAlias: string; providerNames: string[] }) {
+}: {
+  providerAlias: string;
+  providerNames: string[];
+}) {
   // Determine icon by the first provider name (type key)
   const iconKey = providerNames[0] || "";
   return (

@@ -164,7 +164,9 @@ InputNodeDataConfig.displayName = "InputNodeDataConfig";
 
 export const OutputSchemaStack = memo(function ({
   data,
-}: { data: WorkflowNodeData }) {
+}: {
+  data: WorkflowNodeData;
+}) {
   const keys = Object.keys(data.outputSchema?.properties ?? {});
   if (!keys.length) return null;
   return (
