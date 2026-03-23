@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.10.1](https://github.com/GavinZha0/ChatPie/compare/v0.10.0...v0.10.1) (2026-03-23)
+
+
+### Bug Fixes
+
+* chrome path issue in Dockerfile ([#22](https://github.com/GavinZha0/ChatPie/issues/22)) ([ce596a1](https://github.com/GavinZha0/ChatPie/commit/ce596a1b93ad81bddea8357558ede84e6c752e7f))
+* no input for object field of MCP tool ([#28](https://github.com/GavinZha0/ChatPie/issues/28)) ([2ba786e](https://github.com/GavinZha0/ChatPie/commit/2ba786e049a86d64da4ee94c4e93234caf5a1cda))
+* permission of action on github ([#30](https://github.com/GavinZha0/ChatPie/issues/30)) ([2645564](https://github.com/GavinZha0/ChatPie/commit/2645564c10d808cf80fd971f92ee92363072c95f))
+* playwright can't find chrome on Mac ([#20](https://github.com/GavinZha0/ChatPie/issues/20)) ([f2d9bfa](https://github.com/GavinZha0/ChatPie/commit/f2d9bfa3f3ae1bd747ddace289a642ec684d8e40))
+
 ## [0.10.0](https://github.com/GavinZha0/ChatPie/compare/v0.9.0...v0.10.0) (2026-03-20)
 
 
