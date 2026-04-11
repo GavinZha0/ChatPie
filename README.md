@@ -186,9 +186,25 @@ Open [http://localhost:8300](http://localhost:8300) in your browser to get start
 
 For local development, `pnpm i` will generate a `.env` file automatically. Fill in the required values.
 
+> [!IMPORTANT]
+> **Data Encryption:** An `ENCRYPTION_KEY` environment variable is **mandatory** for AES-256-GCM encryption of sensitive data (like Provider API keys).
+> You must generate a 64-character hex string (32 bytes) and add it to your `.env` file:
+> ```bash
+> node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+> ```
+> Without this key, the application will fail to encrypt/decrypt API keys and will crash during model configuration.
+
 For user Docker Compose (`docker-compose.yaml` in the project root), a `.env` file is optional; add one to override defaults used by the Compose file.
 
 Refer to the [.env.example](./.env.example) file for a complete list of environment variables.
+
+### Data Security & Migration
+
+If you are upgrading from an older version that stored API keys in plain text, you **must** run the one-time migration script after configuring your `ENCRYPTION_KEY`. This script will safely encrypt all existing API keys in your database:
+
+```bash
+pnpm tsx scripts/encrypt-api-keys.ts
+```
 
 <br/>
 

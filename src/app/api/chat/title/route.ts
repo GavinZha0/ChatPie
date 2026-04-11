@@ -50,7 +50,7 @@ export async function POST(request: Request) {
         abortSignal: request.signal,
         // add user-id in header for Dify at least
         headers: {
-          "user-id": session.user.email,
+          "user-id": session.user.id,
         },
         onFinish: (ctx) => {
           chatRepository

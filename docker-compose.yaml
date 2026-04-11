@@ -9,6 +9,7 @@ services:
     environment:
       NO_HTTPS: ${NO_HTTPS:-1}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-local-dev-secret}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-fdbd2ad8bc8f906be729391001f9c8c252bc1eaa7a9ccbb7e5d434aede7597b7}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:8300}
       POSTGRES_HOST: ${POSTGRES_HOST:-piedb}
       REDIS_URL: ${REDIS_URL:-}

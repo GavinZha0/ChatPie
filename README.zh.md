@@ -183,9 +183,25 @@ pnpm dev   # 或：pnpm build && pnpm start
 
 用于本地开发时，运行 `pnpm i` 会自动生成 `.env` 文件，请填写必要值。
 
+> [!IMPORTANT]
+> **数据加密（必需配置）：** 必须配置 `ENCRYPTION_KEY` 环境变量，用于对敏感数据（如第三方大模型的 API Key）进行 AES-256-GCM 加密。
+> 你需要生成一个 64 位十六进制字符串（32个字节）并将其添加到你的 `.env` 文件中：
+> ```bash
+> node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+> ```
+> 如果没有配置此密钥，程序将无法加密或解密 API Key，且会在新增修改配置或加载模型时触发致命错误而崩溃。
+
 对于用户版 Docker Compose（项目根目录的 `docker-compose.yaml`），`.env` 为可选；你可以添加一个 `.env` 用来覆盖 Compose 文件中的默认值。
 
 详细的环境变量说明请参阅 [.env.example](./.env.example)。
+
+### 数据安全与数据迁移
+
+如果你是由旧版本（原本采用明文存取 API Key 的版本）升级上来的用户，那么在配置好 `ENCRYPTION_KEY` 之后，你**必须**手动执行一次性的迁移脚本。该脚本会安全地扫描数据库并将所有历史存留的明文 API Key 统一转化为最高级别的加密格式：
+
+```bash
+pnpm tsx scripts/encrypt-api-keys.ts
+```
 
 <br/>
 

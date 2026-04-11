@@ -9,6 +9,7 @@ services:
       - "8300:8300"
     environment:
       POSTGRES_HOST: piedb
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-fdbd2ad8bc8f906be729391001f9c8c252bc1eaa7a9ccbb7e5d434aede7597b7}
       # File Storage Configuration (S3/RustFS)
       FILE_STORAGE_TYPE: ${FILE_STORAGE_TYPE:-s3}
       FILE_STORAGE_S3_BUCKET: ${FILE_STORAGE_S3_BUCKET:-chatpie}

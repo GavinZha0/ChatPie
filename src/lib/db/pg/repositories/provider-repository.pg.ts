@@ -2,6 +2,19 @@ import { pgDb as db } from "../db.pg";
 import { ProviderTable } from "../schema.pg";
 import { eq, desc } from "drizzle-orm";
 import type { LLMConfig } from "app-types/provider";
+import { encryptApiKey, decryptApiKey } from "lib/crypto/api-key-cipher";
+
+/** Safely decrypt a nullable api_key field from the database. */
+function decryptKey(apiKey: string | null): string | null {
+  if (!apiKey) return apiKey;
+  return decryptApiKey(apiKey);
+}
+
+/** Safely encrypt a nullable api_key before writing to the database. */
+function encryptKey(apiKey: string | null | undefined): string | null {
+  if (!apiKey) return apiKey ?? null;
+  return encryptApiKey(apiKey);
+}
 
 export interface ProviderRepository {
   /**
@@ -100,7 +113,7 @@ export const pgProviderRepository: ProviderRepository = {
       .select()
       .from(ProviderTable)
       .orderBy(desc(ProviderTable.updatedAt));
-    return results;
+    return results.map((r) => ({ ...r, apiKey: decryptKey(r.apiKey) }));
   },
 
   async selectById(id) {
@@ -108,7 +121,8 @@ export const pgProviderRepository: ProviderRepository = {
       .select()
       .from(ProviderTable)
       .where(eq(ProviderTable.id, id));
-    return result;
+    if (!result) return result;
+    return { ...result, apiKey: decryptKey(result.apiKey) };
   },
 
   async selectByName(name) {
@@ -117,13 +131,18 @@ export const pgProviderRepository: ProviderRepository = {
       .from(ProviderTable)
       .where(eq(ProviderTable.name, name))
       .orderBy(desc(ProviderTable.updatedAt));
-    const withKey = results.find(
+    const decrypted = results.map((r) => ({
+      ...r,
+      apiKey: decryptKey(r.apiKey),
+    }));
+    const withKey = decrypted.find(
       (p) => typeof p.apiKey === "string" && p.apiKey.trim().length > 0,
     );
-    return withKey ?? results[0];
+    return withKey ?? decrypted[0];
   },
 
   async save(provider) {
+    const encryptedKey = encryptKey(provider.apiKey);
     if (provider.id) {
       // Update existing provider
       const [result] = await db
@@ -132,13 +151,13 @@ export const pgProviderRepository: ProviderRepository = {
           name: provider.name,
           alias: provider.alias,
           baseUrl: provider.baseUrl,
-          apiKey: provider.apiKey ?? null,
+          apiKey: encryptedKey,
           llm: provider.llm ?? null,
           updatedAt: new Date(),
         })
         .where(eq(ProviderTable.id, provider.id))
         .returning();
-      return result;
+      return { ...result, apiKey: decryptKey(result.apiKey) };
     } else {
       // Insert new provider
       const [result] = await db
@@ -147,18 +166,18 @@ export const pgProviderRepository: ProviderRepository = {
           name: provider.name,
           alias: provider.alias,
           baseUrl: provider.baseUrl,
-          apiKey: provider.apiKey ?? null,
+          apiKey: encryptedKey,
           llm: provider.llm ?? null,
         })
         .returning();
-      return result;
+      return { ...result, apiKey: decryptKey(result.apiKey) };
     }
   },
 
   async updateApiKey(id, apiKey) {
     await db
       .update(ProviderTable)
-      .set({ apiKey, updatedAt: new Date() })
+      .set({ apiKey: encryptKey(apiKey), updatedAt: new Date() })
       .where(eq(ProviderTable.id, id));
   },
 

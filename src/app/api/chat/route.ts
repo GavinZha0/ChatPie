@@ -448,7 +448,7 @@ async function handleChatModels(
 
           // Prepare headers for the request
           const headers: Record<string, string> = {
-            "user-id": session.user.email,
+            "user-id": session.user.id,
           };
 
           // Add chat-id header for Dify providers to maintain conversation continuity
