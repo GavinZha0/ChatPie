@@ -79,34 +79,39 @@ export function WorkflowGreeting() {
           </h3>
 
           <div className="grid grid-cols-3 gap-3">
-            {Object.keys(NodeKind).map((key) => (
-              <Tooltip key={key} delayDuration={200}>
-                <TooltipTrigger asChild>
-                  <div className="group flex flex-col items-center gap-2 p-3 rounded-lg  hover:bg-accent transition-colors cursor-default">
-                    <NodeIcon
-                      type={NodeKind[key]}
-                      className="ring-4 ring-input/40 group-hover:ring-input group-hover:scale-105 transition-all duration-300"
-                    />
-                    <span className="text-xs font-medium text-center group-hover:hidden block">
-                      {key}
-                    </span>
-                    <TextShimmer className="text-xs font-medium text-center group-hover:block hidden">
-                      {key}
-                    </TextShimmer>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-64 p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <NodeIcon type={NodeKind[key]} />
-                    <span className="text-xs font-semibold">{key}</span>
-                  </div>
-                  <div className="text-xs whitespace-pre-wrap text-muted-foreground">
-                    {descriptions[NodeKind[key]] ??
-                      t("Workflow.greeting.soonMessage")}
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            ))}
+            {Object.keys(NodeKind)
+              .filter(
+                (key: any) =>
+                  isNaN(Number(key)) && NodeKind[key as any] !== NodeKind.Input,
+              )
+              .map((key) => (
+                <Tooltip key={key} delayDuration={200}>
+                  <TooltipTrigger asChild>
+                    <div className="group flex flex-col items-center gap-2 p-3 rounded-lg  hover:bg-accent transition-colors cursor-default">
+                      <NodeIcon
+                        type={NodeKind[key as any]}
+                        className="ring-4 ring-input/40 group-hover:ring-input group-hover:scale-105 transition-all duration-300"
+                      />
+                      <span className="text-xs font-medium text-center group-hover:hidden block">
+                        {key}
+                      </span>
+                      <TextShimmer className="text-xs font-medium text-center group-hover:block hidden">
+                        {key}
+                      </TextShimmer>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-64 p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <NodeIcon type={NodeKind[key as any]} />
+                      <span className="text-xs font-semibold">{key}</span>
+                    </div>
+                    <div className="text-xs whitespace-pre-wrap text-muted-foreground">
+                      {descriptions[NodeKind[key as any]] ??
+                        t("Workflow.greeting.soonMessage")}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              ))}
           </div>
         </div>
       </div>

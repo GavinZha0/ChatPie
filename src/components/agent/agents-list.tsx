@@ -222,7 +222,7 @@ export function AgentsList({
             </div>
 
             <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-5">
-              {myAgents.map((agent) => (
+              {myAgents.map((agent: AgentSummary) => (
                 <ShareableCard
                   key={agent.id}
                   type="agent"
@@ -254,7 +254,7 @@ export function AgentsList({
             </div>
 
             <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-5">
-              {sharedAgents.map((agent) => (
+              {sharedAgents.map((agent: AgentSummary) => (
                 <ShareableCard
                   key={agent.id}
                   type="agent"

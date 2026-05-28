@@ -23,10 +23,10 @@ export async function GET(request: Request) {
     } = AgentQuerySchema.parse(queryParams);
 
     // Parse filters - can be passed as comma-separated string or single type
-    let filters;
+    let filters: any[] = [];
     if (filtersParam) {
       filters = filtersParam.split(",").map((f) => f.trim());
-    } else {
+    } else if (type) {
       // Fallback to single type parameter for backward compatibility
       filters = [type];
     }
@@ -34,9 +34,10 @@ export async function GET(request: Request) {
     // Use the new simplified selectAgents method with database-level filtering and limiting
     const agents = await agentRepository.selectAgents(
       session.user.id,
-      filters,
+      filters as any,
       limit,
     );
+
     return Response.json(agents);
   } catch (error) {
     if (error instanceof z.ZodError) {

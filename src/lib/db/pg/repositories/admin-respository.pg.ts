@@ -145,7 +145,7 @@ function buildFilterCondition(
 
   switch (operator) {
     case "eq":
-      return eq(column, value);
+      return eq(column, value as any);
     case "ne":
       return sql`${column} != ${value}`;
     case "lt":
@@ -157,9 +157,9 @@ function buildFilterCondition(
     case "gte":
       return sql`${column} >= ${value}`;
     case "contains":
-      return ilike(column, `%${value}%`);
+      return ilike(column, `%${String(value)}%`);
     default:
-      return eq(column, value);
+      return eq(column, value as any);
   }
 }
 

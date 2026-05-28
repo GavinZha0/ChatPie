@@ -190,7 +190,7 @@ describe("node-validate", () => {
       const startNode1 = createInputNodeData("start1", "Duplicate Name");
       const startNode2 = createOutputNodeData("start1", "Duplicate Name");
       const nodes = [startNode1, startNode2];
-      const edges = [];
+      const edges: Edge[] = [];
 
       const result = allNodeValidate({ nodes, edges });
       expect(result).not.toBe(true);

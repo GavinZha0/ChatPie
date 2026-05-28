@@ -177,7 +177,7 @@ export function AgentToolsTab({
   );
 
   const selectedIds = useMemo(() => {
-    return mentions.map((m) => JSON.stringify(m));
+    return mentions.map((m: ChatMention) => JSON.stringify(m));
   }, [mentions]);
 
   // Create a proper comparison function for MCP tools
@@ -209,8 +209,8 @@ export function AgentToolsTab({
     // MCP Tools - Create tree structure
     const filteredMcp =
       mcpList
-        ?.filter((mcp) => mcp.toolInfo?.length)
-        .filter((mcp) => {
+        ?.filter((mcp: any) => mcp.toolInfo?.length)
+        .filter((mcp: any) => {
           if (!searchQuery) return true;
           const search = searchQuery.toLowerCase();
           return (
@@ -232,7 +232,7 @@ export function AgentToolsTab({
       };
 
       // Create child tool mentions
-      const childTools: ToolItem[] = (mcp.toolInfo || []).map((tool) => {
+      const childTools: ToolItem[] = (mcp.toolInfo || []).map((tool: any) => {
         const toolMention: ChatMention = {
           type: "mcpTool",
           name: tool.name,
@@ -275,7 +275,7 @@ export function AgentToolsTab({
 
     // Workflow Tools
     const filteredWorkflows =
-      workflowList?.filter((workflow) => {
+      workflowList?.filter((workflow: any) => {
         if (!searchQuery) return true;
         return workflow.name.toLowerCase().includes(searchQuery.toLowerCase());
       }) || [];
@@ -315,14 +315,14 @@ export function AgentToolsTab({
 
     // Default Tools
     const defaultToolItems = getAllBuiltinTools()
-      .filter((toolInfo) => {
+      .filter((toolInfo: any) => {
         if (!searchQuery) return true;
         return (
           toolInfo.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
           toolInfo.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
       })
-      .map((toolInfo) => {
+      .map((toolInfo: any) => {
         const mention: ChatMention = {
           type: "defaultTool",
           name: toolInfo.name,
@@ -352,7 +352,7 @@ export function AgentToolsTab({
   const handleToggleTool = useCallback(
     (tool: ToolItem) => {
       const newMentions = [...mentions];
-      const index = newMentions.findIndex((m) => equal(m, tool.mention));
+      const index = newMentions.findIndex((m: any) => equal(m, tool.mention));
 
       if (index !== -1) {
         // Remove the tool
@@ -367,7 +367,7 @@ export function AgentToolsTab({
           newMentions.splice(
             0,
             newMentions.length,
-            ...newMentions.filter((mention) => {
+            ...newMentions.filter((mention: ChatMention) => {
               // Keep mentions that are NOT individual tools from this server
               return !(
                 mention.type === "mcpTool" &&
@@ -383,7 +383,7 @@ export function AgentToolsTab({
           newMentions.splice(
             0,
             newMentions.length,
-            ...newMentions.filter((mention) => {
+            ...newMentions.filter((mention: ChatMention) => {
               // Keep mentions that are NOT the server for this tool
               return !(
                 mention.type === "mcpServer" &&
@@ -400,7 +400,7 @@ export function AgentToolsTab({
   );
 
   const selectedMentions = useMemo(() => {
-    return mentions.map((m, i) => (
+    return mentions.map((m: ChatMention, i: number) => (
       <div
         key={i}
         className={cn(
@@ -411,7 +411,9 @@ export function AgentToolsTab({
         onClick={() => {
           if (hasEditAccess) {
             setAgent({
-              tools: mentions.filter((mention) => !equal(mention, m)),
+              tools: mentions.filter(
+                (mention: ChatMention) => !equal(mention, m),
+              ),
             });
           }
         }}

@@ -93,9 +93,7 @@ export async function Highlight(
   collapsed: boolean,
   onToggle: () => void,
 ) {
-  const parsed: BundledLanguage = (
-    bundledLanguages[lang] ? lang : "md"
-  ) as BundledLanguage;
+  const parsed: any = bundledLanguages[lang as any] ? lang : "md";
 
   if (lang === "json") {
     return (

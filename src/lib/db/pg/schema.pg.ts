@@ -78,7 +78,7 @@ export const BookmarkTable = pgTable(
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
   },
-  (table) => [
+  (table): any => [
     unique().on(table.userId, table.itemId, table.itemType),
     index("bookmark_user_id_idx").on(table.userId),
     index("bookmark_item_idx").on(table.itemId, table.itemType),
@@ -252,7 +252,7 @@ export const WorkflowNodeDataTable = pgTable(
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
   },
-  (t) => [index("workflow_node_kind_idx").on(t.kind)],
+  (t): any => [index("workflow_node_kind_idx").on(t.kind)],
 );
 
 export const WorkflowEdgeTable = pgTable("workflow_edge", {
@@ -295,7 +295,7 @@ export const ArchiveItemTable = pgTable(
       .references(() => UserTable.id, { onDelete: "cascade" }),
     addedAt: timestamp("added_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   },
-  (t) => [index("archive_item_item_id_idx").on(t.itemId)],
+  (t): any => [index("archive_item_item_id_idx").on(t.itemId)],
 );
 
 export const McpOAuthSessionTable = pgTable(
@@ -317,7 +317,7 @@ export const McpOAuthSessionTable = pgTable(
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
   },
-  (t) => [
+  (t): any => [
     index("mcp_oauth_session_server_id_idx").on(t.mcpServerId),
     index("mcp_oauth_session_state_idx").on(t.state),
     // Partial index for sessions with tokens for better performance
@@ -361,7 +361,7 @@ export const ChatExportTable = pgTable("chat_export", {
   expiresAt: timestamp("expires_at"),
 });
 
-export const ChatExportCommentTable = pgTable("chat_export_comment", {
+export const ChatExportCommentTable: any = pgTable("chat_export_comment", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
   exportId: uuid("export_id")
     .notNull()

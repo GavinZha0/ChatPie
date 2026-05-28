@@ -278,7 +278,7 @@ export function objectFlow<T extends Record<string, any>>(obj: T) {
       return result;
     },
     setByPath(path: string[], value: any) {
-      path.reduce((acc, cur, i) => {
+      path.reduce((acc: Record<string, any>, cur, i) => {
         const isLast = i == path.length - 1;
         if (isLast) {
           acc[cur] = value;
@@ -286,7 +286,7 @@ export function objectFlow<T extends Record<string, any>>(obj: T) {
         }
         acc[cur] ??= {};
         return acc[cur];
-      }, obj as object);
+      }, obj);
       return obj;
     },
   };
@@ -341,7 +341,7 @@ export function exclude<T extends object, K extends keyof T>(
   ) as Omit<T, K>;
 }
 
-export function validateSchema(key: string, schema: JSONSchema7) {
+export function validateSchema(key: string, schema: JSONSchema7): any {
   const variableName = cleanVariableName(key);
   if (variableName.length === 0) {
     throw new Error("Invalid Variable Name");

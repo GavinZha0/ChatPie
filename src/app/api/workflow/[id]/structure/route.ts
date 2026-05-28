@@ -39,11 +39,11 @@ export async function POST(
   }
   await workflowRepository.saveStructure({
     workflowId: id,
-    nodes: nodes.map((v) => ({
+    nodes: nodes.map((v: any) => ({
       ...v,
       workflowId: id,
     })),
-    edges: edges.map((v) => ({
+    edges: edges.map((v: any) => ({
       ...v,
       workflowId: id,
     })),

@@ -313,7 +313,7 @@ describe("File-based MCP Config Storage", () => {
 
     it("should trigger refresh when file changes", async () => {
       const changeHandler = mockWatcher.on.mock.calls.find(
-        (call) => call[0] === "change",
+        (call: any) => call[0] === "change",
       )?.[1];
 
       expect(changeHandler).toBeDefined();

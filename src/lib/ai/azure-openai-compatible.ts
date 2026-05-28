@@ -41,8 +41,8 @@ export function createAzureOpenAICompatible({
       };
 
       // Remove any Authorization header if present
-      if (headers["Authorization"]) {
-        delete headers["Authorization"];
+      if ((headers as any)["Authorization"]) {
+        delete (headers as any)["Authorization"];
       }
 
       return fetch(url, {

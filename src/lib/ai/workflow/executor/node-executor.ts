@@ -72,11 +72,11 @@ export const outputNodeExecutor: NodeExecutor<OutputNodeData> = ({
   state,
 }) => {
   return {
-    output: node.outputData.reduce((acc, cur) => {
+    output: node.outputData.reduce((acc: Record<string, any>, cur) => {
       // Collect data from each configured source node
       acc[cur.key] = state.getOutput(cur.source!);
       return acc;
-    }, {} as object),
+    }, {}),
   };
 };
 

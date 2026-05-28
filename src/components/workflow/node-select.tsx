@@ -45,29 +45,32 @@ function NodeSelectContent({
     return t.raw("Workflow.kindsDescription") ?? {};
   }, [t]);
   return Object.keys(NodeKind)
-    .filter((key) => NodeKind[key] !== NodeKind.Input)
+    .filter(
+      (key: any) =>
+        !isNaN(Number(key)) && NodeKind[key as any] !== NodeKind.Input,
+    )
     .sort((a, b) => {
-      const aIndex = unSupportedKinds.indexOf(NodeKind[a]);
-      const bIndex = unSupportedKinds.indexOf(NodeKind[b]);
+      const aIndex = unSupportedKinds.indexOf(NodeKind[a as any]);
+      const bIndex = unSupportedKinds.indexOf(NodeKind[b as any]);
       return aIndex - bIndex;
     })
     .map((key) => (
       <Tooltip key={key} delayDuration={0}>
         <TooltipTrigger asChild>
           <DropdownMenuItem
-            disabled={unSupportedKinds.includes(NodeKind[key])}
+            disabled={unSupportedKinds.includes(NodeKind[key as any])}
             onClick={() => {
-              if (unSupportedKinds.includes(NodeKind[key])) {
+              if (unSupportedKinds.includes(NodeKind[key as any])) {
                 return;
               }
-              onChange(NodeKind[key]);
+              onChange(NodeKind[key as any]);
             }}
             key={key}
           >
-            <NodeIcon type={NodeKind[key]} />
+            <NodeIcon type={NodeKind[key as any]} />
             {key}
 
-            {unSupportedKinds.includes(NodeKind[key]) && (
+            {unSupportedKinds.includes(NodeKind[key as any]) && (
               <span className="ml-auto text-xs text-muted-foreground">
                 Soon...
               </span>
@@ -76,11 +79,11 @@ function NodeSelectContent({
         </TooltipTrigger>
         <TooltipContent side="left" align="center" className="max-w-64 p-4">
           <div className="flex items-center gap-2 mb-4">
-            <NodeIcon type={NodeKind[key]} />
+            <NodeIcon type={NodeKind[key as any]} />
             <span className="text-sm font-semibold text-foreground">{key}</span>
           </div>
           <div className="whitespace-pre-wrap">
-            {descriptions[NodeKind[key]] ?? "...soon"}
+            {descriptions[NodeKind[key as any]] ?? "...soon"}
           </div>
         </TooltipContent>
       </Tooltip>

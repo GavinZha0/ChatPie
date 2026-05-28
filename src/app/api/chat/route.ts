@@ -271,9 +271,9 @@ async function handleChatModels(
   const modelResponses = await Promise.all(
     agentIdsToProcess.map(async (agentId) => {
       // Get complete agent info from cache/db if agent id exists
-      const agent = agentId
-        ? await rememberAgentAction(agentId, session.user.id)
-        : null;
+      const agent: any = agentId
+        ? await (rememberAgentAction as any)(agentId, session.user.id)
+        : undefined;
 
       // Determine the model to use: chatModel (if provided) or agent's model
       // chatModel takes priority - when frontend sends it, user wants to use that model
@@ -418,10 +418,12 @@ async function handleChatModels(
               // its execute so manualToolExecuteByLastMessage can call it after
               // the user approves. Only the copy sent to streamText is stripped.
               const pageAgentForStream =
-                isApproval && APP_DEFAULT_TOOLS[DefaultToolName.PageAgent]
+                isApproval &&
+                (APP_DEFAULT_TOOLS as any)[DefaultToolName.PageAgent]
                   ? excludeToolExecution({
-                      [DefaultToolName.PageAgent]:
-                        APP_DEFAULT_TOOLS[DefaultToolName.PageAgent],
+                      [DefaultToolName.PageAgent]: (APP_DEFAULT_TOOLS as any)[
+                        DefaultToolName.PageAgent
+                      ],
                     })
                   : {};
 
@@ -633,10 +635,12 @@ function createTaggedMergedStream(
               const { done, value } = await reader.read();
               if (done) break;
 
-              const rawBlockId = extractBlockId(value);
-              const rawToolCallId = extractToolCallId(value);
-              const blockId = rawBlockId || currentBlockId;
-              const toolCallId = rawToolCallId || currentToolCallId;
+              const rawBlockId: string | undefined = extractBlockId(value);
+              const rawToolCallId: string | undefined =
+                extractToolCallId(value);
+              const blockId: string | undefined = rawBlockId || currentBlockId;
+              const toolCallId: string | undefined =
+                rawToolCallId || currentToolCallId;
 
               if (shouldTagChunk(value)) {
                 // bind blockId to agentId for multiple agents

@@ -6,6 +6,7 @@ import { cn } from "lib/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PromptInput from "@/components/prompt-input";
 import { ErrorMessage, PreviewMessage } from "@/components/message";
+import { ChatModel } from "app-types/chat";
 import { DefaultChatTransport, UIMessage } from "ai";
 import { useShallow } from "zustand/shallow";
 import { isShortcutEvent, Shortcuts } from "lib/keyboard-shortcuts";
@@ -226,14 +227,17 @@ function TemporaryChatContent({
     }
   }, [isLoading]);
 
-  const setModel = useCallback((model) => {
-    appStoreMutate({
-      temporaryChat: {
-        ...temporaryChat,
-        chatModel: model,
-      },
-    });
-  }, []);
+  const setModel = useCallback(
+    (model: ChatModel) => {
+      appStoreMutate((prev) => ({
+        temporaryChat: {
+          ...prev.temporaryChat,
+          chatModel: model,
+        },
+      }));
+    },
+    [appStoreMutate],
+  );
 
   useEffect(() => {
     if (!temporaryChat.chatModel) {

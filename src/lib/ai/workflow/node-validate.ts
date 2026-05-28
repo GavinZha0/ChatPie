@@ -17,7 +17,7 @@ import { safe } from "ts-safe";
 import { findJsonSchemaByPath } from "./shared.workflow";
 import { ConditionBranch } from "./condition";
 
-export function validateSchema(key: string, schema: JSONSchema7) {
+export function validateSchema(key: string, schema: JSONSchema7): boolean {
   const variableName = cleanVariableName(key);
   if (variableName.length === 0) {
     throw new Error("Invalid Variable Name");
